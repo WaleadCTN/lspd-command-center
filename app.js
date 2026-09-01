@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 11.1 BILINGUAL FIXED — menu/icon-aware FR/EN display layer
+// LSPD Command Center — Phase 12+13 OPERATIONS & MDT — Phase 11.1 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -34,6 +34,9 @@ const esc = v => String(v ?? "")
 // Firestore values remain canonical/original; only visible labels are translated.
 const I18N_EN = {"Command Center":"Command Center","Training & Operations":"Training & Operations","Training • Personnel • Operations • Communication":"Training • Personnel • Operations • Communication","Connexion":"Login","Créer un compte":"Create account","Adresse e-mail":"Email address","Mot de passe":"Password","Se connecter":"Log in","Nom RP":"RP name","Confirmer le mot de passe":"Confirm password","Créer ma demande d'inscription":"Submit my registration request","Le compte Firebase est créé automatiquement. L'accès LSPD reste bloqué jusqu'à validation par le Chief.":"The Firebase account is created automatically. LSPD access remains locked until approval by the Chief.","Inscription en attente":"Registration pending","Votre demande doit être validée par le commandement LSPD.":"Your request must be approved by LSPD Command.","Se déconnecter":"Log out","Déconnecté":"Logged out","Connecté":"Connected","Compte LSPD":"LSPD account","Dashboard":"Dashboard","Mon profil":"My profile","Inscriptions":"Registrations","Notifications":"Notifications","Annonces":"Announcements","Messages":"Messages","Rapports d'incident":"Incident reports","Validations":"Approvals","Corrections & addenda":"Corrections & addenda","Manuel FTO":"FTO Manual","Formations":"Training","Évaluations":"Evaluations","Mes recrues":"My trainees","Officiers":"Officers","Affectations FTO":"FTO assignments","Certifications":"Certifications","Dossiers & distinctions":"Personnel records & distinctions","Roster & shifts":"Roster & shifts","Congés":"Leave","Calendrier formations":"Training calendar","À valider":"To validate","Promotion advisor":"Promotion advisor","Promotions":"Promotions","Statistiques":"Statistics","Grades & responsabilités":"Ranks & responsibilities","Scénarios":"Scenarios","Admin":"Admin","Historique":"History","Recherche globale...":"Global search...","Profil incomplet":"Incomplete profile","Ton compte Authentication existe, mais aucun profil LSPD valide n'est associé. Contacte le Chief of Police.":"Your Authentication account exists, but no valid LSPD profile is linked to it. Contact the Chief of Police.","Erreur profil":"Profile error","Erreur de profil":"Profile error","Impossible de charger ton profil LSPD. Réessaie ou contacte le commandement.":"Unable to load your LSPD profile. Try again or contact Command.","Ta demande a bien été enregistrée. Le Chief of Police doit maintenant valider ton matricule, ton grade, ton rôle et ta division.":"Your request has been recorded. The Chief of Police must now approve your badge number, rank, role, and division.","Inscription refusée":"Registration rejected","Ta demande d'inscription n'a pas été validée. Contacte le commandement LSPD si tu penses qu'il s'agit d'une erreur.":"Your registration request was not approved. Contact LSPD Command if you believe this is an error.","Compte archivé":"Archived account","Ton profil LSPD est archivé et l'accès au Command Center est désactivé.":"Your LSPD profile is archived and access to the Command Center is disabled.","Utilisateur":"User","Statut :":"Status:","Entre un nom RP valide.":"Enter a valid RP name.","Les mots de passe ne correspondent pas.":"Passwords do not match.","Inscription enregistrée":"Registration submitted","Ton compte a été créé automatiquement. Tu n'as rien d'autre à faire : attends simplement la validation du Chief of Police.":"Your account was created automatically. You do not need to do anything else; simply wait for approval by the Chief of Police.","Cette adresse e-mail possède déjà un compte.":"This email address already has an account.","Le mot de passe doit contenir au moins 6 caractères.":"The password must contain at least 6 characters.","Adresse e-mail invalide.":"Invalid email address.","Demandes d'inscription":"Registration requests","Les candidats créent eux-mêmes leur compte Firebase Authentication. Ici, tu valides uniquement leur accès LSPD : matricule, grade, rôle et division.":"Applicants create their own Firebase Authentication account. Here, you only approve their LSPD access: badge number, rank, role, and division.","Date":"Date","Email":"Email","Statut":"Status","Profil proposé":"Proposed profile","Action":"Action","Réexaminer":"Review again","Approuver":"Approve","Refuser":"Reject","Aucune demande en attente.":"No pending requests.","Valider l'inscription":"Approve registration","UID géré automatiquement par Firebase":"UID managed automatically by Firebase","Matricule":"Badge number","Grade":"Rank","Rôle":"Role","Division":"Division","Annuler":"Cancel","Le matricule est obligatoire.":"Badge number is required.","Inscription LSPD approuvée":"LSPD registration approved","Tout marquer comme lu":"Mark all as read","Aucune notification.":"No notifications.","Marquer comme lu":"Mark as read","Par":"By","Système":"System","Info":"Info","Validation":"Approval","Command overview":"Command overview","Effectif actif":"Active personnel","Congés en attente":"Pending leave","Shifts aujourd'hui":"Today's shifts","Évaluations totales":"Total evaluations","Identité":"Identity","Progression":"Progress","Progression personnelle":"Personal progress","Dossier":"Record","Accès FTO/Command actif":"FTO/Command access active","Accès Officer":"Officer access","Unité":"Unit","Sécurité du compte":"Account security","Tu peux recevoir un e-mail Firebase pour réinitialiser ton mot de passe.":"You can receive a Firebase email to reset your password.","Envoyer l'e-mail de réinitialisation":"Send password reset email","E-mail de réinitialisation envoyé.":"Password reset email sent.","+ Nouvelle annonce":"+ New announcement","Aucune annonce.":"No announcements.","Nouvelle annonce":"New announcement","Titre":"Title","Priorité":"Priority","Message":"Message","Publier":"Publish","Normal":"Normal","Important":"Important","Urgent":"Urgent","+ Nouveau message":"+ New message","De":"From","À":"To","Sujet":"Subject","Aucun message.":"No messages.","Nouveau message":"New message","Destinataire":"Recipient","Envoyer":"Send","+ Nouveau rapport":"+ New report","Exporter CSV":"Export CSV","Auteur":"Author","Type":"Type","Pièces":"Attachments","Aucun rapport.":"No reports.","Nouveau rapport d'incident":"New incident report","Résumé":"Summary","Détails":"Details","Pièces jointes (optionnel : images/PDF, max 10 Mo par fichier)":"Attachments (optional: images/PDF, max 10 MB per file)","Soumettre pour validation":"Submit for approval","Aucune validation en attente.":"No approvals pending.","Use of Force":"Use of Force","Vehicle Pursuit":"Vehicle Pursuit","Arrestation sensible":"Sensitive arrest","Accident service":"On-duty accident","Plainte citoyen":"Citizen complaint","Incident interne":"Internal incident","Autre":"Other","Approuvé":"Approved","Refusé":"Rejected","+ Demander une correction":"+ Request a correction","Les documents d'origine restent intacts. Une correction approuvée crée un":"Original documents remain unchanged. An approved correction creates a","addendum":"addendum","traçable.":"with a full audit trail.","Demandeur":"Requester","Cible":"Target","Motif":"Reason","Révision":"Review","Demande de correction / addendum":"Correction / addendum request","Document concerné":"Affected document","Pourquoi une correction est nécessaire ?":"Why is a correction needed?","Texte proposé pour l'addendum":"Proposed addendum text","Correction précise, sans effacer l'original...":"Precise correction without deleting the original...","Envoyer la demande":"Submit request","Aucun document disponible pour une demande de correction.":"No document is available for a correction request.","Manuel FTO LSPD":"LSPD FTO Manual","Briefing → démonstration → pratique → observation → feedback → validation → traçabilité.":"Briefing → demonstration → practice → observation → feedback → validation → audit trail.","Sécurité avant performance":"Safety before performance","Expliquer le pourquoi":"Explain the why","Erreur critique = correction immédiate":"Critical error = immediate correction","Feedback factuel":"Factual feedback","Validation traçable":"Traceable validation","Même standard pour tous":"Same standard for everyone","Débutant":"Beginner","Intermédiaire":"Intermediate","Avancé":"Advanced","Commandement":"Command","À faire":"To do","Validé":"Validated","À revoir":"Needs review","Échec":"Failed","Déroulé FTO":"FTO process","Briefing et objectifs":"Briefing and objectives","Démonstration FTO":"FTO demonstration","Mise en pratique":"Practical exercise","Questions/correction":"Questions/correction","Observation en situation":"Field observation","Fermer":"Close","Fondamentaux LSPD":"LSPD Fundamentals","Structure, chaîne de commandement, radio et code de conduite":"Structure, chain of command, radio, and code of conduct","Radio & communications":"Radio & Communications","Codes radio, transmissions, priorités et dispatch":"Radio codes, transmissions, priorities, and dispatch","Patrouille":"Patrol","Positionnement, observation, contrôles et contacts citoyens":"Positioning, observation, stops, and citizen contacts","Code de la route":"Traffic Code","Contrôles routiers, infractions et conduite professionnelle":"Traffic stops, violations, and professional driving","Contrôle d'identité":"Identity Check","Procédure de contact, vérifications et sécurité":"Contact procedure, checks, and safety","Arrestation":"Arrest","Menottage, fouille, droits, transport et remise en garde":"Handcuffing, search, rights, transport, and custody handoff","Usage de la force":"Use of Force","Proportionnalité, désescalade et justification":"Proportionality, de-escalation, and justification","Poursuites":"Pursuits","Poursuite véhicule/pied, coordination et sécurité":"Vehicle/foot pursuit, coordination, and safety","Scènes de crime":"Crime Scenes","Sécurisation, témoins, preuves et préservation":"Scene security, witnesses, evidence, and preservation","Rapports":"Reports","Rédaction factuelle, chronologie, preuves et transmission":"Factual writing, chronology, evidence, and submission","Interventions à risque":"High-Risk Incidents","Renfort, périmètre, négociation et coordination":"Backup, perimeter, negotiation, and coordination","Gestion de scène":"Scene Management","Commandement tactique, briefing et ressources":"Tactical command, briefing, and resources","FTO & pédagogie":"FTO & Training Methods","Démonstration, observation, feedback et validation":"Demonstration, observation, feedback, and validation","Supervision":"Supervision","Contrôle qualité, discipline, coaching et décisions":"Quality control, discipline, coaching, and decisions","Gestion opérationnelle, effectifs et crises":"Operational management, staffing, and crises","Leadership":"Leadership","Culture LSPD, éthique, développement et succession":"LSPD culture, ethics, development, and succession","+ Nouvelle évaluation":"+ New evaluation","Officier":"Officer","FTO":"FTO","Module":"Module","Score":"Score","Résultat":"Result","Aucune évaluation.":"No evaluations.","Nouvelle évaluation FTO":"New FTO evaluation","Officier évalué":"Officer evaluated","Critères":"Criteria","Procédure":"Procedure","Respect des étapes et SOP":"Compliance with steps and SOPs","Sécurité":"Safety","Sécurité personnelle, partenaires et public":"Personal, partner, and public safety","Communication radio":"Radio communication","Clarté, concision et pertinence":"Clarity, concision, and relevance","Jugement":"Judgment","Décision adaptée à la situation":"Decision appropriate to the situation","Professionnalisme":"Professionalism","Comportement et attitude":"Behavior and attitude","Compte rendu":"Report","Qualité du rapport et traçabilité":"Report quality and traceability","Commentaires FTO":"FTO comments","Score :":"Score:","1 — Insuffisant":"1 — Unsatisfactory","2 — À améliorer":"2 — Needs improvement","3 — Conforme":"3 — Meets standard","4 — Très bien":"4 — Very good","5 — Excellent":"5 — Excellent","Enregistrer":"Save","Fiche d'évaluation FTO":"FTO Evaluation Form","Commentaires":"Comments","Aucun commentaire.":"No comments.","Imprimer / PDF":"Print / PDF","Voir / Imprimer":"View / Print","Aucune recrue assignée.":"No trainee assigned.","Ouvrir le dossier":"Open record","Rechercher...":"Search...","Tous statuts":"All statuses","Toutes unités":"All units","+ Ajouter un profil":"+ Add profile","Nom":"Name","Aucun officier.":"No officers.","Modifier":"Edit","Dossier officier":"Officer record","Distinctions / sanctions":"Commendations / sanctions","Dernières évaluations":"Latest evaluations","Ajouter un profil":"Add profile","UID Firebase Authentication":"Firebase Authentication UID","Unité / Division":"Unit / Division","Actif":"Active","En formation":"In training","Suspendu":"Suspended","Inactif":"Inactive","Archivé":"Archived","En attente":"Pending","Officer":"Officer","Sergeant":"Sergeant","Lieutenant":"Lieutenant","Captain":"Captain","Deputy Chief":"Deputy Chief","Assistant Chief":"Assistant Chief","Chief":"Chief","Sergent":"Sergeant","Chief of Police":"Chief of Police","Patrol":"Patrol","Traffic":"Traffic","Detective":"Detective","SWAT":"SWAT","Air Support":"Air Support","Training":"Training","Command":"Command","Police Officer I":"Police Officer I","Police Officer II":"Police Officer II","Police Officer III":"Police Officer III","Applique les procédures sous supervision.":"Applies procedures under supervision.","Officier autonome sur les missions courantes.":"Independent officer on routine duties.","Officier expérimenté, senior et mentor.":"Experienced senior officer and mentor.","Premier niveau de supervision.":"First level of supervision.","Supervise plusieurs équipes et opérations.":"Supervises multiple teams and operations.","Responsable d'une division ou unité.":"Responsible for a division or unit.","Supervise plusieurs divisions.":"Supervises multiple divisions.","Direction stratégique du département.":"Strategic leadership of the department.","Autorité finale du département.":"Final authority of the department.","+ Nouvelle affectation":"+ New assignment","Recrue":"Trainee","Commentaire":"Comment","Aucune affectation.":"No assignments.","Clôturer":"Close assignment","Nouvelle affectation FTO":"New FTO assignment","Affecter":"Assign","+ Ajouter une certification":"+ Add certification","Certification":"Certification","Attribuée par":"Issued by","Aucune certification.":"No certifications.","Ajouter une certification":"Add certification","Attribuer":"Issue","Pursuit":"Pursuit","Supervisor":"Supervisor","+ Nouvelle entrée":"+ New entry","Émis par":"Issued by","Aucune entrée.":"No entries.","Nouvelle entrée au dossier":"New personnel record entry","Commendation":"Commendation","Sanction":"Sanction","+ Ajouter un shift":"+ Add shift","Début":"Start","Fin":"End","Aucun shift.":"No shifts.","Ajouter un shift":"Add shift","Planifié":"Scheduled","+ Demander un congé":"+ Request leave","Du":"From","Au":"To","Aucune demande.":"No requests.","Demande de congé":"Leave request","+ Planifier une formation":"+ Schedule training","Aucune formation planifiée.":"No training scheduled.","Planifier une formation":"Schedule training","Heure":"Time","Lieu":"Location","Notes":"Notes","Planifier":"Schedule","Formateur:":"Trainer:","Modules restants":"Remaining modules","Indicateur d'aide à la décision. Il ne remplace pas le jugement du commandement.":"Decision-support indicator. It does not replace Command judgment.","Moyenne FTO":"FTO average","Sanctions":"Sanctions","Indice":"Index","Lecture":"Assessment","Fort candidat":"Strong candidate","À considérer":"Consider","Pas encore":"Not yet","+ Enregistrer une promotion":"+ Record promotion","Ancien grade":"Previous rank","Nouveau grade":"New rank","Validé par":"Approved by","Aucune promotion.":"No promotions.","Enregistrer une promotion":"Record promotion","Effectif":"Personnel","Affectations actives":"Active assignments","Score moyen":"Average score","Effectif par grade":"Personnel by rank","Operations & RH":"Operations & HR","Commendations":"Commendations","Shifts enregistrés":"Recorded shifts","Par unité":"By unit","officiers":"officers","Contrôle routier":"Traffic Stop","Contrôle d'un véhicule suspect":"Stop of a suspicious vehicle","Sécurité, radio, approche, identification, décision, rapport":"Safety, radio, approach, identification, decision, report","Suspect coopératif":"Cooperative suspect","Contrôle, menottage, fouille, droits, transport":"Control, handcuffing, search, rights, transport","Poursuite véhicule":"Vehicle Pursuit","Fuite après refus d'obtempérer":"Flight after failure to stop","Radio, sécurité, coordination, décision":"Radio, safety, coordination, decision","Poursuite à pied":"Foot Pursuit","Suspect prend la fuite":"Suspect flees","Communication, trajectoire, renfort, arrestation":"Communication, route, backup, arrest","Intervention à risque":"High-Risk Incident","Appel avec menace":"Call involving a threat","Périmètre, briefing, désescalade, commandement":"Perimeter, briefing, de-escalation, command","Scène de crime":"Crime Scene","Vol avec plusieurs témoins":"Theft with multiple witnesses","Sécurisation, témoins, preuves, chronologie":"Scene security, witnesses, evidence, chronology","Incident multi-unités":"Multi-unit incident","Commandement, rôles, briefing, compte rendu":"Command, roles, briefing, report","Évaluation FTO":"FTO Evaluation","Patrouille complète":"Full patrol","Évaluation globale en conditions réalistes":"Overall evaluation under realistic conditions","Lancer":"Start","Points à observer":"Observation points","Terminer":"Finish","Gestion système":"System management","Profils":"Profiles","Authentication":"Authentication","Rôles & unités":"Roles & units","Onglet Officiers":"Officers tab","Archivage":"Archiving","Pour retirer un officier des listes actives sans supprimer son historique, passe son statut à":"To remove an officer from active lists without deleting their history, set their status to","Aucun historique.":"No history.","Recherche globale":"Global search","Aucun résultat.":"No results.","Erreur :":"Error:","Aucune donnée à exporter.":"No data to export."};
 const I18N_FR = {"Command Center":"Centre de commandement","Training & Operations":"Formation & opérations","Training • Personnel • Operations • Communication":"Formation • Personnel • Opérations • Communication","Dashboard":"Tableau de bord","Roster & shifts":"Planning & services","Promotion advisor":"Conseiller promotions","Admin":"Administration","Email":"E-mail","Authentication":"Authentification","Operations & RH":"Opérations & RH","Officer":"Officier","Sergeant":"Sergent","Captain":"Capitaine","Deputy Chief":"Chef adjoint","Assistant Chief":"Chef assistant","Chief":"Chef","Chief of Police":"Chef de la police","Police Officer I":"Officier de police I","Police Officer II":"Officier de police II","Police Officer III":"Officier de police III","Patrol":"Patrouille","Traffic":"Circulation","Detective":"Enquêtes","Air Support":"Support aérien","Training":"Formation","Command":"Commandement","Pursuit":"Poursuite","Supervisor":"Superviseur","Use of Force":"Usage de la force","Vehicle Pursuit":"Poursuite véhicule"};
+
+Object.assign(I18N_EN,{"Mon espace opérationnel":"My operational space","Tableau de service":"Duty board","Inscriptions formations":"Training enrollment","MDT / Dossiers":"MDT / Case files","Divisions & candidatures":"Divisions & applications","Mes prochains shifts":"My upcoming shifts","Mes formations":"My training sessions","Mes certifications":"My certifications","Mon dossier RH":"My personnel record","Mes congés":"My leave","Aucun shift à venir.":"No upcoming shifts.","Aucune formation inscrite.":"No training registration.","Aucun élément au dossier.":"No personnel record entries.","Pointer l'entrée":"Check in","Pointer la sortie":"Check out","En service":"On duty","Terminé":"Completed","Annulé":"Cancelled","Absent / non pointé":"Absent / no check-in","À venir":"Upcoming","Aujourd'hui":"Today","Service en cours":"Currently on duty","Absences / non pointés":"Absences / no-shows","En congé":"On leave","En formation aujourd'hui":"In training today","Modifier shift":"Edit shift","Annuler shift":"Cancel shift","Modifier le shift":"Edit shift","Nouveau début":"New start","Nouvelle fin":"New end","Enregistrer les modifications":"Save changes","Capacité":"Capacity","Places":"Spots","S'inscrire":"Register","Annuler mon inscription":"Cancel my registration","Gérer les présences":"Manage attendance","Inscrit":"Registered","Présent":"Present","Absent":"Absent","Inscription annulée":"Registration cancelled","Complet":"Full","Participants":"Participants","Marquer présent":"Mark present","Marquer absent":"Mark absent","Aucun participant.":"No participants.","Rappel de shift":"Shift reminder","Rappel de formation":"Training reminder","Ton shift commence bientôt.":"Your shift starts soon.","Ta formation commence bientôt.":"Your training starts soon.","Dossiers d'enquête":"Case files","+ Nouveau dossier":"+ New case file","Numéro":"Number","Catégorie":"Category","Ouvert":"Open","Clos":"Closed","Enquête":"Investigation","Intervention":"Incident","Renseignement":"Intelligence","Administration":"Administration","Nouveau dossier MDT":"New MDT case file","Créer le dossier":"Create case file","Clôturer le dossier":"Close case file","Aucun dossier MDT.":"No MDT case files.","Rapports accessibles":"Accessible incident reports","Mesure":"Measure","Effectif actuel":"Current personnel","Ma division actuelle":"My current division","Candidater":"Apply","Candidature division":"Division application","Division souhaitée":"Requested division","Motivation":"Motivation","Envoyer ma candidature":"Submit application","Mes candidatures":"My applications","Candidatures en attente":"Pending applications","Aucune candidature.":"No applications.","Candidature approuvée":"Application approved","Candidature refusée":"Application rejected","Approuver la candidature":"Approve application","Refuser la candidature":"Reject application","Ta division a été mise à jour.":"Your division has been updated.","Patrouille générale et réponse aux appels.":"General patrol and response to calls.","Circulation, contrôles routiers et poursuites.":"Traffic enforcement, traffic stops, and pursuits.","Enquêtes, preuves et dossiers criminels.":"Investigations, evidence, and criminal cases.","Interventions tactiques à haut risque.":"High-risk tactical operations.","Support aérien et coordination aérienne.":"Air support and aerial coordination.","Formation, FTO et développement des officiers.":"Training, FTO, and officer development.","Commandement et supervision du département.":"Department command and supervision.","La capacité doit être comprise entre 1 et 100.":"Capacity must be between 1 and 100.","Tu es déjà inscrit à cette formation.":"You are already registered for this training.","Formation complète.":"Training session is full.","Ton inscription est enregistrée.":"Your registration is confirmed.","Présence mise à jour.":"Attendance updated.","Shift annulé.":"Shift cancelled."});
+Object.assign(I18N_FR,{"Roster & shifts":"Planning & services","Duty board":"Tableau de service","My operational space":"Mon espace opérationnel","Training enrollment":"Inscriptions formations","MDT / Case files":"MDT / Dossiers","Divisions & applications":"Divisions & candidatures"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -217,6 +220,18 @@ const divisions = ["Patrol","Traffic","Detective","SWAT","Air Support","Training
 const certificationsCatalog = ["FTO","Pursuit","Traffic","Detective","SWAT","Air Support","Supervisor"];
 const incidentTypes = ["Use of Force","Vehicle Pursuit","Arrestation sensible","Accident service","Plainte citoyen","Incident interne","Autre"];
 
+const caseCategories = ["Enquête","Intervention","Renseignement","Administration"];
+const divisionInfo = [
+  ["Patrol","Patrouille générale et réponse aux appels."],
+  ["Traffic","Circulation, contrôles routiers et poursuites."],
+  ["Detective","Enquêtes, preuves et dossiers criminels."],
+  ["SWAT","Interventions tactiques à haut risque."],
+  ["Air Support","Support aérien et coordination aérienne."],
+  ["Training","Formation, FTO et développement des officiers."],
+  ["Command","Commandement et supervision du département."]
+];
+
+
 const criteria = [
 ["procedure","Procédure","Respect des étapes et SOP"],
 ["security","Sécurité","Sécurité personnelle, partenaires et public"],
@@ -238,12 +253,12 @@ const scenarios = [
 ];
 
 const pages = {
- dashboard:"Dashboard",profile:"Mon profil",registrations:"Inscriptions",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
- incidents:"Rapports d'incident",approvals:"Validations",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
+ dashboard:"Dashboard",profile:"Mon profil",mySpace:"Mon espace opérationnel",registrations:"Inscriptions",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
+ incidents:"Rapports d'incident",approvals:"Validations",mdt:"MDT / Dossiers",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
  evaluations:"Évaluations",trainees:"Mes recrues",officers:"Officiers",assignments:"Affectations FTO",
- certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",leave:"Congés",
- calendar:"Calendrier formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
- promotions:"Promotions",stats:"Statistiques",grades:"Grades & responsabilités",
+ certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",leave:"Congés",
+ calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
+ promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
  scenarios:"Scénarios",admin:"Admin",history:"Historique"
 };
 
@@ -298,6 +313,7 @@ async function loadProfile(user){
   applyRoleVisibility();
   refreshNotificationBadge().catch(()=>{});
   refreshRegistrationBadge().catch(()=>{});
+  generateUpcomingReminders().catch(()=>{});
   render("dashboard");
 }
 function showApp(){
@@ -404,6 +420,7 @@ function applyRoleVisibility(){
   ["officers","assignments","certifications","records","shifts","requirements","promotions","stats","history","promotionAdvisor","approvals"].forEach(p=>hide(p,!isCommand()));
   hide("corrections",false);
   hide("registrations",!isChief());
+  hide("dutyBoard",!isCommand());
   hide("calendar",!isFTO());
   hide("admin",!isChief());
 }
@@ -412,9 +429,9 @@ function render(page){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   $("pageTitle").textContent=pages[page]||"LSPD";
   ({
-    dashboard,profile,registrations,notifications,announcements,messages,incidents,approvals,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
-    certifications,records,shifts,leave,calendar,requirements,promotionAdvisor,promotions,
-    stats,grades:gradesPage,scenarios:scenariosPage,admin,history
+    dashboard,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
+    certifications,records,shifts,dutyBoard,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
+    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,history
   }[page]||dashboard)();
 }
 
@@ -668,6 +685,456 @@ async function uploadIncidentAttachments(files){
     uploaded.push({name:file.name,url,path,type:file.type||""});
   }
   return uploaded;
+}
+
+
+function dateTimeFromParts(date,time="00:00"){
+  const d=new Date(`${date}T${time||"00:00"}:00`);
+  return Number.isNaN(d.getTime())?null:d;
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function shiftOperationalStatus(s){
+  if(s.status==="Annulé") return "Annulé";
+  if(s.checkOutAt) return "Terminé";
+  if(s.checkInAt) return "En service";
+  const now=new Date(), end=dateTimeFromParts(s.date,s.end||"23:59");
+  if(s.date===todayISO() && end && now>end) return "Absent / non pointé";
+  return "À venir";
+}
+
+async function generateUpcomingReminders(){
+  if(!window.LSPD.user) return;
+  try{
+    const [shiftSnap,regSnap,notifSnap,eventSnap]=await Promise.all([
+      getDocs(query(collection(db,"shifts"),where("officerId","==",window.LSPD.user.uid))),
+      getDocs(query(collection(db,"training_registrations"),where("officerId","==",window.LSPD.user.uid))),
+      getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid))),
+      getDocs(collection(db,"training_events"))
+    ]);
+    const existing=new Set(notifSnap.docs.map(d=>d.data().reminderKey).filter(Boolean));
+    const now=Date.now(), horizon=24*60*60*1000;
+
+    for(const d of shiftSnap.docs){
+      const s=d.data();
+      if(s.status==="Annulé") continue;
+      const dt=dateTimeFromParts(s.date,s.start);
+      if(!dt) continue;
+      const diff=dt.getTime()-now;
+      const key=`shift:${d.id}`;
+      if(diff>=0 && diff<=horizon && !existing.has(key)){
+        await addDoc(collection(db,"notifications"),{
+          recipientId:window.LSPD.user.uid,
+          senderId:window.LSPD.user.uid,
+          senderName:"Système LSPD",
+          title:"Rappel de shift",
+          body:`${s.date} • ${s.start}-${s.end} • ${s.division||"Patrol"}. Ton shift commence bientôt.`,
+          type:"Info",linkPage:"mySpace",read:false,reminderKey:key,createdAt:serverTimestamp()
+        });
+        existing.add(key);
+      }
+    }
+
+    const events=new Map(eventSnap.docs.map(d=>[d.id,{id:d.id,...d.data()}]));
+    for(const d of regSnap.docs){
+      const r=d.data();
+      if(r.status==="Annulée") continue;
+      const e=events.get(r.eventId);
+      if(!e) continue;
+      const dt=dateTimeFromParts(e.date,e.time);
+      if(!dt) continue;
+      const diff=dt.getTime()-now;
+      const key=`training:${e.id}`;
+      if(diff>=0 && diff<=horizon && !existing.has(key)){
+        await addDoc(collection(db,"notifications"),{
+          recipientId:window.LSPD.user.uid,
+          senderId:window.LSPD.user.uid,
+          senderName:"Système LSPD",
+          title:"Rappel de formation",
+          body:`${e.title} • ${e.date} ${e.time}. Ta formation commence bientôt.`,
+          type:"Info",linkPage:"trainingHub",read:false,reminderKey:key,createdAt:serverTimestamp()
+        });
+        existing.add(key);
+      }
+    }
+    refreshNotificationBadge().catch(()=>{});
+  }catch(err){ console.warn("Reminder generation skipped",err); }
+}
+
+async function mySpace(){
+  try{
+    const uid=window.LSPD.user.uid;
+    const [shiftSnap,certSnap,recordSnap,leaveSnap,regSnap,eventSnap]=await Promise.all([
+      getDocs(query(collection(db,"shifts"),where("officerId","==",uid))),
+      getDocs(query(collection(db,"certifications"),where("officerId","==",uid))),
+      getDocs(query(collection(db,"personnel_records"),where("officerId","==",uid))),
+      getDocs(query(collection(db,"leave_requests"),where("officerId","==",uid))),
+      getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid))),
+      getDocs(collection(db,"training_events"))
+    ]);
+    const today=todayISO();
+    const shiftsData=shiftSnap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(s=>s.date>=today && s.status!=="Annulé")
+      .sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+    const certs=certSnap.docs.map(d=>d.data());
+    const recordsData=recordSnap.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const leaves=leaveSnap.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const eventMap=new Map(eventSnap.docs.map(d=>[d.id,{id:d.id,...d.data()}]));
+    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(r=>r.status!=="Annulée")
+      .map(r=>({r,event:eventMap.get(r.eventId)}))
+      .filter(x=>x.event && x.event.date>=today)
+      .sort((a,b)=>(a.event.date+a.event.time).localeCompare(b.event.date+b.event.time));
+
+    $("content").innerHTML=`
+      <div class="grid2">
+        <div class="card">
+          <h3>Mes prochains shifts</h3>
+          ${shiftsData.length?shiftsData.slice(0,8).map(s=>{
+            const st=shiftOperationalStatus(s);
+            return `<div class="ops-item">
+              <div><b>${esc(s.date)} • ${esc(s.start)}-${esc(s.end)}</b><span>${esc(s.division||"Patrol")} • ${esc(st)}</span></div>
+              <div>${!s.checkInAt && s.date===today?`<button class="btn secondary my-checkin" data-id="${s.id}">Pointer l'entrée</button>`:""}
+              ${s.checkInAt && !s.checkOutAt?`<button class="btn secondary my-checkout" data-id="${s.id}">Pointer la sortie</button>`:""}</div>
+            </div>`;
+          }).join(""):'<p class="muted">Aucun shift à venir.</p>'}
+        </div>
+        <div class="card">
+          <h3>Mes formations</h3>
+          ${regs.length?regs.slice(0,8).map(x=>`<div class="ops-item"><div><b>${esc(x.event.title)}</b><span>${esc(x.event.date)} • ${esc(x.event.time)} • ${esc(x.r.attendanceStatus||x.r.status||"Inscrit")}</span></div></div>`).join(""):'<p class="muted">Aucune formation inscrite.</p>'}
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:16px">
+        <div class="card"><h3>Mes certifications</h3><div class="chip-row">${certs.length?certs.map(c=>`<span class="chip">${esc(c.certification)}</span>`).join(""):'<span class="muted">Aucune certification.</span>'}</div></div>
+        <div class="card"><h3>Mes congés</h3>${leaves.length?leaves.slice(0,6).map(l=>`<div class="row"><span>${esc(l.startDate)} → ${esc(l.endDate)}</span><span class="tag ${l.status==="Approuvé"?"green":l.status==="Refusé"?"red":"orange"}">${esc(l.status)}</span></div>`).join(""):'<p class="muted">Aucune demande.</p>'}</div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>Mon dossier RH</h3>${recordsData.length?recordsData.slice(0,10).map(r=>`<div class="record ${r.type==="Sanction"?"negative":"positive"}"><b>${esc(r.type)} — ${esc(r.title)}</b><span>${formatDate(r.createdAt)} • ${esc(r.issuedByName)}</span><p>${esc(r.details||"")}</p></div>`).join(""):'<p class="muted">Aucun élément au dossier.</p>'}</div>`;
+
+    document.querySelectorAll(".my-checkin").forEach(b=>b.onclick=()=>checkInShift(b.dataset.id));
+    document.querySelectorAll(".my-checkout").forEach(b=>b.onclick=()=>checkOutShift(b.dataset.id));
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function checkInShift(id){
+  try{
+    await updateDoc(doc(db,"shifts",id),{dutyStatus:"En service",checkInAt:serverTimestamp()});
+    await addAudit("SHIFT_CHECK_IN",id,window.LSPD.profile.name);
+    mySpace();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+async function checkOutShift(id){
+  try{
+    await updateDoc(doc(db,"shifts",id),{dutyStatus:"Terminé",checkOutAt:serverTimestamp()});
+    await addAudit("SHIFT_CHECK_OUT",id,window.LSPD.profile.name);
+    mySpace();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+async function dutyBoard(){
+  if(!isCommand()) return;
+  try{
+    const today=todayISO();
+    const [shiftSnap,leaveSnap,eventSnap,regSnap]=await Promise.all([
+      getDocs(collection(db,"shifts")),
+      getDocs(collection(db,"leave_requests")),
+      getDocs(collection(db,"training_events")),
+      getDocs(collection(db,"training_registrations"))
+    ]);
+    const shiftsToday=shiftSnap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.date===today);
+    const leaves=leaveSnap.docs.map(d=>d.data()).filter(l=>l.status==="Approuvé" && l.startDate<=today && l.endDate>=today);
+    const events=eventSnap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.date===today);
+    const eventIds=new Set(events.map(e=>e.id));
+    const regs=regSnap.docs.map(d=>d.data()).filter(r=>eventIds.has(r.eventId) && r.status!=="Annulée");
+
+    const onDuty=shiftsToday.filter(s=>shiftOperationalStatus(s)==="En service");
+    const noShows=shiftsToday.filter(s=>shiftOperationalStatus(s)==="Absent / non pointé");
+
+    $("content").innerHTML=`
+      <div class="grid stats-grid">
+        <div class="card accent-card"><div class="muted">Service en cours</div><div class="stat">${onDuty.length}</div></div>
+        <div class="card accent-card"><div class="muted">Absences / non pointés</div><div class="stat">${noShows.length}</div></div>
+        <div class="card accent-card"><div class="muted">En congé</div><div class="stat">${leaves.length}</div></div>
+        <div class="card accent-card"><div class="muted">En formation aujourd'hui</div><div class="stat">${regs.length}</div></div>
+      </div>
+      <div class="section-title">Aujourd'hui</div>
+      <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Horaire</th><th>Unité</th><th>Statut</th>${isChief()?"<th>Action</th>":""}</tr></thead><tbody>
+      ${shiftsToday.length?shiftsToday.map(s=>`<tr><td>${esc(s.officerName)}</td><td>${esc(s.start)}-${esc(s.end)}</td><td>${esc(s.division||"Patrol")}</td><td><span class="tag ${shiftOperationalStatus(s)==="En service"?"green":shiftOperationalStatus(s)==="Absent / non pointé"?"red":""}">${esc(shiftOperationalStatus(s))}</span></td>${isChief()?`<td><button class="btn secondary edit-duty-shift" data-id="${s.id}">Modifier shift</button> ${s.status!=="Annulé"?`<button class="btn secondary cancel-duty-shift" data-id="${s.id}">Annuler shift</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="5">Aucun shift.</td></tr>'}
+      </tbody></table></div>
+      <div class="grid2" style="margin-top:16px">
+        <div class="card"><h3>En congé</h3>${leaves.length?leaves.map(l=>`<div class="row"><span>${esc(l.officerName)}</span><b>${esc(l.startDate)} → ${esc(l.endDate)}</b></div>`).join(""):'<p class="muted">Aucune demande.</p>'}</div>
+        <div class="card"><h3>En formation aujourd'hui</h3>${regs.length?regs.map(r=>`<div class="row"><span>${esc(r.officerName)}</span><b>${esc(r.attendanceStatus||r.status)}</b></div>`).join(""):'<p class="muted">Aucune formation planifiée.</p>'}</div>
+      </div>`;
+
+    document.querySelectorAll(".edit-duty-shift").forEach(b=>b.onclick=()=>openShiftEdit(b.dataset.id));
+    document.querySelectorAll(".cancel-duty-shift").forEach(b=>b.onclick=()=>cancelShift(b.dataset.id));
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function openShiftEdit(id){
+  if(!isChief()) return;
+  const s=await getDoc(doc(db,"shifts",id));
+  if(!s.exists()) return;
+  const v=s.data();
+  showModal(`<h2>Modifier le shift</h2><form id="shiftEditForm">
+    <input id="seId" type="hidden" value="${esc(id)}">
+    <div class="formgrid">
+      <label class="field"><span>Date</span><input id="seDate" type="date" required value="${esc(v.date)}"></label>
+      <label class="field"><span>Nouveau début</span><input id="seStart" type="time" required value="${esc(v.start)}"></label>
+      <label class="field"><span>Nouvelle fin</span><input id="seEnd" type="time" required value="${esc(v.end)}"></label>
+      <label class="field"><span>Division</span><select id="seDivision">${divisions.map(d=>`<option ${d===(v.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
+    </div>
+    <div id="seError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer les modifications</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div>
+  </form>`);
+  $("shiftEditForm").onsubmit=async e=>{
+    e.preventDefault();
+    try{
+      await updateDoc(doc(db,"shifts",id),{date:$("seDate").value,start:$("seStart").value,end:$("seEnd").value,division:$("seDivision").value,updatedAt:serverTimestamp()});
+      await addAudit("SHIFT_UPDATED",id,`${v.officerName} — ${$("seDate").value} ${$("seStart").value}-${$("seEnd").value}`);
+      document.querySelector(".modal")?.remove(); dutyBoard();
+    }catch(err){ $("seError").textContent="Erreur : "+(err.code||err.message); }
+  };
+}
+async function cancelShift(id){
+  if(!isChief()) return;
+  if(!confirm("Annuler shift ?")) return;
+  try{
+    await updateDoc(doc(db,"shifts",id),{status:"Annulé",updatedAt:serverTimestamp()});
+    await addAudit("SHIFT_CANCELLED",id,"Shift annulé.");
+    dutyBoard();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+async function trainingHub(){
+  try{
+    const [eventSnap,regSnap]=await Promise.all([
+      getDocs(collection(db,"training_events")),
+      isFTO()||isCommand()
+        ? getDocs(collection(db,"training_registrations"))
+        : getDocs(query(collection(db,"training_registrations"),where("officerId","==",window.LSPD.user.uid)))
+    ]);
+    const events=eventSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const today=todayISO();
+
+    $("content").innerHTML=`<div class="card"><p class="muted">Inscriptions, capacité et suivi de présence aux formations.</p></div>
+    <div class="calendar-grid" style="margin-top:14px">${events.filter(e=>e.date>=today).length?events.filter(e=>e.date>=today).map(e=>{
+      const activeRegs=regs.filter(r=>r.eventId===e.id && r.status!=="Annulée");
+      const mine=activeRegs.find(r=>r.officerId===window.LSPD.user.uid);
+      const capacity=Number(e.capacity)||20;
+      const full=activeRegs.length>=capacity;
+      return `<div class="card event-card"><span class="number">${esc(e.date)} • ${esc(e.time)}</span><h3>${esc(e.title)}</h3>
+        <p>${esc(e.moduleCode||"")}</p><p class="muted">${esc(e.location||"LSPD")} • Formateur: ${esc(e.trainerName)}</p>
+        <div class="row"><span>Places</span><b>${activeRegs.length}/${capacity}</b></div>
+        <div class="modal-actions">
+          ${mine?`<span class="tag green">${esc(mine.attendanceStatus||mine.status||"Inscrit")}</span> ${mine.status!=="Annulée"?`<button class="btn secondary training-cancel" data-reg="${mine.id}">Annuler mon inscription</button>`:""}`:
+          `<button class="btn ${full?"secondary":""} training-register" data-event="${e.id}" data-title="${esc(e.title)}" ${full?"disabled":""}>${full?"Complet":"S'inscrire"}</button>`}
+          ${isFTO()?`<button class="btn secondary training-attendance" data-event="${e.id}">Gérer les présences</button>`:""}
+        </div>
+      </div>`;
+    }).join(""):'<div class="card">Aucune formation planifiée.</div>'}</div>`;
+
+    document.querySelectorAll(".training-register").forEach(b=>b.onclick=()=>registerTraining(b.dataset.event,b.dataset.title));
+    document.querySelectorAll(".training-cancel").forEach(b=>b.onclick=()=>cancelTrainingRegistration(b.dataset.reg));
+    document.querySelectorAll(".training-attendance").forEach(b=>b.onclick=()=>openTrainingAttendance(b.dataset.event));
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function registerTraining(eventId,title){
+  try{
+    const existing=await getDocs(query(collection(db,"training_registrations"),where("officerId","==",window.LSPD.user.uid)));
+    if(existing.docs.some(d=>d.data().eventId===eventId && d.data().status!=="Annulée")){
+      alert("Tu es déjà inscrit à cette formation."); return;
+    }
+    const eventSnap=await getDoc(doc(db,"training_events",eventId));
+    if(!eventSnap.exists()) return;
+    const e=eventSnap.data();
+    const all=await getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId)));
+    const count=all.docs.filter(d=>d.data().status!=="Annulée").length;
+    const capacity=Number(e.capacity)||20;
+    if(count>=capacity){ alert("Formation complète."); return; }
+
+    await addDoc(collection(db,"training_registrations"),{
+      eventId,officerId:window.LSPD.user.uid,officerName:window.LSPD.profile.name,
+      status:"Inscrit",attendanceStatus:"Inscrit",createdAt:serverTimestamp()
+    });
+    await addAudit("TRAINING_REGISTER",eventId,`${window.LSPD.profile.name} — ${title}`);
+    alert("Ton inscription est enregistrée.");
+    trainingHub();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+async function cancelTrainingRegistration(regId){
+  try{
+    await updateDoc(doc(db,"training_registrations",regId),{status:"Annulée",attendanceStatus:"Inscription annulée",cancelledAt:serverTimestamp()});
+    await addAudit("TRAINING_CANCEL_REGISTRATION",regId,window.LSPD.profile.name);
+    trainingHub();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+async function openTrainingAttendance(eventId){
+  if(!isFTO()) return;
+  const [eventSnap,regSnap]=await Promise.all([
+    getDoc(doc(db,"training_events",eventId)),
+    getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId)))
+  ]);
+  if(!eventSnap.exists()) return;
+  const e=eventSnap.data();
+  const regs=regSnap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status!=="Annulée");
+  showModal(`<h2>${esc(e.title)} — Participants</h2>
+    <div class="attendance-list">${regs.length?regs.map(r=>`<div class="ops-item"><div><b>${esc(r.officerName)}</b><span>${esc(r.attendanceStatus||r.status)}</span></div><div>
+      <button class="btn secondary attendance-set" data-id="${r.id}" data-status="Présent">Marquer présent</button>
+      <button class="btn secondary attendance-set" data-id="${r.id}" data-status="Absent">Marquer absent</button>
+    </div></div>`).join(""):'<p class="muted">Aucun participant.</p>'}</div>
+    <div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+  document.querySelectorAll(".attendance-set").forEach(b=>b.onclick=()=>setTrainingAttendance(b.dataset.id,b.dataset.status,eventId));
+}
+async function setTrainingAttendance(regId,status,eventId){
+  try{
+    await updateDoc(doc(db,"training_registrations",regId),{
+      attendanceStatus:status,attendanceMarkedById:window.LSPD.user.uid,
+      attendanceMarkedByName:window.LSPD.profile.name,attendanceMarkedAt:serverTimestamp()
+    });
+    await addAudit("TRAINING_ATTENDANCE",regId,status);
+    alert("Présence mise à jour.");
+    document.querySelector(".modal")?.remove();
+    openTrainingAttendance(eventId);
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+async function mdt(){
+  try{
+    const [caseSnap,incidentSnap]=await Promise.all([
+      getDocs(collection(db,"case_files")),
+      isCommand()?getDocs(collection(db,"incident_reports")):getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)))
+    ]);
+    const cases=caseSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const incidentsData=incidentSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+
+    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newCaseBtn">+ Nouveau dossier</button><input id="mdtSearch" class="search" placeholder="Recherche globale..."></div>
+      <div class="section-title">Dossiers d'enquête</div>
+      <div class="card table-card"><table class="table"><thead><tr><th>Numéro</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th>${isCommand()?"<th>Action</th>":""}</tr></thead><tbody id="mdtCaseRows">${renderCaseRows(cases)}</tbody></table></div>
+      <div class="section-title">Rapports accessibles</div>
+      <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Statut</th></tr></thead><tbody>${incidentsData.length?incidentsData.slice(0,30).map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${esc(r.status)}</td></tr>`).join(""):'<tr><td colspan="5">Aucun rapport.</td></tr>'}</tbody></table></div>`;
+
+    $("newCaseBtn").onclick=openCaseForm;
+    $("mdtSearch").oninput=e=>{
+      const q=e.target.value.toLowerCase();
+      $("mdtCaseRows").innerHTML=renderCaseRows(cases.filter(c=>[c.caseNumber,c.title,c.category,c.createdByName,c.status,c.summary].some(v=>String(v||"").toLowerCase().includes(q))));
+      bindCaseButtons();
+    };
+    bindCaseButtons();
+
+    function renderCaseRows(rows){
+      return rows.length?rows.map(c=>`<tr><td>${esc(c.caseNumber)}</td><td><b>${esc(c.title)}</b><div class="muted">${esc(c.summary||"")}</div></td><td>${esc(c.category)}</td><td>${esc(c.createdByName)}</td><td><span class="tag ${c.status==="Clos"?"green":"orange"}">${esc(c.status)}</span></td>${isCommand()?`<td>${c.status!=="Clos"?`<button class="btn secondary close-case" data-id="${c.id}">Clôturer le dossier</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucun dossier MDT.</td></tr>';
+    }
+    function bindCaseButtons(){
+      document.querySelectorAll(".close-case").forEach(b=>b.onclick=()=>closeCase(b.dataset.id));
+    }
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+function openCaseForm(){
+  showModal(`<h2>Nouveau dossier MDT</h2><form id="caseForm"><div class="formgrid">
+    <label class="field"><span>Titre</span><input id="caseTitle" required></label>
+    <label class="field"><span>Catégorie</span><select id="caseCategory">${caseCategories.map(c=>`<option>${c}</option>`).join("")}</select></label>
+    </div><label class="field full"><span>Résumé</span><textarea id="caseSummary" rows="6" required></textarea></label>
+    <div id="caseError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer le dossier</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("caseForm").onsubmit=saveCase;
+}
+async function saveCase(e){
+  e.preventDefault();
+  try{
+    const caseNumber=`LSPD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+    const ref=await addDoc(collection(db,"case_files"),{
+      caseNumber,title:$("caseTitle").value.trim(),category:$("caseCategory").value,
+      summary:$("caseSummary").value.trim(),status:"Ouvert",
+      createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,createdAt:serverTimestamp()
+    });
+    await addAudit("CASE_CREATE",ref.id,`${caseNumber} — ${$("caseTitle").value.trim()}`);
+    document.querySelector(".modal")?.remove(); mdt();
+  }catch(err){ $("caseError").textContent="Erreur : "+(err.code||err.message); }
+}
+async function closeCase(id){
+  if(!isCommand()) return;
+  try{
+    await updateDoc(doc(db,"case_files",id),{status:"Clos",closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name,closedAt:serverTimestamp()});
+    await addAudit("CASE_CLOSE",id,"Clos");
+    mdt();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+async function divisionsPage(){
+  try{
+    const uid=window.LSPD.user.uid;
+    const appSnap=isCommand()
+      ? await getDocs(collection(db,"division_applications"))
+      : await getDocs(query(collection(db,"division_applications"),where("applicantId","==",uid)));
+    const applications=appSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    let counts={};
+    if(isCommand()){
+      const users=await getUsers();
+      for(const d of divisions) counts[d]=users.filter(u=>u.division===d && !["Archivé","Refusé","En attente"].includes(u.status)).length;
+    }
+    $("content").innerHTML=`<div class="card"><div class="muted">Ma division actuelle</div><div class="stat">${esc(window.LSPD.profile.division||"Patrol")}</div></div>
+      <div class="section-title">Divisions</div><div class="grid division-grid">${divisionInfo.map(d=>`<div class="card"><h3>${esc(d[0])}</h3><p class="muted">${esc(d[1])}</p>${isCommand()?`<div class="row"><span>Effectif actuel</span><b>${counts[d[0]]||0}</b></div>`:""}${d[0]!==window.LSPD.profile.division?`<button class="btn secondary division-apply" data-division="${esc(d[0])}">Candidater</button>`:""}</div>`).join("")}</div>
+      <div class="section-title">${isCommand()?"Candidatures en attente":"Mes candidatures"}</div>
+      <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Division</th><th>Motivation</th><th>Statut</th>${isChief()?"<th>Action</th>":""}</tr></thead><tbody>
+      ${applications.length?applications.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.applicantName)}</td><td>${esc(a.targetDivision)}</td><td>${esc(a.motivation)}</td><td><span class="tag ${a.status==="Approuvé"?"green":a.status==="Refusé"?"red":"orange"}">${esc(a.status)}</span></td>${isChief()?`<td>${a.status==="En attente"?`<button class="btn secondary division-review" data-id="${a.id}" data-status="Approuvé">Approuver la candidature</button> <button class="btn secondary division-review" data-id="${a.id}" data-status="Refusé">Refuser la candidature</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune candidature.</td></tr>'}
+      </tbody></table></div>`;
+    document.querySelectorAll(".division-apply").forEach(b=>b.onclick=()=>openDivisionApplication(b.dataset.division));
+    document.querySelectorAll(".division-review").forEach(b=>b.onclick=()=>reviewDivisionApplication(b.dataset.id,b.dataset.status));
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+function openDivisionApplication(target){
+  showModal(`<h2>Candidature division</h2><form id="divisionAppForm"><div class="detail-grid"><div><span>Ma division actuelle</span><b>${esc(window.LSPD.profile.division||"Patrol")}</b></div><div><span>Division souhaitée</span><b>${esc(target)}</b></div></div>
+    <input id="divisionTarget" type="hidden" value="${esc(target)}">
+    <label class="field full"><span>Motivation</span><textarea id="divisionMotivation" rows="6" required></textarea></label>
+    <div id="divisionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Envoyer ma candidature</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("divisionAppForm").onsubmit=saveDivisionApplication;
+}
+async function saveDivisionApplication(e){
+  e.preventDefault();
+  const target=$("divisionTarget").value;
+  try{
+    const mine=await getDocs(query(collection(db,"division_applications"),where("applicantId","==",window.LSPD.user.uid)));
+    if(mine.docs.some(d=>d.data().targetDivision===target && d.data().status==="En attente")){
+      $("divisionError").textContent="Une candidature est déjà en attente pour cette division."; return;
+    }
+    await addDoc(collection(db,"division_applications"),{
+      applicantId:window.LSPD.user.uid,applicantName:window.LSPD.profile.name,
+      currentDivision:window.LSPD.profile.division||"Patrol",targetDivision:target,
+      motivation:$("divisionMotivation").value.trim(),status:"En attente",createdAt:serverTimestamp()
+    });
+    await addAudit("DIVISION_APPLICATION",window.LSPD.user.uid,target);
+    document.querySelector(".modal")?.remove(); divisionsPage();
+  }catch(err){ $("divisionError").textContent="Erreur : "+(err.code||err.message); }
+}
+async function reviewDivisionApplication(id,status){
+  if(!isChief()) return;
+  try{
+    const s=await getDoc(doc(db,"division_applications",id));
+    if(!s.exists()) return;
+    const a=s.data();
+    await updateDoc(doc(db,"division_applications",id),{
+      status,reviewedById:window.LSPD.user.uid,reviewedByName:window.LSPD.profile.name,reviewedAt:serverTimestamp()
+    });
+    if(status==="Approuvé"){
+      await updateDoc(doc(db,"users",a.applicantId),{division:a.targetDivision,updatedAt:serverTimestamp()});
+      await createNotification(a.applicantId,"Candidature approuvée",`${a.targetDivision} — Ta division a été mise à jour.`,"Validation","divisionsPage");
+    }else{
+      await createNotification(a.applicantId,"Candidature refusée",a.targetDivision,"Validation","divisionsPage");
+    }
+    await addAudit("DIVISION_APPLICATION_"+(status==="Approuvé"?"APPROVED":"REJECTED"),a.applicantId,a.targetDivision);
+    divisionsPage();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
 }
 
 async function dashboard(){
@@ -1251,13 +1718,15 @@ async function calendar(){
   $("newTrainingBtn")?.addEventListener("click",openTrainingForm);
 }
 function openTrainingForm(){
-  showModal(`<h2>Planifier une formation</h2><form id="trainingForm"><div class="formgrid"><label class="field"><span>Titre</span><input id="tTitle" required></label><label class="field"><span>Module</span><select id="tModule">${modules.map(m=>`<option value="${m[0]}">${m[0]} — ${m[1]}</option>`).join("")}</select></label><label class="field"><span>Date</span><input id="tDate" type="date" required></label><label class="field"><span>Heure</span><input id="tTime" type="time" required></label><label class="field"><span>Lieu</span><input id="tLocation" value="LSPD"></label></div><label class="field full"><span>Notes</span><textarea id="tNotes" rows="4"></textarea></label><div id="trainingError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Planifier</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  showModal(`<h2>Planifier une formation</h2><form id="trainingForm"><div class="formgrid"><label class="field"><span>Titre</span><input id="tTitle" required></label><label class="field"><span>Module</span><select id="tModule">${modules.map(m=>`<option value="${m[0]}">${m[0]} — ${m[1]}</option>`).join("")}</select></label><label class="field"><span>Date</span><input id="tDate" type="date" required></label><label class="field"><span>Heure</span><input id="tTime" type="time" required></label><label class="field"><span>Lieu</span><input id="tLocation" value="LSPD"></label><label class="field"><span>Capacité</span><input id="tCapacity" type="number" min="1" max="100" value="20" required></label></div><label class="field full"><span>Notes</span><textarea id="tNotes" rows="4"></textarea></label><div id="trainingError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Planifier</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("trainingForm").onsubmit=saveTrainingEvent;
 }
 async function saveTrainingEvent(e){
   e.preventDefault();
   try{
-    await addDoc(collection(db,"training_events"),{title:$("tTitle").value.trim(),moduleCode:$("tModule").value,date:$("tDate").value,time:$("tTime").value,location:$("tLocation").value.trim(),notes:$("tNotes").value.trim(),trainerId:window.LSPD.user.uid,trainerName:window.LSPD.profile.name,createdAt:serverTimestamp()});
+    const capacity=Number($("tCapacity").value);
+    if(!Number.isInteger(capacity)||capacity<1||capacity>100){$("trainingError").textContent="La capacité doit être comprise entre 1 et 100.";return;}
+    await addDoc(collection(db,"training_events"),{title:$("tTitle").value.trim(),moduleCode:$("tModule").value,date:$("tDate").value,time:$("tTime").value,location:$("tLocation").value.trim(),notes:$("tNotes").value.trim(),capacity,status:"Planifié",trainerId:window.LSPD.user.uid,trainerName:window.LSPD.profile.name,createdAt:serverTimestamp()});
     await addAudit("TRAINING_EVENT",window.LSPD.user.uid,`${$("tDate").value} — ${$("tTitle").value.trim()}`);
     document.querySelector(".modal")?.remove();calendar();
   }catch(err){$("trainingError").textContent="Erreur : "+(err.code||err.message);}

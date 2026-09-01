@@ -135,7 +135,18 @@ service cloud.firestore {
     match /shifts/{id} {
       allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
       allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
-      allow update, delete: if false;
+
+      allow update: if (
+        isChief()
+      ) || (
+        hasSiteAccess()
+        && resource.data.officerId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "dutyStatus","checkInAt","checkOutAt"
+        ])
+      );
+
+      allow delete: if false;
     }
 
     match /leave_requests/{id} {
@@ -207,6 +218,66 @@ service cloud.firestore {
         && request.resource.data.sourceCorrectionId is string;
 
       allow update, delete: if false;
+    }
+
+
+    match /training_registrations/{id} {
+      allow read: if hasSiteAccess() && (
+        resource.data.officerId == request.auth.uid ||
+        isFTO() || isCommand()
+      );
+
+      allow create: if hasSiteAccess()
+        && request.resource.data.officerId == request.auth.uid
+        && request.resource.data.status == "Inscrit";
+
+      allow update: if (
+        hasSiteAccess()
+        && resource.data.officerId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","attendanceStatus","cancelledAt"
+        ])
+      ) || (
+        isFTO()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "attendanceStatus","attendanceMarkedById","attendanceMarkedByName","attendanceMarkedAt"
+        ])
+      );
+
+      allow delete: if false;
+    }
+
+    match /case_files/{id} {
+      allow read: if hasSiteAccess();
+
+      allow create: if hasSiteAccess()
+        && request.resource.data.createdById == request.auth.uid
+        && request.resource.data.status == "Ouvert";
+
+      allow update: if isCommand()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","closedById","closedByName","closedAt"
+        ]);
+
+      allow delete: if false;
+    }
+
+    match /division_applications/{id} {
+      allow create: if hasSiteAccess()
+        && request.resource.data.applicantId == request.auth.uid
+        && request.resource.data.status == "En attente";
+
+      allow read: if hasSiteAccess() && (
+        resource.data.applicantId == request.auth.uid ||
+        isCommand()
+      );
+
+      allow update: if isChief()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","reviewedById","reviewedByName","reviewedAt"
+        ]);
+
+      allow delete: if false;
     }
 
     match /{document=**} {
