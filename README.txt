@@ -102,3 +102,32 @@ Storage reste facultatif / ignorable.
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=160
+
+
+================================================
+PHASE 16.1 — CRÉDIT DÉVELOPPEUR
+================================================
+Ajout de la mention :
+"Développé par Walead"
+
+Visible :
+- sur l'écran de connexion
+- en bas du menu latéral
+
+En anglais :
+"Developed by Walead"
+
+Aucun changement Firestore.
+Aucune nouvelle règle nécessaire.
+Toutes les fonctions de la Phase 16 sont conservées.
+
+INSTALLATION
+Sur GitHub, remplacer seulement :
+- index.html
+- app.js
+- style.css
+
+firestore.rules peut rester inchangé.
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=161

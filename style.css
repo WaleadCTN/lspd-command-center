@@ -342,3 +342,46 @@ body.sidebar-collapsed .nav-icon{font-size:18px}
 @media(max-width:1200px){.academy-module-grid{grid-template-columns:repeat(3,1fr)}.academy-recommendations{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){.academy-module-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.academy-hero,.academy-guide-head{flex-direction:column;align-items:flex-start}.academy-module-grid,.academy-recommendations,.final-summary{grid-template-columns:1fr}.objective-item{flex-direction:column}}
+
+
+/* PHASE 16.1 — WALEAD BRANDING */
+.login-credit{
+  margin-top:18px;
+  padding-top:13px;
+  border-top:1px solid rgba(126,164,205,.16);
+  color:#71859b;
+  font-size:11px;
+  text-align:center;
+  letter-spacing:.035em;
+}
+.login-credit strong{
+  color:#a9c2dd;
+  font-weight:850;
+}
+.developer-credit{
+  margin:10px 12px 6px;
+  padding:10px 8px 9px;
+  border-top:1px solid rgba(126,164,205,.13);
+  color:#6e8298;
+  font-size:10px;
+  text-align:center;
+  letter-spacing:.035em;
+}
+.developer-credit strong{
+  color:#9fbad7;
+  font-weight:850;
+}
+body.sidebar-collapsed .developer-credit span{display:none}
+body.sidebar-collapsed .developer-credit{
+  margin:8px 5px 4px;
+  padding:8px 2px;
+  font-size:9px;
+}
+@media(max-width:1050px){
+  body.sidebar-collapsed .developer-credit span{display:inline}
+  body.sidebar-collapsed .developer-credit{
+    margin:10px 12px 6px;
+    padding:10px 8px 9px;
+    font-size:10px;
+  }
+}
