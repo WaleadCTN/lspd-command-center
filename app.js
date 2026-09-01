@@ -9,9 +9,7 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
-  getFirestore,
-  doc,
-  getDoc
+  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -35,6 +33,11 @@ window.LSPD.user = null;
 window.LSPD.profile = null;
 
 const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+const officerRoles = ["Officer","FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"];
+const officerStatuses = ["Actif","En formation","Suspendu","Inactif"];
+function isChief(){ return window.LSPD?.profile?.role === "Chief"; }
+function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(window.LSPD?.profile?.role); }
 
 async function loadOfficerProfile(user) {
   window.LSPD.user = user;
@@ -70,6 +73,9 @@ async function loadOfficerProfile(user) {
 
   if (loginScreen) loginScreen.classList.add("hidden");
   if (appShell) appShell.classList.remove("hidden");
+
+  if ($("currentUser")) $("currentUser").textContent = user.email || "Connecté";
+  if ($("userPill")) $("userPill").textContent = `${window.LSPD.profile?.grade || "Officer"} • ${window.LSPD.profile?.role || "Officer"}`;
 
   if (typeof window.initLSPD === "function") {
     window.initLSPD();
@@ -199,7 +205,7 @@ function dashboard() {
       <div class="card">
         <h3>Compte connecté</h3>
         <p class="muted">${window.LSPD?.user?.email || "Compte Firebase"}</p>
-        <p class="muted">La connexion Firebase est active. Les données FTO et les permissions seront branchées à Firestore dans la prochaine étape.</p>
+        <p class="muted">Firebase est connecté. Le Chief peut maintenant gérer les profils depuis l’onglet Officiers.</p>
       </div>
     </div>`;
 }
@@ -247,11 +253,40 @@ function evaluations() {
     <button class="btn" onclick="alert('La création d’évaluation sera activée avec Firestore.')">+ Nouvelle évaluation</button></div>`;
 }
 
-function officers() {
-  el("content").innerHTML = `
-    <div class="card"><h2>Base des officiers</h2>
-    <p class="muted">Les profils seront chargés depuis Firestore selon les permissions du compte connecté.</p>
-    <div class="notice">Aucun officier supplémentaire n'est encore chargé.</div></div>`;
+async function officers() {
+  if (!isCommand()) {
+    el("content").innerHTML = `<div class="card"><h2>Accès restreint</h2><p class="muted">La liste complète des officiers est réservée au commandement.</p></div>`;
+    return;
+  }
+  el("content").innerHTML = `<div class="card"><p class="muted">Chargement des officiers...</p></div>`;
+  try {
+    const snap = await getDocs(collection(db,"users"));
+    const officersData = snap.docs.map(d=>({uid:d.id,...d.data()})).sort((a,b)=>String(a.badge||"").localeCompare(String(b.badge||""),undefined,{numeric:true}));
+    el("content").innerHTML = `<div class="toolbar"><input class="search" id="officerSearch" placeholder="Rechercher un officier...">${isChief()?'<button class="btn" id="addOfficerBtn">+ Ajouter un profil</button>':''}</div><div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Statut</th>${isChief()?'<th></th>':''}</tr></thead><tbody id="officerRows"></tbody></table></div>`;
+    const draw=(list)=>{ el("officerRows").innerHTML=list.map(o=>`<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.status)}</td>${isChief()?`<td><button class="btn secondary editOfficer" data-uid="${esc(o.uid)}">Modifier</button></td>`:''}</tr>`).join('') || `<tr><td colspan="6" class="muted">Aucun officier.</td></tr>`; bindEdits(list); };
+    const bindEdits=(list)=>document.querySelectorAll('.editOfficer').forEach(b=>b.onclick=()=>openOfficerForm(list.find(o=>o.uid===b.dataset.uid)));
+    window.bindEdits=bindEdits; draw(officersData);
+    el("officerSearch").addEventListener("input",e=>{ const s=e.target.value.toLowerCase(); draw(officersData.filter(o=>[o.badge,o.name,o.grade,o.role,o.status].some(v=>String(v||"").toLowerCase().includes(s)))); });
+    el("addOfficerBtn")?.addEventListener("click",()=>openOfficerForm());
+  } catch(err) {
+    console.error(err); el("content").innerHTML=`<div class="card"><h2>Accès Firestore refusé</h2><p class="muted">${esc(err.code||err.message)}</p><p>Publie le fichier <b>firestore.rules</b> fourni dans Firebase → Firestore → Règles.</p></div>`;
+  }
+}
+
+function openOfficerForm(o=null){
+  if(!isChief()) return;
+  const gradeOptions=grades.map(g=>`<option ${g[0]===o?.grade?'selected':''}>${g[0]}</option>`).join('');
+  const roleOptions=officerRoles.map(r=>`<option ${r===o?.role?'selected':''}>${r}</option>`).join('');
+  const statusOptions=officerStatuses.map(s=>`<option ${s===o?.status?'selected':''}>${s}</option>`).join('');
+  showModal(`<h2>${o?'Modifier':'Ajouter'} un profil</h2><p class="muted">Pour un nouveau membre, crée d'abord son compte dans Firebase Authentication puis copie son UID ici.</p><form id="officerForm"><div class="formgrid"><label class="field full"><span>UID Firebase</span><input id="fUid" required ${o?'readonly':''} value="${esc(o?.uid||'')}"></label><label class="field"><span>Matricule</span><input id="fBadge" required value="${esc(o?.badge||'')}"></label><label class="field"><span>Nom RP</span><input id="fName" required value="${esc(o?.name||'')}"></label><label class="field"><span>Grade</span><select id="fGrade">${gradeOptions}</select></label><label class="field"><span>Rôle</span><select id="fRole">${roleOptions}</select></label><label class="field"><span>Statut</span><select id="fStatus">${statusOptions}</select></label><label class="field"><span>Division</span><input id="fDivision" value="${esc(o?.division||'Patrol')}"></label></div><p id="formError" class="error"></p><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  el("officerForm").addEventListener("submit",saveOfficerProfile);
+}
+
+async function saveOfficerProfile(e){
+  e.preventDefault(); const uid=el("fUid").value.trim();
+  const data={badge:el("fBadge").value.trim(),name:el("fName").value.trim(),grade:el("fGrade").value,role:el("fRole").value,status:el("fStatus").value,division:el("fDivision").value.trim(),updatedAt:serverTimestamp()};
+  try { const ref=doc(db,"users",uid); const snap=await getDoc(ref); if(snap.exists()) await updateDoc(ref,data); else await setDoc(ref,{...data,createdAt:serverTimestamp()}); document.querySelector('.modal')?.remove(); officers(); }
+  catch(err){ console.error(err); el("formError").textContent="Enregistrement impossible : "+(err.code||err.message); }
 }
 
 function gradesPage() {

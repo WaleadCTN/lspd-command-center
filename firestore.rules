@@ -1,19 +1,16 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
+    function signedIn() { return request.auth != null; }
+    function myProfile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function myRole() { return signedIn() ? myProfile().data.role : null; }
+    function isCommand() { return signedIn() && (myRole() == "Sergeant" || myRole() == "Lieutenant" || myRole() == "Captain" || myRole() == "Deputy Chief" || myRole() == "Assistant Chief" || myRole() == "Chief"); }
+    function isChief() { return signedIn() && myRole() == "Chief"; }
     match /users/{userId} {
-      allow read: if isSignedIn() && request.auth.uid == userId;
-      allow write: if false;
+      allow read: if signedIn() && (request.auth.uid == userId || isCommand());
+      allow create, update: if isChief();
+      allow delete: if false;
     }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    match /{document=**} { allow read, write: if false; }
   }
 }
