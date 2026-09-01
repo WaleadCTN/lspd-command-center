@@ -1,33 +1,67 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LSPD Command Center</title>
-<link rel="stylesheet" href="style.css">
-<style>.login-screen{position:fixed;inset:0;background:#0b111b;display:grid;place-items:center;z-index:9999}.login-card{width:min(420px,92vw);background:#111c2b;border:1px solid #2a3c55;border-radius:14px;padding:32px;text-align:center}.login-card input{width:100%;box-sizing:border-box;background:#0b1421;border:1px solid #2a3b52;color:white;border-radius:7px;padding:11px;margin:7px 0 12px}.login-card button{width:100%;background:#5d7fa8;border:0;border-radius:7px;color:white;padding:11px;cursor:pointer}.login-error{color:#ef9a9a;font-size:12px;min-height:18px}.hidden{display:none!important}</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LSPD Command Center</title>
+  <link rel="stylesheet" href="style.css?v=4.0">
 </head>
-<body><div id="loginScreen" class="login-screen"><div class="login-card"><div class="badge">LSPD</div><p>LOS SANTOS POLICE DEPARTMENT</p><h1>Command Center</h1><form id="loginForm"><input id="loginEmail" type="email" placeholder="Email" required><input id="loginPassword" type="password" placeholder="Mot de passe" required><button>Se connecter</button><p id="loginError" class="login-error"></p></form></div></div>
+<body>
 
-<div id="app">
-<aside class="sidebar">
-  <div class="brand"><div class="badge">LSPD</div><div><b>Command Center</b><small>Training & Personnel</small></div></div>
-  <nav id="nav">
-    <button data-page="dashboard" class="active">🏠 Dashboard</button>
-    <button data-page="manual">📚 Manuel FTO</button>
-    <button data-page="modules">🎓 Formations</button>
-    <button data-page="evaluations">✅ Évaluations</button>
-    <button data-page="officers">👮 Officiers</button>
-    <button data-page="grades">⭐ Grades & responsabilités</button>
-    <button data-page="scenarios">🎯 Scénarios</button>
-    <button data-page="history">📊 Historique</button>
-  </nav>
-  <div class="side-footer">LSPD • Internal Training System<br><span id="storageStatus">Mode local</span></div>
-</aside>
-<main class="main">
-<header><div><span class="eyebrow">LOS SANTOS POLICE DEPARTMENT</span><h1 id="pageTitle">Dashboard</h1></div>
-<div class="userpill">FTO / Command Staff</div></header>
-<section id="content"></section>
-</main>
+<section id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="badge">LSPD</div>
+    <div class="eyebrow">LOS SANTOS POLICE DEPARTMENT</div>
+    <h1>Command Center</h1>
+    <p class="muted">Training • Personnel • FTO</p>
+    <form id="loginForm">
+      <label class="field"><span>Adresse e-mail</span><input id="loginEmail" type="email" required autocomplete="username"></label>
+      <label class="field"><span>Mot de passe</span><input id="loginPassword" type="password" required autocomplete="current-password"></label>
+      <button class="btn full" type="submit">Se connecter</button>
+      <p id="loginError" class="error"></p>
+    </form>
+  </div>
+</section>
+
+<div id="appShell" class="hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="badge small">LSPD</div>
+      <div><b>Command Center</b><small>Training & Personnel</small></div>
+    </div>
+
+    <nav id="nav">
+      <button data-page="dashboard" class="active">🏠 Dashboard</button>
+      <button data-page="manual">📚 Manuel FTO</button>
+      <button data-page="modules">🎓 Formations</button>
+      <button data-page="evaluations">✅ Évaluations</button>
+      <button data-page="trainees">🧭 Mes recrues</button>
+      <button data-page="officers">👮 Officiers</button>
+      <button data-page="promotions">⬆️ Promotions</button>
+      <button data-page="stats">📈 Statistiques</button>
+      <button data-page="grades">⭐ Grades & responsabilités</button>
+      <button data-page="scenarios">🎯 Scénarios</button>
+      <button data-page="history">📊 Historique</button>
+    </nav>
+
+    <div class="side-footer">
+      <span id="currentUser">Déconnecté</span><br>
+      <button id="logoutBtn" class="logout">Se déconnecter</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header>
+      <div>
+        <span class="eyebrow">LOS SANTOS POLICE DEPARTMENT</span>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="userpill" id="userPill">Compte LSPD</div>
+    </header>
+    <section id="content"></section>
+  </main>
 </div>
-<script type="module" src="app.js"></script>
-</body></html>
+
+<script type="module" src="app.js?v=4.0"></script>
+</body>
+</html>

@@ -3,9 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() {
-      return request.auth != null;
-    }
+    function signedIn() { return request.auth != null; }
 
     function myProfile() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
@@ -69,12 +67,17 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /promotions/{promotionId} {
+      allow read: if isCommand();
+      allow create: if isChief()
+        && request.resource.data.approvedById == request.auth.uid;
+      allow update, delete: if false;
+    }
+
     match /audit_logs/{logId} {
       allow read: if isCommand();
-
       allow create: if isFTO()
         && request.resource.data.actorId == request.auth.uid;
-
       allow update, delete: if false;
     }
 
