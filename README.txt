@@ -1,33 +1,29 @@
-LSPD COMMAND CENTER — CLEAN PHASE 3.1
+LSPD COMMAND CENTER — PHASE 5.0
 
-IMPORTANT:
-Replace ALL 3 website files on GitHub:
+UPLOAD / REPLACE ON GITHUB
 - index.html
 - app.js
 - style.css
 
-The new index.html contains ONLY:
-<script type="module" src="app.js?v=3.1"></script>
+FIRESTORE
+- Firebase > Firestore Database > Règles
+- Paste firestore.rules
+- Click Publier
 
-No Firebase code must remain inline in index.html.
+NEW FEATURES
+- Official FTO ↔ trainee assignments
+- "Mes recrues" now uses actual assignments
+- Certifications
+- Units / divisions
+- Commendations
+- Sanctions
+- Personnel file now includes certifications and record entries
+- Admin page
+- Expanded command statistics
+- Audit log for all new actions
 
-FIRESTORE:
-Open Firebase > Firestore Database > Règles
-Paste firestore.rules
-Click Publier.
+IMPORTANT
+Firebase Authentication accounts are still created in Firebase Console.
 
-Then wait for GitHub Pages deployment and use:
-https://waleadctn.github.io/lspd-command-center/?v=31
-
-FEATURES:
-- Firebase login
-- Firestore profile loading
-- Officer list
-- Chief profile management
-- Real FTO evaluation form
-- 6 scoring criteria
-- Automatic score and result
-- Firestore evaluation history
-- Personal training progress
-- Audit log for command
-- Role-based visibility
+TEST URL
+https://waleadctn.github.io/lspd-command-center/?v=50
