@@ -1,28 +1,33 @@
-LSPD COMMAND CENTER — PHASE 8.0
+LSPD COMMAND CENTER — PHASE 8.1 FIXED
 
-REPLACE ON GITHUB
+IMPORTANT: this build is based on the FULL Phase 7 and adds Phase 8 communication features on top. No Phase 7 page is replaced by placeholders.
+
+REPLACE ON GITHUB:
 - index.html
 - app.js
 - style.css
 
-FIRESTORE
-Firebase > Firestore Database > Règles
-Paste firestore.rules
-Click Publier
+FIRESTORE:
+- Firebase > Firestore Database > Règles
+- Paste firestore.rules
+- Click Publier
 
-NEW FEATURES
-- Command announcements
-- Internal messages
-- Incident reports
-- Hierarchical incident approval
-- Approval signature with name + badge
-- Incident CSV export for command
-- Search extended to announcements and incidents
-- Permissions refined for messages, announcements and incidents
+FIXES:
+- Mes recrues restored
+- Officer management restored
+- FTO assignments restored, including closing assignments
+- Certifications restored
+- Sanctions / commendations restored
+- Roster & shifts restored
+- Leave requests restored
+- Training calendar restored
+- À valider restored
+- Promotion Advisor restored
+- Promotions restored
+- Statistics restored
+- Phase 8 announcements/messages/incidents/approvals added without deleting old functions
+- Messages now use permission-safe Firestore queries
+- Incident reports use permission-safe queries for officers
 
-IMPORTANT
-Phase 8 focuses on communication and approval workflows.
-The Firestore collections from Phase 7 remain compatible.
-
-TEST
-https://waleadctn.github.io/lspd-command-center/?v=80
+TEST URL:
+https://waleadctn.github.io/lspd-command-center/?v=81
