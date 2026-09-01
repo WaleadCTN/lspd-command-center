@@ -42,15 +42,48 @@ service cloud.firestore {
       );
     }
 
+    function defaultHasPerm(permission) {
+      return isChief()
+        || (
+          myRole() == "FTO"
+          && ["fto_tools","training_manage"].hasAny([permission])
+        )
+        || (
+          isCommand()
+          && [
+            "fto_tools","personnel_view","fto_assignments_view","certifications_view",
+            "records_view","shifts_view","duty_board","leave_review","training_manage",
+            "incident_review","mdt_manage","promotions_view","analytics","audit",
+            "announcements_manage","cad_manage","bolo_manage","watch_manage"
+          ].hasAny([permission])
+        );
+    }
+
+    function configuredHasPerm(permission) {
+      let cfg = get(/databases/$(database)/documents/settings/permissions).data;
+      return cfg.keys().hasAny(["roles"])
+        && cfg.roles.keys().hasAny([myRole()])
+        && cfg.roles[myRole()].hasAny([permission]);
+    }
+
+    function hasPerm(permission) {
+      return hasSiteAccess() && (
+        isChief()
+        || (
+          exists(/databases/$(database)/documents/settings/permissions)
+          ? configuredHasPerm(permission)
+          : defaultHasPerm(permission)
+        )
+      );
+    }
+
     match /users/{userId} {
       allow read: if signedIn() && (
         request.auth.uid == userId ||
-        isFTO() || isCommand()
+        hasPerm("personnel_view") ||
+        hasPerm("fto_tools")
       );
 
-      // Auto-inscription depuis le site :
-      // l'utilisateur ne peut créer QUE son propre profil,
-      // avec un rôle Officer et un statut En attente.
       allow create: if signedIn()
         && request.auth.uid == userId
         && request.resource.data.name is string
@@ -64,14 +97,20 @@ service cloud.firestore {
         && request.resource.data.selfRegistered == true
         && request.resource.data.registeredEmail == request.auth.token.email;
 
-      allow update: if isChief();
+      // Personnel managers may edit officer data but cannot change roles.
+      // Chief remains the only role that can alter the role field itself.
+      allow update: if isChief() || (
+        hasPerm("personnel_manage")
+        && request.resource.data.role == resource.data.role
+      );
+
       allow delete: if false;
     }
 
     match /announcements/{id} {
       allow read: if hasSiteAccess();
-      allow create: if isCommand() && request.resource.data.authorId == request.auth.uid;
-      allow update: if isCommand();
+      allow create: if hasPerm("announcements_manage") && request.resource.data.authorId == request.auth.uid;
+      allow update: if hasPerm("announcements_manage");
       allow delete: if false;
     }
 
@@ -90,10 +129,10 @@ service cloud.firestore {
         && request.resource.data.status == "En attente";
 
       allow read: if hasSiteAccess() && (
-        resource.data.authorId == request.auth.uid || isCommand()
+        resource.data.authorId == request.auth.uid || hasPerm("incident_review")
       );
 
-      allow update: if isCommand()
+      allow update: if hasPerm("incident_review")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","approvedById","approvedByName","approvedAt","signature"
         ]);
@@ -103,9 +142,9 @@ service cloud.firestore {
     match /evaluations/{id} {
       allow read: if hasSiteAccess() && (
         resource.data.officerId == request.auth.uid ||
-        resource.data.ftoId == request.auth.uid || isCommand()
+        resource.data.ftoId == request.auth.uid || hasPerm("personnel_view")
       );
-      allow create: if isFTO()
+      allow create: if hasPerm("fto_tools")
         && request.resource.data.ftoId == request.auth.uid
         && request.resource.data.score is int
         && request.resource.data.score >= 0
@@ -114,30 +153,30 @@ service cloud.firestore {
     }
 
     match /fto_assignments/{id} {
-      allow read: if isFTO() || isCommand();
-      allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
-      allow update: if isChief();
+      allow read: if hasPerm("fto_tools") || hasPerm("fto_assignments_view");
+      allow create: if hasPerm("fto_assignments_manage") && request.resource.data.createdById == request.auth.uid;
+      allow update: if hasPerm("fto_assignments_manage");
       allow delete: if false;
     }
 
     match /certifications/{id} {
-      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isFTO() || isCommand());
-      allow create: if isChief() && request.resource.data.issuedById == request.auth.uid;
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || hasPerm("certifications_view"));
+      allow create: if hasPerm("certifications_manage") && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /personnel_records/{id} {
-      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
-      allow create: if isChief() && request.resource.data.issuedById == request.auth.uid;
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || hasPerm("records_view"));
+      allow create: if hasPerm("records_manage") && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /shifts/{id} {
-      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
-      allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || hasPerm("shifts_view"));
+      allow create: if hasPerm("shifts_manage") && request.resource.data.createdById == request.auth.uid;
 
       allow update: if (
-        isChief()
+        hasPerm("shifts_manage")
       ) || (
         hasSiteAccess()
         && resource.data.officerId == request.auth.uid
@@ -151,26 +190,26 @@ service cloud.firestore {
 
     match /leave_requests/{id} {
       allow create: if hasSiteAccess() && request.resource.data.officerId == request.auth.uid;
-      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
-      allow update: if isChief();
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || hasPerm("leave_review"));
+      allow update: if hasPerm("leave_review");
       allow delete: if false;
     }
 
     match /training_events/{id} {
       allow read: if hasSiteAccess();
-      allow create: if isFTO() && request.resource.data.trainerId == request.auth.uid;
+      allow create: if hasPerm("training_manage") && request.resource.data.trainerId == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /promotions/{id} {
-      allow read: if isCommand();
-      allow create: if isChief() && request.resource.data.approvedById == request.auth.uid;
+      allow read: if hasPerm("promotions_view");
+      allow create: if hasPerm("promotions_manage") && request.resource.data.approvedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /audit_logs/{id} {
-      allow read: if isCommand();
-      allow create: if signedIn() && request.resource.data.actorId == request.auth.uid;
+      allow read: if hasPerm("audit");
+      allow create: if hasSiteAccess() && request.resource.data.actorId == request.auth.uid;
       allow update, delete: if false;
     }
 
@@ -199,10 +238,10 @@ service cloud.firestore {
 
       allow read: if hasSiteAccess() && (
         resource.data.requestedById == request.auth.uid ||
-        isCommand()
+        hasPerm("incident_review")
       );
 
-      allow update: if isSeniorCommand()
+      allow update: if hasPerm("incident_review")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","reviewedById","reviewedByName","reviewedAt"
         ]);
@@ -213,7 +252,7 @@ service cloud.firestore {
     match /amendments/{id} {
       allow read: if hasSiteAccess();
 
-      allow create: if isSeniorCommand()
+      allow create: if hasPerm("incident_review")
         && request.resource.data.approvedById == request.auth.uid
         && request.resource.data.sourceCorrectionId is string;
 
@@ -224,7 +263,7 @@ service cloud.firestore {
     match /training_registrations/{id} {
       allow read: if hasSiteAccess() && (
         resource.data.officerId == request.auth.uid ||
-        isFTO() || isCommand()
+        hasPerm("training_manage")
       );
 
       allow create: if hasSiteAccess()
@@ -238,7 +277,7 @@ service cloud.firestore {
           "status","attendanceStatus","cancelledAt"
         ])
       ) || (
-        isFTO()
+        hasPerm("training_manage")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "attendanceStatus","attendanceMarkedById","attendanceMarkedByName","attendanceMarkedAt"
         ])
@@ -254,7 +293,7 @@ service cloud.firestore {
         && request.resource.data.createdById == request.auth.uid
         && request.resource.data.status == "Ouvert";
 
-      allow update: if isCommand()
+      allow update: if hasPerm("incident_review")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","closedById","closedByName","closedAt"
         ]);
@@ -269,14 +308,58 @@ service cloud.firestore {
 
       allow read: if hasSiteAccess() && (
         resource.data.applicantId == request.auth.uid ||
-        isCommand()
+        hasPerm("division_review")
       );
 
-      allow update: if isChief()
+      allow update: if hasPerm("division_review")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","reviewedById","reviewedByName","reviewedAt"
         ]);
 
+      allow delete: if false;
+    }
+
+
+    match /settings/{settingId} {
+      allow read: if hasSiteAccess();
+      allow create, update: if isChief() && settingId == "permissions";
+      allow delete: if false;
+    }
+
+    match /cad_units/{id} {
+      allow read: if hasSiteAccess();
+
+      allow create: if hasSiteAccess() && (
+        request.resource.data.ownerId == request.auth.uid ||
+        hasPerm("cad_manage")
+      );
+
+      allow update: if hasSiteAccess() && (
+        (
+          resource.data.ownerId == request.auth.uid
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "callSign","partnerName","division","status","location","note","active","updatedAt"
+          ])
+        ) || hasPerm("cad_manage")
+      );
+
+      allow delete: if false;
+    }
+
+    match /bolos/{id} {
+      allow read: if hasSiteAccess();
+      allow create: if hasPerm("bolo_manage")
+        && request.resource.data.createdById == request.auth.uid;
+      allow update: if hasPerm("bolo_manage");
+      allow delete: if false;
+    }
+
+    match /watch_sessions/{id} {
+      allow read: if hasSiteAccess();
+      allow create: if hasPerm("watch_manage")
+        && request.resource.data.startedById == request.auth.uid;
+      allow update: if hasPerm("watch_manage");
       allow delete: if false;
     }
 

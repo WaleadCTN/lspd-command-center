@@ -1,112 +1,173 @@
-LSPD COMMAND CENTER — PHASE 12+13 OPERATIONS & MDT
+LSPD COMMAND CENTER — PHASE 14+15
+UI/UX REFRESH + CAD + BOLO + WATCH COMMANDER + DYNAMIC PERMISSIONS
 
 BASE
-Cette version est construite directement depuis PHASE 11.1 BILINGUAL MENU FIXED.
-Toutes les fonctions de la 11.1 sont conservées.
-Le site reste bilingue FR / EN.
+Construite directement depuis Phase 12+13 Operations & MDT.
+Les fonctions existantes sont conservées.
+FR / EN est conservé.
 
-========================================
-PHASE 12 — OPERATIONS & SUIVI QUOTIDIEN
-========================================
+================================================
+PHASE 14 — REFONTE VISUELLE & ERGONOMIQUE
+================================================
+- Sidebar moderne et rétractable sur PC
+- Menu mobile avec overlay
+- Header sticky
+- Horloge live
+- Command Palette (Ctrl+K / Cmd+K)
+- Navigation rapide vers les pages autorisées
+- Toasts modernes à la place des alert() classiques
+- Cards, tableaux, boutons, formulaires et modales améliorés
+- En-têtes de tableaux sticky
+- Animations de changement de page
+- Responsive amélioré
+- Design plus "Police Command Center"
 
-NOUVELLE PAGE : MON ESPACE OPÉRATIONNEL
-Chaque officier peut voir :
-- ses prochains shifts
-- pointer son entrée en service
-- pointer sa sortie
-- ses formations auxquelles il est inscrit
-- ses certifications
-- ses congés
-- ses sanctions / commendations
+================================================
+PERMISSIONS DIRECTEMENT DANS L'APPLICATION
+================================================
+NOUVELLE PAGE :
+🔐 Permissions
 
-NOUVELLE PAGE : TABLEAU DE SERVICE
-Visible Command.
-Affiche pour aujourd'hui :
-- officiers en service
-- absents / non pointés
-- officiers en congé
-- officiers inscrits en formation
+Le Chief peut cocher/décocher les droits de chaque rôle :
+Officer
+FTO
+Sergeant
+Lieutenant
+Captain
+Deputy Chief
+Assistant Chief
+Chief
 
-Le Chief peut :
-- modifier un shift
-- annuler un shift
-
-FORMATIONS
-Nouvelle page Inscriptions formations :
-- capacité par session
-- inscription officier
-- annulation d'inscription
-- compteur places occupées
-- FTO peut marquer Présent / Absent
-
-Les nouvelles formations peuvent maintenant définir une capacité de 1 à 100.
-
-RAPPELS
-Lorsqu'un utilisateur ouvre/se reconnecte au site :
-- rappel si un shift commence dans les 24h
-- rappel si une formation inscrite commence dans les 24h
+Exemples de permissions :
+- FTO tools
+- voir / gérer les officiers
+- voir / gérer affectations FTO
+- certifications
+- dossiers RH
+- shifts
+- tableau de service
+- congés
+- formations
+- validation incidents
+- MDT
+- candidatures divisions
+- promotions
+- statistiques
+- audit
+- annonces
+- inscriptions
+- CAD
+- BOLO
+- Watch Commander
 
 IMPORTANT :
-Sans serveur payant / fonction planifiée, ces rappels sont générés à l'ouverture du site.
-Ils ne sont pas des notifications push lorsque le site est fermé.
+Les permissions sont enregistrées dans :
+settings/permissions
 
-========================================
-PHASE 13 — MDT / DIVISIONS
-========================================
+Les règles Firestore lisent cette configuration.
+Ce n'est donc PAS uniquement du masquage visuel.
 
-NOUVELLE PAGE : MDT / DOSSIERS
-- création de dossiers d'enquête
-- numéro de dossier automatique
-- catégories
-- statut Ouvert / Clos
-- rapports d'incident accessibles dans le même espace
-- Command peut clôturer un dossier
+Sécurité :
+- Le Chief garde toujours tous les droits.
+- Même si un rôle reçoit "Modifier profils officiers",
+  seul le Chief peut changer le champ ROLE d'un utilisateur.
+  Cela évite qu'un utilisateur se donne Chief.
 
-NOUVELLE PAGE : DIVISIONS & CANDIDATURES
-- présentation Patrol / Traffic / Detective / SWAT / Air Support / Training / Command
-- un officier peut candidater à une division
-- motivation obligatoire
-- Command peut voir les candidatures
-- Chief approuve/refuse
-- si approuvé, la division de l'officier est changée automatiquement
-- notification au candidat
+Si le document settings/permissions n'existe pas encore :
+- le site utilise les permissions par défaut de l'ancienne version
+- le Chief le crée automatiquement à sa première connexion
 
-========================================
+================================================
+PHASE 15 — CAD / DISPATCH
+================================================
+NOUVELLE PAGE :
+📡 CAD / Dispatch
+
+Chaque officier peut créer/mettre à jour sa propre unité :
+- indicatif (ex. ADAM-547)
+- partenaire
+- division
+- localisation
+- note
+- statut :
+  Disponible
+  En intervention
+  Transport
+  Pause
+  Hors service
+
+Le tableau CAD utilise Firestore onSnapshot :
+les modifications apparaissent en temps réel pour les utilisateurs
+qui ont la page CAD ouverte.
+
+Permission cad_manage :
+permet de gérer les unités des autres officiers.
+
+================================================
+BOLO
+================================================
+NOUVELLE PAGE :
+🚨 BOLO / Avis
+
+Tous les utilisateurs connectés peuvent consulter les BOLO.
+
+Les rôles ayant bolo_manage peuvent :
+- créer un BOLO
+- Personne / Véhicule / Autre
+- priorité Normal / Important / Critique
+- plaque véhicule
+- description
+- clôturer le BOLO
+
+================================================
+WATCH COMMANDER
+================================================
+NOUVELLE PAGE :
+🛡️ Watch Commander
+
+Le rôle autorisé peut :
+- sélectionner le Watch Commander
+- démarrer un service
+- publier le briefing
+- clôturer le service
+- écrire une note de passation
+- consulter l'historique des watches
+
+Permission :
+watch_manage
+
+================================================
 INSTALLATION
-========================================
-
-SUR GITHUB, REMPLACER :
+================================================
+SUR GITHUB — REMPLACER :
 - index.html
 - app.js
 - style.css
 
-FIRESTORE : OBLIGATOIRE
+FIRESTORE — OBLIGATOIRE :
 Firebase > Firestore Database > Règles
-Coller le nouveau firestore.rules
-Cliquer Publier.
+Remplacer avec firestore.rules
+Puis Publier.
 
-Le nouveau firestore.rules est nécessaire pour :
-- pointage shifts
-- inscriptions formations
-- présence formations
-- dossiers MDT
-- candidatures divisions
+IMPORTANT :
+Le nouveau firestore.rules est indispensable pour les permissions dynamiques,
+CAD, BOLO et Watch Commander.
 
-STORAGE
-Toujours optionnel.
-Tu peux continuer à NE PAS utiliser storage.rules.
+STORAGE :
+Toujours facultatif.
+Tu peux continuer à ignorer storage.rules.
 
-TEST
-https://waleadctn.github.io/lspd-command-center/?v=130
+TEST :
+https://waleadctn.github.io/lspd-command-center/?v=150
 
-TEST CONSEILLÉ
-1. Tester FR puis EN.
-2. Officer : Mon espace opérationnel.
-3. Chief : créer un shift pour aujourd'hui.
-4. Officer : Pointer l'entrée puis la sortie.
-5. FTO : créer une formation avec capacité.
-6. Officer : s'inscrire.
-7. FTO : marquer la présence.
-8. Créer un dossier MDT.
-9. Officer : candidater à Traffic/Detective/etc.
-10. Chief : approuver la candidature.
+TEST CONSEILLÉ :
+1. Chief -> Permissions
+2. Modifier un droit pour Sergeant
+3. Se connecter avec un Sergeant et vérifier le menu
+4. Tester CAD avec 2 comptes ouverts
+5. Modifier l'état d'une unité et vérifier la mise à jour live
+6. Créer un BOLO
+7. Démarrer un Watch Commander
+8. Tester Ctrl+K
+9. Tester le menu rétractable
+10. Tester FR puis EN

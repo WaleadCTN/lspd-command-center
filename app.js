@@ -1,10 +1,10 @@
-// LSPD Command Center — Phase 12+13 OPERATIONS & MDT — Phase 11.1 fully preserved
+// LSPD Command Center — Phase 14+15 UI/UX + CAD + Dynamic Permissions — Phase 12+13 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc,
+  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot,
   collection, query, where, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -23,7 +23,7 @@ const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-window.LSPD = { auth, db, storage, user:null, profile:null };
+window.LSPD = { auth, db, storage, user:null, profile:null, permissionConfig:null, pageCleanup:null, currentPage:"dashboard" };
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "")
@@ -37,6 +37,9 @@ const I18N_FR = {"Command Center":"Centre de commandement","Training & Operation
 
 Object.assign(I18N_EN,{"Mon espace opérationnel":"My operational space","Tableau de service":"Duty board","Inscriptions formations":"Training enrollment","MDT / Dossiers":"MDT / Case files","Divisions & candidatures":"Divisions & applications","Mes prochains shifts":"My upcoming shifts","Mes formations":"My training sessions","Mes certifications":"My certifications","Mon dossier RH":"My personnel record","Mes congés":"My leave","Aucun shift à venir.":"No upcoming shifts.","Aucune formation inscrite.":"No training registration.","Aucun élément au dossier.":"No personnel record entries.","Pointer l'entrée":"Check in","Pointer la sortie":"Check out","En service":"On duty","Terminé":"Completed","Annulé":"Cancelled","Absent / non pointé":"Absent / no check-in","À venir":"Upcoming","Aujourd'hui":"Today","Service en cours":"Currently on duty","Absences / non pointés":"Absences / no-shows","En congé":"On leave","En formation aujourd'hui":"In training today","Modifier shift":"Edit shift","Annuler shift":"Cancel shift","Modifier le shift":"Edit shift","Nouveau début":"New start","Nouvelle fin":"New end","Enregistrer les modifications":"Save changes","Capacité":"Capacity","Places":"Spots","S'inscrire":"Register","Annuler mon inscription":"Cancel my registration","Gérer les présences":"Manage attendance","Inscrit":"Registered","Présent":"Present","Absent":"Absent","Inscription annulée":"Registration cancelled","Complet":"Full","Participants":"Participants","Marquer présent":"Mark present","Marquer absent":"Mark absent","Aucun participant.":"No participants.","Rappel de shift":"Shift reminder","Rappel de formation":"Training reminder","Ton shift commence bientôt.":"Your shift starts soon.","Ta formation commence bientôt.":"Your training starts soon.","Dossiers d'enquête":"Case files","+ Nouveau dossier":"+ New case file","Numéro":"Number","Catégorie":"Category","Ouvert":"Open","Clos":"Closed","Enquête":"Investigation","Intervention":"Incident","Renseignement":"Intelligence","Administration":"Administration","Nouveau dossier MDT":"New MDT case file","Créer le dossier":"Create case file","Clôturer le dossier":"Close case file","Aucun dossier MDT.":"No MDT case files.","Rapports accessibles":"Accessible incident reports","Mesure":"Measure","Effectif actuel":"Current personnel","Ma division actuelle":"My current division","Candidater":"Apply","Candidature division":"Division application","Division souhaitée":"Requested division","Motivation":"Motivation","Envoyer ma candidature":"Submit application","Mes candidatures":"My applications","Candidatures en attente":"Pending applications","Aucune candidature.":"No applications.","Candidature approuvée":"Application approved","Candidature refusée":"Application rejected","Approuver la candidature":"Approve application","Refuser la candidature":"Reject application","Ta division a été mise à jour.":"Your division has been updated.","Patrouille générale et réponse aux appels.":"General patrol and response to calls.","Circulation, contrôles routiers et poursuites.":"Traffic enforcement, traffic stops, and pursuits.","Enquêtes, preuves et dossiers criminels.":"Investigations, evidence, and criminal cases.","Interventions tactiques à haut risque.":"High-risk tactical operations.","Support aérien et coordination aérienne.":"Air support and aerial coordination.","Formation, FTO et développement des officiers.":"Training, FTO, and officer development.","Commandement et supervision du département.":"Department command and supervision.","La capacité doit être comprise entre 1 et 100.":"Capacity must be between 1 and 100.","Tu es déjà inscrit à cette formation.":"You are already registered for this training.","Formation complète.":"Training session is full.","Ton inscription est enregistrée.":"Your registration is confirmed.","Présence mise à jour.":"Attendance updated.","Shift annulé.":"Shift cancelled."});
 Object.assign(I18N_FR,{"Roster & shifts":"Planning & services","Duty board":"Tableau de service","My operational space":"Mon espace opérationnel","Training enrollment":"Inscriptions formations","MDT / Case files":"MDT / Dossiers","Divisions & applications":"Divisions & candidatures"});
+
+Object.assign(I18N_EN,{"BOLO / Avis":"BOLO / Alerts","CAD / Dispatch":"CAD / Dispatch","Watch Commander":"Watch Commander","Permissions":"Permissions","Réduire le menu":"Collapse menu","Navigation rapide":"Quick navigation","Accès refusé":"Access denied","Cette fonction n'est pas autorisée pour ton rôle.":"This feature is not allowed for your role.","Permissions & rôles":"Permissions & roles","Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.":"Permissions are stored in Firestore. The Chief can edit them here without changing code.","Enregistrer les permissions":"Save permissions","Réinitialiser les valeurs par défaut":"Reset defaults","Permission":"Permission","Lecture / gestion FTO":"FTO tools","Voir tous les officiers":"View all officers","Modifier les profils officiers":"Manage officer profiles","Voir les affectations FTO":"View FTO assignments","Gérer les affectations FTO":"Manage FTO assignments","Voir les certifications":"View certifications","Gérer les certifications":"Manage certifications","Voir les dossiers RH":"View personnel records","Gérer les dossiers RH":"Manage personnel records","Voir tous les shifts":"View all shifts","Gérer les shifts":"Manage shifts","Voir le tableau de service":"View duty board","Valider les congés":"Review leave","Gérer les formations":"Manage training","Valider les incidents":"Review incidents","Gérer le MDT":"Manage MDT","Valider les candidatures divisions":"Review division applications","Voir les promotions":"View promotions","Gérer les promotions":"Manage promotions","Statistiques & Promotion Advisor":"Statistics & Promotion Advisor","Voir l'historique audit":"View audit history","Publier des annonces":"Publish announcements","Valider les inscriptions":"Review registrations","Gérer toutes les unités CAD":"Manage all CAD units","Gérer les BOLO":"Manage BOLOs","Gérer Watch Commander":"Manage Watch Commander","Permissions enregistrées.":"Permissions saved.","Valeurs par défaut restaurées.":"Default values restored.","Le Chief conserve toujours tous les droits.":"The Chief always keeps all permissions.","Unité CAD":"CAD unit","Mon unité":"My unit","Toutes les unités":"All units","Indicatif":"Call sign","Partenaire":"Partner","Localisation":"Location","État":"Status","Note opérationnelle":"Operational note","Disponible":"Available","En intervention":"On call","Transport":"Transport","Pause":"Break","Hors service":"Off duty","Créer mon unité":"Create my unit","Mettre à jour":"Update","Actualisé":"Updated","Aucune unité active.":"No active units.","BOLO actifs":"Active BOLOs","+ Nouveau BOLO":"+ New BOLO","Personne":"Person","Véhicule":"Vehicle","Plaque":"Plate","Description":"Description","Actif":"Active","Clôturé":"Closed","Clôturer le BOLO":"Close BOLO","Aucun BOLO actif.":"No active BOLO.","Nouveau BOLO":"New BOLO","Publier le BOLO":"Publish BOLO","Priorité":"Priority","Critique":"Critical","Watch en cours":"Current watch","Aucun Watch Commander actif.":"No active Watch Commander.","Démarrer un watch":"Start a watch","Commander":"Commander","Briefing":"Briefing","Démarrer le service":"Start watch","Clôturer le watch":"Close watch","Note de passation":"Pass-down note","Historique des watches":"Watch history","Service actif":"Active watch","Service clôturé":"Closed watch","Tape une page...":"Type a page...","Aucune page trouvée.":"No page found.","Interface améliorée":"Improved interface","En direct":"Live"});
+Object.assign(I18N_FR,{"Command Center":"Centre de commandement","Training & Operations":"Formation & opérations"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -176,10 +179,19 @@ const i18nObserver=new MutationObserver(mutations=>{
   }
 });
 
-// Translate native alert/confirm messages too.
-const nativeAlert=window.alert.bind(window);
+// Modern toast notifications; confirm remains native/synchronous for legacy flows.
 const nativeConfirm=window.confirm.bind(window);
-window.alert=(message)=>nativeAlert(translateSystemText(String(message),currentLang));
+function showToast(message,type="info",duration=3400){
+  const host=$("toastContainer");
+  if(!host) return;
+  const el=document.createElement("div");
+  el.className=`toast toast-${type}`;
+  el.innerHTML=`<span class="toast-dot"></span><div>${esc(translateSystemText(String(message),currentLang))}</div>`;
+  host.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add("show"));
+  setTimeout(()=>{el.classList.remove("show");setTimeout(()=>el.remove(),220);},duration);
+}
+window.alert=(message)=>showToast(message,"info");
 window.confirm=(message)=>nativeConfirm(translateSystemText(String(message),currentLang));
 
 
@@ -220,6 +232,68 @@ const divisions = ["Patrol","Traffic","Detective","SWAT","Air Support","Training
 const certificationsCatalog = ["FTO","Pursuit","Traffic","Detective","SWAT","Air Support","Supervisor"];
 const incidentTypes = ["Use of Force","Vehicle Pursuit","Arrestation sensible","Accident service","Plainte citoyen","Incident interne","Autre"];
 
+const PERMISSION_CATALOG = [
+  ["fto_tools","Lecture / gestion FTO"],
+  ["personnel_view","Voir tous les officiers"],
+  ["personnel_manage","Modifier les profils officiers"],
+  ["fto_assignments_view","Voir les affectations FTO"],
+  ["fto_assignments_manage","Gérer les affectations FTO"],
+  ["certifications_view","Voir les certifications"],
+  ["certifications_manage","Gérer les certifications"],
+  ["records_view","Voir les dossiers RH"],
+  ["records_manage","Gérer les dossiers RH"],
+  ["shifts_view","Voir tous les shifts"],
+  ["shifts_manage","Gérer les shifts"],
+  ["duty_board","Voir le tableau de service"],
+  ["leave_review","Valider les congés"],
+  ["training_manage","Gérer les formations"],
+  ["incident_review","Valider les incidents"],
+  ["mdt_manage","Gérer le MDT"],
+  ["division_review","Valider les candidatures divisions"],
+  ["promotions_view","Voir les promotions"],
+  ["promotions_manage","Gérer les promotions"],
+  ["analytics","Statistiques & Promotion Advisor"],
+  ["audit","Voir l'historique audit"],
+  ["announcements_manage","Publier des annonces"],
+  ["registrations_manage","Valider les inscriptions"],
+  ["cad_manage","Gérer toutes les unités CAD"],
+  ["bolo_manage","Gérer les BOLO"],
+  ["watch_manage","Gérer Watch Commander"]
+];
+
+const DEFAULT_PERMISSIONS = {
+  Officer: [],
+  FTO: ["fto_tools","training_manage"],
+  Sergeant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
+  Lieutenant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
+  Captain: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
+  "Deputy Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
+  "Assistant Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
+  Chief: PERMISSION_CATALOG.map(x=>x[0])
+};
+
+const PAGE_PERMISSIONS = {
+  registrations:"registrations_manage",
+  approvals:"incident_review",
+  trainees:"fto_tools",
+  officers:"personnel_view",
+  assignments:"fto_assignments_view",
+  certifications:"certifications_view",
+  records:"records_view",
+  shifts:"shifts_view",
+  dutyBoard:"duty_board",
+  requirements:"analytics",
+  promotionAdvisor:"analytics",
+  promotions:"promotions_view",
+  stats:"analytics",
+  history:"audit"
+};
+
+const CAD_STATUSES = ["Disponible","En intervention","Transport","Pause","Hors service"];
+const BOLO_TYPES = ["Personne","Véhicule","Autre"];
+const BOLO_PRIORITIES = ["Normal","Important","Critique"];
+
+
 const caseCategories = ["Enquête","Intervention","Renseignement","Administration"];
 const divisionInfo = [
   ["Patrol","Patrouille générale et réponse aux appels."],
@@ -254,12 +328,12 @@ const scenarios = [
 
 const pages = {
  dashboard:"Dashboard",profile:"Mon profil",mySpace:"Mon espace opérationnel",registrations:"Inscriptions",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
- incidents:"Rapports d'incident",approvals:"Validations",mdt:"MDT / Dossiers",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
+ incidents:"Rapports d'incident",approvals:"Validations",mdt:"MDT / Dossiers",bolos:"BOLO / Avis",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
  evaluations:"Évaluations",trainees:"Mes recrues",officers:"Officiers",assignments:"Affectations FTO",
- certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",leave:"Congés",
+ certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
  promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
- scenarios:"Scénarios",admin:"Admin",history:"Historique"
+ scenarios:"Scénarios",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
 };
 
 function role(){ return window.LSPD.profile?.role; }
@@ -268,6 +342,42 @@ function isFTO(){ return ["FTO","Sergeant","Lieutenant","Captain","Deputy Chief"
 function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function canApproveIncidents(){ return isCommand(); }
 function isSeniorCommand(){ return ["Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
+
+function permissionRoles(){
+  return window.LSPD.permissionConfig?.roles || DEFAULT_PERMISSIONS;
+}
+function hasPerm(permission){
+  if(isChief()) return true;
+  const list=permissionRoles()[role()] || DEFAULT_PERMISSIONS[role()] || [];
+  return Array.isArray(list) && list.includes(permission);
+}
+function canAccessPage(page){
+  if(page==="permissionsAdmin" || page==="admin") return isChief();
+  const needed=PAGE_PERMISSIONS[page];
+  return needed ? hasPerm(needed) : true;
+}
+async function loadPermissionsConfig(){
+  try{
+    const ref=doc(db,"settings","permissions");
+    const snap=await getDoc(ref);
+    if(snap.exists() && snap.data()?.roles){
+      window.LSPD.permissionConfig=snap.data();
+      return;
+    }
+    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS))};
+    if(isChief()){
+      await setDoc(ref,{
+        roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),
+        updatedById:window.LSPD.user.uid,
+        updatedByName:window.LSPD.profile.name,
+        updatedAt:serverTimestamp()
+      });
+    }
+  }catch(err){
+    console.warn("Permission configuration fallback",err);
+    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS))};
+  }
+}
 
 async function loadProfile(user){
   window.LSPD.user=user;
@@ -309,6 +419,7 @@ async function loadProfile(user){
     return;
   }
 
+  await loadPermissionsConfig();
   showApp();
   applyRoleVisibility();
   refreshNotificationBadge().catch(()=>{});
@@ -409,30 +520,39 @@ async function handleSignup(e){
   }
 }
 onAuthStateChanged(auth,async user=>{
-  if(!user){window.LSPD.user=null;window.LSPD.profile=null;showLogin();return;}
+  if(!user){window.LSPD.pageCleanup?.();window.LSPD.pageCleanup=null;window.LSPD.user=null;window.LSPD.profile=null;window.LSPD.permissionConfig=null;showLogin();return;}
   await loadProfile(user);
 });
 function logout(){ return signOut(auth); }
 
 function applyRoleVisibility(){
-  const hide=(p,y)=>document.querySelector(`#nav button[data-page="${p}"]`)?.classList.toggle("hidden",y);
-  hide("trainees",!isFTO());
-  ["officers","assignments","certifications","records","shifts","requirements","promotions","stats","history","promotionAdvisor","approvals"].forEach(p=>hide(p,!isCommand()));
-  hide("corrections",false);
-  hide("registrations",!isChief());
-  hide("dutyBoard",!isCommand());
-  hide("calendar",!isFTO());
-  hide("admin",!isChief());
+  document.querySelectorAll("#nav button[data-page]").forEach(btn=>{
+    btn.classList.toggle("hidden",!canAccessPage(btn.dataset.page));
+  });
 }
 
 function render(page){
+  if(!canAccessPage(page)){
+    showToast("Cette fonction n'est pas autorisée pour ton rôle.","error");
+    page="dashboard";
+  }
+  if(window.LSPD.pageCleanup){
+    try{window.LSPD.pageCleanup();}catch{}
+    window.LSPD.pageCleanup=null;
+  }
+  window.LSPD.currentPage=page;
+  document.body.classList.remove("sidebar-open");
+  $("sidebarBackdrop")?.classList.add("hidden");
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   $("pageTitle").textContent=pages[page]||"LSPD";
+  const content=$("content");
+  content?.classList.remove("page-enter");
   ({
-    dashboard,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
-    certifications,records,shifts,dutyBoard,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
-    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,history
+    dashboard,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
+    certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
+    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,history
   }[page]||dashboard)();
+  requestAnimationFrame(()=>content?.classList.add("page-enter"));
 }
 
 async function getUser(uid){
@@ -477,7 +597,7 @@ async function refreshRegistrationBadge(){
 }
 
 async function registrations(){
-  if(!isChief()) return;
+  if(!hasPerm("registrations_manage")) return;
   try{
     const snap=await getDocs(collection(db,"users"));
     const data=snap.docs
@@ -515,7 +635,7 @@ async function registrations(){
 }
 
 async function openRegistrationApproval(uid){
-  if(!isChief()) return;
+  if(!hasPerm("registrations_manage")) return;
   const u=await getUser(uid);
   if(!u) return;
 
@@ -544,7 +664,7 @@ async function openRegistrationApproval(uid){
 
 async function approveRegistration(e){
   e.preventDefault();
-  if(!isChief()) return;
+  if(!hasPerm("registrations_manage")) return;
   const uid=$("regUid").value;
   const badge=$("regBadge").value.trim();
 
@@ -592,7 +712,7 @@ async function approveRegistration(e){
 }
 
 async function rejectRegistration(uid){
-  if(!isChief()) return;
+  if(!hasPerm("registrations_manage")) return;
   const u=await getUser(uid);
   if(!u) return;
   if(!confirm(`Refuser la demande de ${u.name} ?`)) return;
@@ -832,7 +952,7 @@ async function checkOutShift(id){
 }
 
 async function dutyBoard(){
-  if(!isCommand()) return;
+  if(!hasPerm("duty_board")) return;
   try{
     const today=todayISO();
     const [shiftSnap,leaveSnap,eventSnap,regSnap]=await Promise.all([
@@ -858,8 +978,8 @@ async function dutyBoard(){
         <div class="card accent-card"><div class="muted">En formation aujourd'hui</div><div class="stat">${regs.length}</div></div>
       </div>
       <div class="section-title">Aujourd'hui</div>
-      <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Horaire</th><th>Unité</th><th>Statut</th>${isChief()?"<th>Action</th>":""}</tr></thead><tbody>
-      ${shiftsToday.length?shiftsToday.map(s=>`<tr><td>${esc(s.officerName)}</td><td>${esc(s.start)}-${esc(s.end)}</td><td>${esc(s.division||"Patrol")}</td><td><span class="tag ${shiftOperationalStatus(s)==="En service"?"green":shiftOperationalStatus(s)==="Absent / non pointé"?"red":""}">${esc(shiftOperationalStatus(s))}</span></td>${isChief()?`<td><button class="btn secondary edit-duty-shift" data-id="${s.id}">Modifier shift</button> ${s.status!=="Annulé"?`<button class="btn secondary cancel-duty-shift" data-id="${s.id}">Annuler shift</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="5">Aucun shift.</td></tr>'}
+      <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Horaire</th><th>Unité</th><th>Statut</th>${hasPerm("shifts_manage")?"<th>Action</th>":""}</tr></thead><tbody>
+      ${shiftsToday.length?shiftsToday.map(s=>`<tr><td>${esc(s.officerName)}</td><td>${esc(s.start)}-${esc(s.end)}</td><td>${esc(s.division||"Patrol")}</td><td><span class="tag ${shiftOperationalStatus(s)==="En service"?"green":shiftOperationalStatus(s)==="Absent / non pointé"?"red":""}">${esc(shiftOperationalStatus(s))}</span></td>${hasPerm("shifts_manage")?`<td><button class="btn secondary edit-duty-shift" data-id="${s.id}">Modifier shift</button> ${s.status!=="Annulé"?`<button class="btn secondary cancel-duty-shift" data-id="${s.id}">Annuler shift</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="5">Aucun shift.</td></tr>'}
       </tbody></table></div>
       <div class="grid2" style="margin-top:16px">
         <div class="card"><h3>En congé</h3>${leaves.length?leaves.map(l=>`<div class="row"><span>${esc(l.officerName)}</span><b>${esc(l.startDate)} → ${esc(l.endDate)}</b></div>`).join(""):'<p class="muted">Aucune demande.</p>'}</div>
@@ -874,7 +994,7 @@ async function dutyBoard(){
 }
 
 async function openShiftEdit(id){
-  if(!isChief()) return;
+  if(!hasPerm("shifts_manage")) return;
   const s=await getDoc(doc(db,"shifts",id));
   if(!s.exists()) return;
   const v=s.data();
@@ -898,7 +1018,7 @@ async function openShiftEdit(id){
   };
 }
 async function cancelShift(id){
-  if(!isChief()) return;
+  if(!hasPerm("shifts_manage")) return;
   if(!confirm("Annuler shift ?")) return;
   try{
     await updateDoc(doc(db,"shifts",id),{status:"Annulé",updatedAt:serverTimestamp()});
@@ -931,7 +1051,7 @@ async function trainingHub(){
         <div class="modal-actions">
           ${mine?`<span class="tag green">${esc(mine.attendanceStatus||mine.status||"Inscrit")}</span> ${mine.status!=="Annulée"?`<button class="btn secondary training-cancel" data-reg="${mine.id}">Annuler mon inscription</button>`:""}`:
           `<button class="btn ${full?"secondary":""} training-register" data-event="${e.id}" data-title="${esc(e.title)}" ${full?"disabled":""}>${full?"Complet":"S'inscrire"}</button>`}
-          ${isFTO()?`<button class="btn secondary training-attendance" data-event="${e.id}">Gérer les présences</button>`:""}
+          ${hasPerm("training_manage")?`<button class="btn secondary training-attendance" data-event="${e.id}">Gérer les présences</button>`:""}
         </div>
       </div>`;
     }).join(""):'<div class="card">Aucune formation planifiée.</div>'}</div>`;
@@ -977,7 +1097,7 @@ async function cancelTrainingRegistration(regId){
 }
 
 async function openTrainingAttendance(eventId){
-  if(!isFTO()) return;
+  if(!hasPerm("training_manage")) return;
   const [eventSnap,regSnap]=await Promise.all([
     getDoc(doc(db,"training_events",eventId)),
     getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId)))
@@ -1017,7 +1137,7 @@ async function mdt(){
 
     $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newCaseBtn">+ Nouveau dossier</button><input id="mdtSearch" class="search" placeholder="Recherche globale..."></div>
       <div class="section-title">Dossiers d'enquête</div>
-      <div class="card table-card"><table class="table"><thead><tr><th>Numéro</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th>${isCommand()?"<th>Action</th>":""}</tr></thead><tbody id="mdtCaseRows">${renderCaseRows(cases)}</tbody></table></div>
+      <div class="card table-card"><table class="table"><thead><tr><th>Numéro</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th>${hasPerm("mdt_manage")?"<th>Action</th>":""}</tr></thead><tbody id="mdtCaseRows">${renderCaseRows(cases)}</tbody></table></div>
       <div class="section-title">Rapports accessibles</div>
       <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Statut</th></tr></thead><tbody>${incidentsData.length?incidentsData.slice(0,30).map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${esc(r.status)}</td></tr>`).join(""):'<tr><td colspan="5">Aucun rapport.</td></tr>'}</tbody></table></div>`;
 
@@ -1030,7 +1150,7 @@ async function mdt(){
     bindCaseButtons();
 
     function renderCaseRows(rows){
-      return rows.length?rows.map(c=>`<tr><td>${esc(c.caseNumber)}</td><td><b>${esc(c.title)}</b><div class="muted">${esc(c.summary||"")}</div></td><td>${esc(c.category)}</td><td>${esc(c.createdByName)}</td><td><span class="tag ${c.status==="Clos"?"green":"orange"}">${esc(c.status)}</span></td>${isCommand()?`<td>${c.status!=="Clos"?`<button class="btn secondary close-case" data-id="${c.id}">Clôturer le dossier</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucun dossier MDT.</td></tr>';
+      return rows.length?rows.map(c=>`<tr><td>${esc(c.caseNumber)}</td><td><b>${esc(c.title)}</b><div class="muted">${esc(c.summary||"")}</div></td><td>${esc(c.category)}</td><td>${esc(c.createdByName)}</td><td><span class="tag ${c.status==="Clos"?"green":"orange"}">${esc(c.status)}</span></td>${hasPerm("mdt_manage")?`<td>${c.status!=="Clos"?`<button class="btn secondary close-case" data-id="${c.id}">Clôturer le dossier</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucun dossier MDT.</td></tr>';
     }
     function bindCaseButtons(){
       document.querySelectorAll(".close-case").forEach(b=>b.onclick=()=>closeCase(b.dataset.id));
@@ -1061,7 +1181,7 @@ async function saveCase(e){
   }catch(err){ $("caseError").textContent="Erreur : "+(err.code||err.message); }
 }
 async function closeCase(id){
-  if(!isCommand()) return;
+  if(!hasPerm("mdt_manage")) return;
   try{
     await updateDoc(doc(db,"case_files",id),{status:"Clos",closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name,closedAt:serverTimestamp()});
     await addAudit("CASE_CLOSE",id,"Clos");
@@ -1072,7 +1192,7 @@ async function closeCase(id){
 async function divisionsPage(){
   try{
     const uid=window.LSPD.user.uid;
-    const appSnap=isCommand()
+    const appSnap=hasPerm("division_review")
       ? await getDocs(collection(db,"division_applications"))
       : await getDocs(query(collection(db,"division_applications"),where("applicantId","==",uid)));
     const applications=appSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -1083,9 +1203,9 @@ async function divisionsPage(){
     }
     $("content").innerHTML=`<div class="card"><div class="muted">Ma division actuelle</div><div class="stat">${esc(window.LSPD.profile.division||"Patrol")}</div></div>
       <div class="section-title">Divisions</div><div class="grid division-grid">${divisionInfo.map(d=>`<div class="card"><h3>${esc(d[0])}</h3><p class="muted">${esc(d[1])}</p>${isCommand()?`<div class="row"><span>Effectif actuel</span><b>${counts[d[0]]||0}</b></div>`:""}${d[0]!==window.LSPD.profile.division?`<button class="btn secondary division-apply" data-division="${esc(d[0])}">Candidater</button>`:""}</div>`).join("")}</div>
-      <div class="section-title">${isCommand()?"Candidatures en attente":"Mes candidatures"}</div>
-      <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Division</th><th>Motivation</th><th>Statut</th>${isChief()?"<th>Action</th>":""}</tr></thead><tbody>
-      ${applications.length?applications.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.applicantName)}</td><td>${esc(a.targetDivision)}</td><td>${esc(a.motivation)}</td><td><span class="tag ${a.status==="Approuvé"?"green":a.status==="Refusé"?"red":"orange"}">${esc(a.status)}</span></td>${isChief()?`<td>${a.status==="En attente"?`<button class="btn secondary division-review" data-id="${a.id}" data-status="Approuvé">Approuver la candidature</button> <button class="btn secondary division-review" data-id="${a.id}" data-status="Refusé">Refuser la candidature</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune candidature.</td></tr>'}
+      <div class="section-title">${hasPerm("division_review")?"Candidatures en attente":"Mes candidatures"}</div>
+      <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Division</th><th>Motivation</th><th>Statut</th>${hasPerm("shifts_manage")?"<th>Action</th>":""}</tr></thead><tbody>
+      ${applications.length?applications.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.applicantName)}</td><td>${esc(a.targetDivision)}</td><td>${esc(a.motivation)}</td><td><span class="tag ${a.status==="Approuvé"?"green":a.status==="Refusé"?"red":"orange"}">${esc(a.status)}</span></td>${hasPerm("division_review")?`<td>${a.status==="En attente"?`<button class="btn secondary division-review" data-id="${a.id}" data-status="Approuvé">Approuver la candidature</button> <button class="btn secondary division-review" data-id="${a.id}" data-status="Refusé">Refuser la candidature</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune candidature.</td></tr>'}
       </tbody></table></div>`;
     document.querySelectorAll(".division-apply").forEach(b=>b.onclick=()=>openDivisionApplication(b.dataset.division));
     document.querySelectorAll(".division-review").forEach(b=>b.onclick=()=>reviewDivisionApplication(b.dataset.id,b.dataset.status));
@@ -1118,7 +1238,7 @@ async function saveDivisionApplication(e){
   }catch(err){ $("divisionError").textContent="Erreur : "+(err.code||err.message); }
 }
 async function reviewDivisionApplication(id,status){
-  if(!isChief()) return;
+  if(!hasPerm("division_review")) return;
   try{
     const s=await getDoc(doc(db,"division_applications",id));
     if(!s.exists()) return;
@@ -1135,6 +1255,269 @@ async function reviewDivisionApplication(id,status){
     await addAudit("DIVISION_APPLICATION_"+(status==="Approuvé"?"APPROVED":"REJECTED"),a.applicantId,a.targetDivision);
     divisionsPage();
   }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+
+function updateClock(){
+  const el=$("liveClock");
+  if(!el) return;
+  const now=new Date();
+  el.textContent=now.toLocaleTimeString(currentLang==="en"?"en-US":"fr-FR",{hour:"2-digit",minute:"2-digit"});
+}
+
+function toggleSidebar(force){
+  const collapsed=typeof force==="boolean" ? force : !document.body.classList.contains("sidebar-collapsed");
+  document.body.classList.toggle("sidebar-collapsed",collapsed);
+  localStorage.setItem("lspdSidebarCollapsed",collapsed?"1":"0");
+}
+function toggleMobileSidebar(open){
+  const shouldOpen=typeof open==="boolean"?open:!document.body.classList.contains("sidebar-open");
+  document.body.classList.toggle("sidebar-open",shouldOpen);
+  $("sidebarBackdrop")?.classList.toggle("hidden",!shouldOpen);
+}
+
+function openCommandPalette(){
+  const visible=[...document.querySelectorAll('#nav button[data-page]:not(.hidden)')].map(b=>({
+    page:b.dataset.page,
+    label:(b.querySelector(".nav-label")?.textContent||pages[b.dataset.page]||b.dataset.page).trim(),
+    icon:(b.querySelector(".nav-icon")?.textContent||"").trim()
+  }));
+  showModal(`<div class="command-palette"><div class="command-palette-head"><span>⌘</span><input id="paletteInput" autofocus placeholder="Tape une page..."></div><div id="paletteResults" class="palette-results"></div></div>`);
+  const input=$("paletteInput"), results=$("paletteResults");
+  const paint=()=>{
+    const q=(input.value||"").toLowerCase();
+    const filtered=visible.filter(x=>x.label.toLowerCase().includes(q)).slice(0,12);
+    results.innerHTML=filtered.length?filtered.map(x=>`<button class="palette-item" data-page="${x.page}"><span>${x.icon}</span><b>${esc(x.label)}</b></button>`).join(""):`<div class="palette-empty">Aucune page trouvée.</div>`;
+    document.querySelectorAll(".palette-item").forEach(b=>b.onclick=()=>{document.querySelector(".modal")?.remove();render(b.dataset.page);});
+  };
+  input.oninput=paint;
+  input.onkeydown=e=>{
+    if(e.key==="Enter"){
+      const first=results.querySelector(".palette-item");
+      if(first){document.querySelector(".modal")?.remove();render(first.dataset.page);}
+    }
+  };
+  paint();
+  setTimeout(()=>input.focus(),30);
+}
+
+async function permissionsAdmin(){
+  if(!isChief()) return;
+  await loadPermissionsConfig();
+  const rolesMap=permissionRoles();
+  $("content").innerHTML=`<div class="card permission-hero">
+    <div><span class="eyebrow">SECURITY & ACCESS</span><h2>Permissions & rôles</h2>
+    <p class="muted">Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.</p></div>
+    <div class="shield-mark">🔐</div>
+  </div>
+  <div class="toolbar permission-toolbar">
+    <button class="btn" id="savePermissionsBtn">Enregistrer les permissions</button>
+    <button class="btn secondary" id="resetPermissionsBtn">Réinitialiser les valeurs par défaut</button>
+    <span class="muted">Le Chief conserve toujours tous les droits.</span>
+  </div>
+  <div class="card table-card permission-table-card"><table class="table permission-table"><thead><tr><th>Permission</th>${roles.map(r=>`<th>${esc(r)}</th>`).join("")}</tr></thead><tbody>
+  ${PERMISSION_CATALOG.map(([key,label])=>`<tr><td><b>${esc(label)}</b><small>${esc(key)}</small></td>${roles.map(r=>{
+    const checked=r==="Chief" || (rolesMap[r]||[]).includes(key);
+    return `<td><label class="permission-check"><input type="checkbox" data-role="${esc(r)}" data-permission="${esc(key)}" ${checked?"checked":""} ${r==="Chief"?"disabled":""}><span></span></label></td>`;
+  }).join("")}</tr>`).join("")}
+  </tbody></table></div>`;
+  $("savePermissionsBtn").onclick=savePermissions;
+  $("resetPermissionsBtn").onclick=resetPermissionsDefaults;
+}
+async function savePermissions(){
+  if(!isChief()) return;
+  const rolesMap={};
+  for(const r of roles){
+    rolesMap[r]=r==="Chief"?PERMISSION_CATALOG.map(x=>x[0]):
+      [...document.querySelectorAll(`input[data-role="${CSS.escape(r)}"][data-permission]:checked`)].map(x=>x.dataset.permission);
+  }
+  try{
+    await setDoc(doc(db,"settings","permissions"),{
+      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()
+    });
+    window.LSPD.permissionConfig={roles:rolesMap};
+    await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions & rôles");
+    applyRoleVisibility();
+    showToast("Permissions enregistrées.","success");
+  }catch(err){ showToast("Erreur : "+(err.code||err.message),"error"); }
+}
+async function resetPermissionsDefaults(){
+  if(!isChief()) return;
+  if(!confirm("Réinitialiser les valeurs par défaut ?")) return;
+  try{
+    const rolesMap=JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
+    await setDoc(doc(db,"settings","permissions"),{
+      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()
+    });
+    window.LSPD.permissionConfig={roles:rolesMap};
+    showToast("Valeurs par défaut restaurées.","success");
+    permissionsAdmin();
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+async function cad(){
+  $("content").innerHTML=`<div class="cad-topline"><div><span class="eyebrow">COMPUTER AIDED DISPATCH</span><h2>CAD / Dispatch <span class="live-pill">● En direct</span></h2></div><button class="btn secondary" id="editMyCadBtn">Mon unité</button></div>
+    <div id="cadUnitsGrid" class="cad-grid"><div class="card skeleton-card"></div><div class="card skeleton-card"></div></div>`;
+  $("editMyCadBtn").onclick=()=>openMyCadUnit();
+
+  const unsub=onSnapshot(collection(db,"cad_units"),snap=>{
+    if(window.LSPD.currentPage!=="cad") return;
+    const units=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.active!==false).sort((a,b)=>(a.callSign||"").localeCompare(b.callSign||""));
+    renderCadUnits(units);
+  },err=>{
+    $("cadUnitsGrid").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  });
+  window.LSPD.pageCleanup=unsub;
+}
+function renderCadUnits(units){
+  const host=$("cadUnitsGrid"); if(!host) return;
+  host.innerHTML=units.length?units.map(u=>`<div class="cad-unit card ${u.status==="En intervention"?"cad-busy":u.status==="Disponible"?"cad-available":u.status==="Hors service"?"cad-off":""}">
+    <div class="cad-unit-head"><div><span class="call-sign">${esc(u.callSign||"UNIT")}</span><h3>${esc(u.ownerName||"—")}${u.partnerName?` / ${esc(u.partnerName)}`:""}</h3></div><span class="unit-status">${esc(u.status||"Disponible")}</span></div>
+    <div class="cad-meta"><span>📍 ${esc(u.location||"—")}</span><span>🏢 ${esc(u.division||"Patrol")}</span></div>
+    ${u.note?`<p class="cad-note">${esc(u.note)}</p>`:""}
+    <div class="cad-footer"><span class="muted">Actualisé ${formatDate(u.updatedAt||u.createdAt)}</span>${u.ownerId===window.LSPD.user.uid||hasPerm("cad_manage")?`<button class="btn secondary edit-cad-unit" data-id="${u.id}">Mettre à jour</button>`:""}</div>
+  </div>`).join(""):'<div class="card"><p class="muted">Aucune unité active.</p></div>';
+  document.querySelectorAll(".edit-cad-unit").forEach(b=>b.onclick=()=>openCadUnitEditor(b.dataset.id));
+}
+async function openMyCadUnit(){
+  const snap=await getDocs(query(collection(db,"cad_units"),where("ownerId","==",window.LSPD.user.uid)));
+  const current=snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.active!==false);
+  if(current) openCadUnitEditor(current.id);
+  else openCadUnitEditor(null);
+}
+async function openCadUnitEditor(id=null){
+  let u=null;
+  if(id){
+    const s=await getDoc(doc(db,"cad_units",id)); if(!s.exists()) return; u={id,...s.data()};
+    if(u.ownerId!==window.LSPD.user.uid && !hasPerm("cad_manage")) return showToast("Accès refusé","error");
+  }
+  const defaultCall=`ADAM-${window.LSPD.profile.badge||"00"}`;
+  showModal(`<h2>Unité CAD</h2><form id="cadUnitForm"><input id="cadUnitId" type="hidden" value="${esc(u?.id||"")}">
+    <div class="formgrid">
+      <label class="field"><span>Indicatif</span><input id="cadCallSign" required value="${esc(u?.callSign||defaultCall)}"></label>
+      <label class="field"><span>Partenaire</span><input id="cadPartner" value="${esc(u?.partnerName||"")}"></label>
+      <label class="field"><span>Division</span><select id="cadDivision">${divisions.map(d=>`<option ${d===(u?.division||window.LSPD.profile.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
+      <label class="field"><span>État</span><select id="cadStatus">${CAD_STATUSES.map(s=>`<option ${s===(u?.status||"Disponible")?"selected":""}>${s}</option>`).join("")}</select></label>
+      <label class="field full"><span>Localisation</span><input id="cadLocation" value="${esc(u?.location||"Mission Row")}"></label>
+    </div>
+    <label class="field full"><span>Note opérationnelle</span><textarea id="cadNote" rows="3">${esc(u?.note||"")}</textarea></label>
+    <div id="cadError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">${u?"Mettre à jour":"Créer mon unité"}</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div>
+  </form>`);
+  $("cadUnitForm").onsubmit=saveCadUnit;
+}
+async function saveCadUnit(e){
+  e.preventDefault();
+  const id=$("cadUnitId").value;
+  const payload={
+    callSign:$("cadCallSign").value.trim(),partnerName:$("cadPartner").value.trim(),
+    division:$("cadDivision").value,status:$("cadStatus").value,
+    location:$("cadLocation").value.trim(),note:$("cadNote").value.trim(),
+    active:true,updatedAt:serverTimestamp()
+  };
+  try{
+    if(id){
+      const s=await getDoc(doc(db,"cad_units",id)); if(!s.exists()) return;
+      const u=s.data();
+      if(u.ownerId!==window.LSPD.user.uid && !hasPerm("cad_manage")) return;
+      await updateDoc(doc(db,"cad_units",id),payload);
+      await addAudit("CAD_UNIT_UPDATE",id,`${payload.callSign} — ${payload.status}`);
+    }else{
+      await addDoc(collection(db,"cad_units"),{
+        ...payload,ownerId:window.LSPD.user.uid,ownerName:window.LSPD.profile.name,createdAt:serverTimestamp()
+      });
+      await addAudit("CAD_UNIT_CREATE",window.LSPD.user.uid,payload.callSign);
+    }
+    document.querySelector(".modal")?.remove();
+    showToast("Mettre à jour","success");
+  }catch(err){$("cadError").textContent="Erreur : "+(err.code||err.message);}
+}
+
+async function bolos(){
+  try{
+    const snap=await getDocs(collection(db,"bolos"));
+    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const active=data.filter(x=>x.status!=="Clôturé");
+    $("content").innerHTML=`<div class="toolbar"><div><span class="eyebrow">OFFICER SAFETY</span><h2>BOLO actifs</h2></div>${hasPerm("bolo_manage")?'<button class="btn danger-btn" id="newBoloBtn">+ Nouveau BOLO</button>':""}</div>
+    <div class="bolo-grid">${active.length?active.map(b=>`<div class="card bolo-card priority-${String(b.priority||"Normal").toLowerCase()}"><div class="bolo-head"><span class="tag ${b.priority==="Critique"?"red":b.priority==="Important"?"orange":""}">${esc(b.priority||"Normal")}</span><span class="number">${esc(b.type)}</span></div><h3>${esc(b.title)}</h3><p>${esc(b.description)}</p>${b.plate?`<div class="plate-chip">🚘 ${esc(b.plate)}</div>`:""}<div class="cad-footer"><span class="muted">${esc(b.createdByName)} • ${formatDate(b.createdAt)}</span>${hasPerm("bolo_manage")?`<button class="btn secondary close-bolo" data-id="${b.id}">Clôturer le BOLO</button>`:""}</div></div>`).join(""):'<div class="card"><p class="muted">Aucun BOLO actif.</p></div>'}</div>`;
+    $("newBoloBtn")?.addEventListener("click",openBoloForm);
+    document.querySelectorAll(".close-bolo").forEach(b=>b.onclick=()=>closeBolo(b.dataset.id));
+  }catch(err){$("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
+}
+function openBoloForm(){
+  if(!hasPerm("bolo_manage")) return;
+  showModal(`<h2>Nouveau BOLO</h2><form id="boloForm"><div class="formgrid">
+    <label class="field"><span>Type</span><select id="boloType">${BOLO_TYPES.map(x=>`<option>${x}</option>`).join("")}</select></label>
+    <label class="field"><span>Priorité</span><select id="boloPriority">${BOLO_PRIORITIES.map(x=>`<option>${x}</option>`).join("")}</select></label>
+    <label class="field full"><span>Titre</span><input id="boloTitle" required></label>
+    <label class="field"><span>Plaque</span><input id="boloPlate"></label>
+  </div><label class="field full"><span>Description</span><textarea id="boloDescription" rows="6" required></textarea></label>
+  <div id="boloError" class="error"></div><div class="modal-actions"><button class="btn danger-btn" type="submit">Publier le BOLO</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("boloForm").onsubmit=saveBolo;
+}
+async function saveBolo(e){
+  e.preventDefault(); if(!hasPerm("bolo_manage")) return;
+  try{
+    const ref=await addDoc(collection(db,"bolos"),{
+      type:$("boloType").value,priority:$("boloPriority").value,title:$("boloTitle").value.trim(),
+      plate:$("boloPlate").value.trim(),description:$("boloDescription").value.trim(),status:"Actif",
+      createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,createdAt:serverTimestamp()
+    });
+    await addAudit("BOLO_CREATE",ref.id,$("boloTitle").value.trim());
+    document.querySelector(".modal")?.remove();bolos();
+  }catch(err){$("boloError").textContent="Erreur : "+(err.code||err.message);}
+}
+async function closeBolo(id){
+  if(!hasPerm("bolo_manage")) return;
+  try{
+    await updateDoc(doc(db,"bolos",id),{status:"Clôturé",closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name,closedAt:serverTimestamp()});
+    await addAudit("BOLO_CLOSE",id,"Clôturé"); bolos();
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+async function watchCommand(){
+  try{
+    const snap=await getDocs(collection(db,"watch_sessions"));
+    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.startedAt?.seconds||0)-(a.startedAt?.seconds||0));
+    const active=data.find(x=>x.status==="Actif");
+    $("content").innerHTML=`<div class="watch-hero card">${active?`<div><span class="eyebrow">WATCH COMMAND</span><h2>Watch en cours</h2><div class="watch-commander">${esc(active.commanderName)}</div><p>${esc(active.briefing||"")}</p><span class="muted">${formatDate(active.startedAt)}</span></div>${hasPerm("watch_manage")?`<button class="btn" id="closeWatchBtn">Clôturer le watch</button>`:""}`:`<div><span class="eyebrow">WATCH COMMAND</span><h2>Aucun Watch Commander actif.</h2><p class="muted">Le commandement peut ouvrir un service et publier le briefing de prise de service.</p></div>${hasPerm("watch_manage")?`<button class="btn" id="startWatchBtn">Démarrer un watch</button>`:""}`}</div>
+      <div class="section-title">Historique des watches</div><div class="card table-card"><table class="table"><thead><tr><th>Commander</th><th>Début</th><th>Statut</th><th>Briefing</th><th>Note de passation</th></tr></thead><tbody>${data.length?data.slice(0,20).map(w=>`<tr><td>${esc(w.commanderName)}</td><td>${formatDate(w.startedAt)}</td><td>${esc(w.status)}</td><td>${esc(w.briefing||"")}</td><td>${esc(w.passdown||"—")}</td></tr>`).join(""):'<tr><td colspan="5">Aucune entrée.</td></tr>'}</tbody></table></div>`;
+    $("startWatchBtn")?.addEventListener("click",openStartWatch);
+    $("closeWatchBtn")?.addEventListener("click",()=>openCloseWatch(active.id));
+  }catch(err){$("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
+}
+async function openStartWatch(){
+  if(!hasPerm("watch_manage")) return;
+  let users=[{uid:window.LSPD.user.uid,...window.LSPD.profile}];
+  if(hasPerm("personnel_view")){
+    try{users=(await getUsers()).filter(u=>!["Archivé","Refusé","En attente"].includes(u.status));}catch{}
+  }
+  showModal(`<h2>Démarrer un watch</h2><form id="watchStartForm"><label class="field"><span>Commander</span><select id="watchCommander">${users.map(u=>`<option value="${u.uid}" data-name="${esc(u.name)}">${esc(u.badge||"—")} — ${esc(u.name)}</option>`).join("")}</select></label><label class="field full"><span>Briefing</span><textarea id="watchBriefing" rows="7" required></textarea></label><div id="watchError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Démarrer le service</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("watchStartForm").onsubmit=saveWatch;
+}
+async function saveWatch(e){
+  e.preventDefault(); if(!hasPerm("watch_manage")) return;
+  const s=$("watchCommander");
+  try{
+    const ref=await addDoc(collection(db,"watch_sessions"),{
+      commanderId:s.value,commanderName:s.selectedOptions[0].dataset.name,
+      briefing:$("watchBriefing").value.trim(),status:"Actif",
+      startedById:window.LSPD.user.uid,startedByName:window.LSPD.profile.name,startedAt:serverTimestamp()
+    });
+    await addAudit("WATCH_START",ref.id,s.selectedOptions[0].dataset.name);
+    document.querySelector(".modal")?.remove();watchCommand();
+  }catch(err){$("watchError").textContent="Erreur : "+(err.code||err.message);}
+}
+function openCloseWatch(id){
+  if(!hasPerm("watch_manage")) return;
+  showModal(`<h2>Clôturer le watch</h2><form id="watchCloseForm"><label class="field full"><span>Note de passation</span><textarea id="watchPassdown" rows="7" required></textarea></label><div id="watchCloseError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Clôturer le watch</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("watchCloseForm").onsubmit=async e=>{
+    e.preventDefault();
+    try{
+      await updateDoc(doc(db,"watch_sessions",id),{status:"Clôturé",passdown:$("watchPassdown").value.trim(),closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name,closedAt:serverTimestamp()});
+      await addAudit("WATCH_CLOSE",id,$("watchPassdown").value.trim());
+      document.querySelector(".modal")?.remove();watchCommand();
+    }catch(err){$("watchCloseError").textContent="Erreur : "+(err.code||err.message);}
+  };
 }
 
 async function dashboard(){
@@ -1219,7 +1602,7 @@ async function announcements(){
   try{
     const snap=await getDocs(collection(db,"announcements"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="toolbar">${isCommand()?'<button class="btn" id="newAnnouncementBtn">+ Nouvelle annonce</button>':""}</div>
+    $("content").innerHTML=`<div class="toolbar">${hasPerm("announcements_manage")?'<button class="btn" id="newAnnouncementBtn">+ Nouvelle annonce</button>':""}</div>
     <div class="grid2">${data.length?data.map(a=>`<div class="card notice ${a.active===false?"muted-card":""}"><span class="tag ${a.priority==="Urgent"?"red":a.priority==="Important"?"orange":""}">${esc(a.priority||"Normal")}</span><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p><p class="muted">${esc(a.authorName)} • ${formatDate(a.createdAt)}</p></div>`).join(""):'<div class="card"><p class="muted">Aucune annonce.</p></div>'}</div>`;
     $("newAnnouncementBtn")?.addEventListener("click",openAnnouncementForm);
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
@@ -1310,7 +1693,7 @@ async function saveIncident(e){
 }
 
 async function approvals(){
-  if(!canApproveIncidents()) return;
+  if(!hasPerm("incident_review")) return;
   try{
     const snap=await getDocs(collection(db,"incident_reports"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="En attente").sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
@@ -1454,13 +1837,13 @@ function openModule(id){
 
 async function evaluations(){
   let snap;
-  if(isCommand()) snap=await getDocs(collection(db,"evaluations"));
-  else if(isFTO()) snap=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid)));
+  if(hasPerm("personnel_view")) snap=await getDocs(collection(db,"evaluations"));
+  else if(hasPerm("fto_tools")) snap=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid)));
   else snap=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
 
   const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar">
-    ${isFTO()?'<button class="btn" id="newEvalBtn">+ Nouvelle évaluation</button>':""}
+    ${hasPerm("fto_tools")?'<button class="btn" id="newEvalBtn">+ Nouvelle évaluation</button>':""}
     <button class="btn secondary" id="exportEvalBtn">Exporter CSV</button>
   </div>
   <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>FTO</th><th>Module</th><th>Score</th><th>Résultat</th><th></th></tr></thead><tbody>
@@ -1474,7 +1857,7 @@ async function evaluations(){
 }
 
 async function openEvaluationForm(){
-  if(!isFTO())return;
+  if(!hasPerm("fto_tools"))return;
   const officers=(await getUsers()).filter(o=>!["Inactif","Archivé"].includes(o.status));
   showModal(`<h2>Nouvelle évaluation FTO</h2><form id="evalForm"><div class="formgrid">
   <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
@@ -1512,7 +1895,7 @@ function openEvaluationDetail(e){
 }
 
 async function trainees(){
-  if(!isFTO())return;
+  if(!hasPerm("fto_tools"))return;
   const a=await getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid)));
   const assignments=a.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==="Active");
   const users=await getUsers();
@@ -1523,16 +1906,16 @@ async function trainees(){
 }
 
 async function officers(){
-  if(!isCommand())return;
+  if(!hasPerm("personnel_view"))return;
   const data=(await getUsers()).sort((a,b)=>(a.badge||"").localeCompare(b.badge||"",undefined,{numeric:true}));
   $("content").innerHTML=`<div class="toolbar">
     <input id="officerSearch" class="search" placeholder="Rechercher...">
     <select id="officerStatusFilter" class="search"><option value="">Tous statuts</option>${statuses.map(s=>`<option>${s}</option>`).join("")}</select>
     <select id="officerDivisionFilter" class="search"><option value="">Toutes unités</option>${divisions.map(s=>`<option>${s}</option>`).join("")}</select>
     <button class="btn secondary" id="exportOfficersBtn">Exporter CSV</button>
-    ${isChief()?'<button class="btn" id="addOfficerBtn">+ Ajouter un profil</button>':""}
+    ${hasPerm("personnel_manage")?'<button class="btn" id="addOfficerBtn">+ Ajouter un profil</button>':""}
   </div>
-  <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th></th>${isChief()?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
+  <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th></th>${hasPerm("personnel_manage")?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
 
   function refresh(){
     const s=$("officerSearch").value.toLowerCase(),st=$("officerStatusFilter").value,div=$("officerDivisionFilter").value;
@@ -1550,7 +1933,7 @@ async function officers(){
   $("addOfficerBtn")?.addEventListener("click",()=>openOfficerForm());bindOfficerButtons(data);
 }
 function officerRows(data){
-  return data.length?data.map(o=>`<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${isChief()?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}</tr>`).join(""):'<tr><td colspan="8">Aucun officier.</td></tr>';
+  return data.length?data.map(o=>`<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${hasPerm("personnel_manage")?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}</tr>`).join(""):'<tr><td colspan="8">Aucun officier.</td></tr>';
 }
 function bindOfficerButtons(data){
   document.querySelectorAll(".view-officer").forEach(b=>b.onclick=()=>officerFile(b.dataset.uid));
@@ -1572,7 +1955,7 @@ async function officerFile(uid){
   <h3>Dernières évaluations</h3><div class="table-card"><table class="table"><thead><tr><th>Date</th><th>Module</th><th>FTO</th><th>Score</th><th>Résultat</th></tr></thead><tbody>${evals.slice(0,10).map(e=>`<tr><td>${formatDate(e.createdAt)}</td><td>${esc(e.moduleCode)}</td><td>${esc(e.ftoName)}</td><td>${esc(e.score)}/100</td><td>${esc(e.result)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune évaluation.</td></tr>'}</tbody></table></div><div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
 }
 function openOfficerForm(o=null){
-  if(!isChief())return;
+  if(!hasPerm("personnel_manage"))return;
   showModal(`<h2>${o?"Modifier":"Ajouter"} un profil</h2><form id="officerForm"><div class="formgrid">
   <label class="field full"><span>UID Firebase Authentication</span><input id="fUid" ${o?"readonly":""} required value="${esc(o?.uid||"")}"></label>
   <label class="field"><span>Matricule</span><input id="fBadge" required value="${esc(o?.badge||"")}"></label>
@@ -1596,20 +1979,22 @@ async function saveOfficerProfile(e){
 }
 
 async function assignments(){
-  if(!isCommand())return;
+  if(!hasPerm("fto_assignments_view"))return;
   const as=await getDocs(collection(db,"fto_assignments"));
   const data=as.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar">${isChief()?'<button class="btn" id="newAssignmentBtn">+ Nouvelle affectation</button>':""}</div>
-  <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>FTO</th><th>Recrue</th><th>Statut</th><th>Commentaire</th>${isChief()?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.ftoName)}</td><td>${esc(a.traineeName)}</td><td><span class="tag ${a.status==="Active"?"green":""}">${esc(a.status)}</span></td><td>${esc(a.comment||"")}</td>${isChief()?`<td>${a.status==="Active"?`<button class="btn secondary close-assignment" data-id="${a.id}">Clôturer</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune affectation.</td></tr>'}</tbody></table></div>`;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("fto_assignments_manage")?'<button class="btn" id="newAssignmentBtn">+ Nouvelle affectation</button>':""}</div>
+  <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>FTO</th><th>Recrue</th><th>Statut</th><th>Commentaire</th>${hasPerm("personnel_manage")?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.ftoName)}</td><td>${esc(a.traineeName)}</td><td><span class="tag ${a.status==="Active"?"green":""}">${esc(a.status)}</span></td><td>${esc(a.comment||"")}</td>${isChief()?`<td>${a.status==="Active"?`<button class="btn secondary close-assignment" data-id="${a.id}">Clôturer</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune affectation.</td></tr>'}</tbody></table></div>`;
   $("newAssignmentBtn")?.addEventListener("click",openAssignmentForm);
   document.querySelectorAll(".close-assignment").forEach(b=>b.onclick=()=>closeAssignment(b.dataset.id));
 }
 async function openAssignmentForm(){
+  if(!hasPerm("fto_assignments_manage")) return;
   const users=await getUsers(),ftos=users.filter(u=>["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(u.role)),trainees=users.filter(u=>!["Inactif","Archivé"].includes(u.status));
   showModal(`<h2>Nouvelle affectation FTO</h2><form id="assignmentForm"><div class="formgrid"><label class="field"><span>FTO</span><select id="aFto">${ftos.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Recrue</span><select id="aTrainee">${trainees.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label></div><label class="field full"><span>Commentaire</span><textarea id="aComment" rows="4"></textarea></label><div id="assignmentError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Affecter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("assignmentForm").onsubmit=saveAssignment;
 }
 async function saveAssignment(e){
+  if(!hasPerm("fto_assignments_manage")) return;
   e.preventDefault();const f=$("aFto"),t=$("aTrainee");
   try{
     await addDoc(collection(db,"fto_assignments"),{ftoId:f.value,ftoName:f.selectedOptions[0].dataset.name,traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,status:"Active",comment:$("aComment").value.trim(),createdAt:serverTimestamp(),createdById:window.LSPD.user.uid});
@@ -1618,24 +2003,26 @@ async function saveAssignment(e){
   }catch(err){$("assignmentError").textContent="Erreur : "+(err.code||err.message);}
 }
 async function closeAssignment(id){
-  if(!isChief())return;
+  if(!hasPerm("fto_assignments_manage"))return;
   await updateDoc(doc(db,"fto_assignments",id),{status:"Clôturée",closedAt:serverTimestamp(),closedById:window.LSPD.user.uid});
   await addAudit("FTO_ASSIGNMENT_CLOSED",id,"Affectation clôturée");
   assignments();
 }
 
 async function certifications(){
-  if(!isCommand())return;
+  if(!hasPerm("certifications_view"))return;
   const cs=await getDocs(collection(db,"certifications")),data=cs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar">${isChief()?'<button class="btn" id="newCertificationBtn">+ Ajouter une certification</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Certification</th><th>Attribuée par</th></tr></thead><tbody>${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.officerName)}</td><td><span class="chip">${esc(c.certification)}</span></td><td>${esc(c.issuedByName)}</td></tr>`).join(""):'<tr><td colspan="4">Aucune certification.</td></tr>'}</tbody></table></div>`;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("certifications_manage")?'<button class="btn" id="newCertificationBtn">+ Ajouter une certification</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Certification</th><th>Attribuée par</th></tr></thead><tbody>${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.officerName)}</td><td><span class="chip">${esc(c.certification)}</span></td><td>${esc(c.issuedByName)}</td></tr>`).join(""):'<tr><td colspan="4">Aucune certification.</td></tr>'}</tbody></table></div>`;
   $("newCertificationBtn")?.addEventListener("click",openCertificationForm);
 }
 async function openCertificationForm(){
+  if(!hasPerm("certifications_manage")) return;
   const users=await getUsers();
   showModal(`<h2>Ajouter une certification</h2><form id="certForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="cOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Certification</span><select id="cName">${certificationsCatalog.map(c=>`<option>${c}</option>`).join("")}</select></label></div><div id="certError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Attribuer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("certForm").onsubmit=saveCertification;
 }
 async function saveCertification(e){
+  if(!hasPerm("certifications_manage")) return;
   e.preventDefault();const s=$("cOfficer");
   try{
     await addDoc(collection(db,"certifications"),{officerId:s.value,officerName:s.selectedOptions[0].dataset.name,certification:$("cName").value,issuedById:window.LSPD.user.uid,issuedByName:window.LSPD.profile.name,createdAt:serverTimestamp()});
@@ -1645,17 +2032,19 @@ async function saveCertification(e){
 }
 
 async function records(){
-  if(!isCommand())return;
+  if(!hasPerm("records_view"))return;
   const rs=await getDocs(collection(db,"personnel_records")),data=rs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar">${isChief()?'<button class="btn" id="newRecordBtn">+ Nouvelle entrée</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Type</th><th>Titre</th><th>Émis par</th><th>Détails</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.officerName)}</td><td><span class="tag ${r.type==="Sanction"?"red":"green"}">${esc(r.type)}</span></td><td>${esc(r.title)}</td><td>${esc(r.issuedByName)}</td><td>${esc(r.details||"")}</td></tr>`).join(""):'<tr><td colspan="6">Aucune entrée.</td></tr>'}</tbody></table></div>`;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("records_manage")?'<button class="btn" id="newRecordBtn">+ Nouvelle entrée</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Type</th><th>Titre</th><th>Émis par</th><th>Détails</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.officerName)}</td><td><span class="tag ${r.type==="Sanction"?"red":"green"}">${esc(r.type)}</span></td><td>${esc(r.title)}</td><td>${esc(r.issuedByName)}</td><td>${esc(r.details||"")}</td></tr>`).join(""):'<tr><td colspan="6">Aucune entrée.</td></tr>'}</tbody></table></div>`;
   $("newRecordBtn")?.addEventListener("click",openRecordForm);
 }
 async function openRecordForm(){
+  if(!hasPerm("records_manage")) return;
   const users=await getUsers();
   showModal(`<h2>Nouvelle entrée au dossier</h2><form id="recordForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="rOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Type</span><select id="rType"><option>Commendation</option><option>Sanction</option></select></label><label class="field full"><span>Titre</span><input id="rTitle" required></label></div><label class="field full"><span>Détails</span><textarea id="rDetails" rows="5"></textarea></label><div id="recordError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("recordForm").onsubmit=saveRecord;
 }
 async function saveRecord(e){
+  if(!hasPerm("records_manage")) return;
   e.preventDefault();const s=$("rOfficer");
   try{
     await addDoc(collection(db,"personnel_records"),{officerId:s.value,officerName:s.selectedOptions[0].dataset.name,type:$("rType").value,title:$("rTitle").value.trim(),details:$("rDetails").value.trim(),issuedById:window.LSPD.user.uid,issuedByName:window.LSPD.profile.name,createdAt:serverTimestamp()});
@@ -1665,18 +2054,20 @@ async function saveRecord(e){
 }
 
 async function shifts(){
-  if(!isCommand())return;
+  if(!hasPerm("shifts_view"))return;
   const ss=await getDocs(collection(db,"shifts")),data=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  $("content").innerHTML=`<div class="toolbar">${isChief()?'<button class="btn" id="newShiftBtn">+ Ajouter un shift</button>':""}<button class="btn secondary" id="exportShiftsBtn">Exporter CSV</button></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Début</th><th>Fin</th><th>Unité</th><th>Statut</th></tr></thead><tbody>${data.length?data.map(s=>`<tr><td>${esc(s.date)}</td><td>${esc(s.officerName)}</td><td>${esc(s.start)}</td><td>${esc(s.end)}</td><td>${esc(s.division||"Patrol")}</td><td>${esc(s.status||"Planifié")}</td></tr>`).join(""):'<tr><td colspan="6">Aucun shift.</td></tr>'}</tbody></table></div>`;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("shifts_manage")?'<button class="btn" id="newShiftBtn">+ Ajouter un shift</button>':""}<button class="btn secondary" id="exportShiftsBtn">Exporter CSV</button></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Début</th><th>Fin</th><th>Unité</th><th>Statut</th></tr></thead><tbody>${data.length?data.map(s=>`<tr><td>${esc(s.date)}</td><td>${esc(s.officerName)}</td><td>${esc(s.start)}</td><td>${esc(s.end)}</td><td>${esc(s.division||"Patrol")}</td><td>${esc(s.status||"Planifié")}</td></tr>`).join(""):'<tr><td colspan="6">Aucun shift.</td></tr>'}</tbody></table></div>`;
   $("newShiftBtn")?.addEventListener("click",openShiftForm);
   $("exportShiftsBtn").onclick=()=>csvDownload("shifts_lspd.csv",data.map(s=>({date:s.date,officier:s.officerName,debut:s.start,fin:s.end,unite:s.division,statut:s.status})));
 }
 async function openShiftForm(){
+  if(!hasPerm("shifts_manage")) return;
   const users=await getUsers();
   showModal(`<h2>Ajouter un shift</h2><form id="shiftForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="sOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" data-division="${esc(o.division||"Patrol")}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Date</span><input id="sDate" type="date" required></label><label class="field"><span>Début</span><input id="sStart" type="time" required></label><label class="field"><span>Fin</span><input id="sEnd" type="time" required></label></div><div id="shiftError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("shiftForm").onsubmit=saveShift;
 }
 async function saveShift(e){
+  if(!hasPerm("shifts_manage")) return;
   e.preventDefault();const s=$("sOfficer"),opt=s.selectedOptions[0];
   try{
     await addDoc(collection(db,"shifts"),{officerId:s.value,officerName:opt.dataset.name,date:$("sDate").value,start:$("sStart").value,end:$("sEnd").value,division:opt.dataset.division,status:"Planifié",createdById:window.LSPD.user.uid,createdAt:serverTimestamp()});
@@ -1686,11 +2077,11 @@ async function saveShift(e){
 }
 
 async function leave(){
-  const mine=!isCommand();
+  const mine=!hasPerm("leave_review");
   const snap=mine?await getDocs(query(collection(db,"leave_requests"),where("officerId","==",window.LSPD.user.uid))):await getDocs(collection(db,"leave_requests"));
   const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newLeaveBtn">+ Demander un congé</button></div>
-  <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Du</th><th>Au</th><th>Motif</th><th>Statut</th>${isChief()?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${esc(r.officerName)}</td><td>${esc(r.startDate)}</td><td>${esc(r.endDate)}</td><td>${esc(r.reason||"")}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td>${isChief()?`<td>${r.status==="En attente"?`<button class="btn secondary leave-approve" data-id="${r.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary leave-approve" data-id="${r.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune demande.</td></tr>'}</tbody></table></div>`;
+  <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Du</th><th>Au</th><th>Motif</th><th>Statut</th>${hasPerm("personnel_manage")?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${esc(r.officerName)}</td><td>${esc(r.startDate)}</td><td>${esc(r.endDate)}</td><td>${esc(r.reason||"")}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td>${hasPerm("leave_review")?`<td>${r.status==="En attente"?`<button class="btn secondary leave-approve" data-id="${r.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary leave-approve" data-id="${r.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune demande.</td></tr>'}</tbody></table></div>`;
   $("newLeaveBtn").onclick=openLeaveForm;
   document.querySelectorAll(".leave-approve").forEach(b=>b.onclick=()=>reviewLeave(b.dataset.id,b.dataset.status));
 }
@@ -1706,22 +2097,24 @@ async function saveLeave(e){
   }catch(err){$("leaveError").textContent="Erreur : "+(err.code||err.message);}
 }
 async function reviewLeave(id,status){
-  if(!isChief())return;
+  if(!hasPerm("leave_review"))return;
   await updateDoc(doc(db,"leave_requests",id),{status,reviewedById:window.LSPD.user.uid,reviewedByName:window.LSPD.profile.name,reviewedAt:serverTimestamp()});
   await addAudit("LEAVE_"+status.toUpperCase(),id,status);leave();
 }
 
 async function calendar(){
   const snap=await getDocs(collection(db,"training_events")),data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  $("content").innerHTML=`<div class="toolbar">${isFTO()?'<button class="btn" id="newTrainingBtn">+ Planifier une formation</button>':""}</div>
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("training_manage")?'<button class="btn" id="newTrainingBtn">+ Planifier une formation</button>':""}</div>
   <div class="calendar-grid">${data.length?data.map(e=>`<div class="card event-card"><span class="number">${esc(e.date)} • ${esc(e.time)}</span><h3>${esc(e.title)}</h3><p>${esc(e.moduleCode||"")}</p><p class="muted">${esc(e.location||"LSPD")} • Formateur: ${esc(e.trainerName)}</p><p class="muted">${esc(e.notes||"")}</p></div>`).join(""):'<div class="card">Aucune formation planifiée.</div>'}</div>`;
   $("newTrainingBtn")?.addEventListener("click",openTrainingForm);
 }
 function openTrainingForm(){
+  if(!hasPerm("training_manage")) return;
   showModal(`<h2>Planifier une formation</h2><form id="trainingForm"><div class="formgrid"><label class="field"><span>Titre</span><input id="tTitle" required></label><label class="field"><span>Module</span><select id="tModule">${modules.map(m=>`<option value="${m[0]}">${m[0]} — ${m[1]}</option>`).join("")}</select></label><label class="field"><span>Date</span><input id="tDate" type="date" required></label><label class="field"><span>Heure</span><input id="tTime" type="time" required></label><label class="field"><span>Lieu</span><input id="tLocation" value="LSPD"></label><label class="field"><span>Capacité</span><input id="tCapacity" type="number" min="1" max="100" value="20" required></label></div><label class="field full"><span>Notes</span><textarea id="tNotes" rows="4"></textarea></label><div id="trainingError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Planifier</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("trainingForm").onsubmit=saveTrainingEvent;
 }
 async function saveTrainingEvent(e){
+  if(!hasPerm("training_manage")) return;
   e.preventDefault();
   try{
     const capacity=Number($("tCapacity").value);
@@ -1733,7 +2126,7 @@ async function saveTrainingEvent(e){
 }
 
 async function requirements(){
-  if(!isCommand())return;
+  if(!hasPerm("analytics"))return;
   const [us,ev]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>!["Inactif","Archivé"].includes(u.status));
   const evals=ev.docs.map(d=>d.data());
@@ -1749,7 +2142,7 @@ async function requirements(){
 }
 
 async function promotionAdvisor(){
-  if(!isCommand())return;
+  if(!hasPerm("analytics"))return;
   const [us,ev,rs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"personnel_records"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})),evals=ev.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data());
   const rows=users.filter(o=>o.status!=="Archivé").map(o=>{
@@ -1764,17 +2157,19 @@ async function promotionAdvisor(){
 }
 
 async function promotions(){
-  if(!isCommand())return;
+  if(!hasPerm("promotions_view"))return;
   const ps=await getDocs(collection(db,"promotions")),data=ps.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar">${isChief()?'<button class="btn" id="newPromotionBtn">+ Enregistrer une promotion</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Ancien grade</th><th>Nouveau grade</th><th>Validé par</th></tr></thead><tbody>${data.length?data.map(p=>`<tr><td>${formatDate(p.createdAt)}</td><td>${esc(p.officerName)}</td><td>${esc(p.oldGrade)}</td><td>${esc(p.newGrade)}</td><td>${esc(p.approvedByName)}</td></tr>`).join(""):'<tr><td colspan="5">Aucune promotion.</td></tr>'}</tbody></table></div>`;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("promotions_manage")?'<button class="btn" id="newPromotionBtn">+ Enregistrer une promotion</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Ancien grade</th><th>Nouveau grade</th><th>Validé par</th></tr></thead><tbody>${data.length?data.map(p=>`<tr><td>${formatDate(p.createdAt)}</td><td>${esc(p.officerName)}</td><td>${esc(p.oldGrade)}</td><td>${esc(p.newGrade)}</td><td>${esc(p.approvedByName)}</td></tr>`).join(""):'<tr><td colspan="5">Aucune promotion.</td></tr>'}</tbody></table></div>`;
   $("newPromotionBtn")?.addEventListener("click",openPromotionForm);
 }
 async function openPromotionForm(){
+  if(!hasPerm("promotions_manage")) return;
   const users=await getUsers();
   showModal(`<h2>Enregistrer une promotion</h2><form id="promotionForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="pOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" data-grade="${esc(o.grade)}">${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label><label class="field"><span>Nouveau grade</span><select id="pNewGrade">${gradeList.map(g=>`<option>${g[0]}</option>`).join("")}</select></label></div><label class="field full"><span>Motif</span><textarea id="pComment" rows="4"></textarea></label><div id="promotionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Valider</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("promotionForm").onsubmit=savePromotion;
 }
 async function savePromotion(e){
+  if(!hasPerm("promotions_manage")) return;
   e.preventDefault();const s=$("pOfficer"),uid=s.value,name=s.selectedOptions[0].dataset.name,oldGrade=s.selectedOptions[0].dataset.grade,newGrade=$("pNewGrade").value;
   try{
     await updateDoc(doc(db,"users",uid),{grade:newGrade,updatedAt:serverTimestamp()});
@@ -1784,7 +2179,7 @@ async function savePromotion(e){
 }
 
 async function stats(){
-  if(!isCommand())return;
+  if(!hasPerm("analytics"))return;
   const [us,ev,as,cs,rs,lv,sh]=await Promise.all([
     getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),
     getDocs(collection(db,"fto_assignments")),getDocs(collection(db,"certifications")),
@@ -1823,13 +2218,16 @@ async function admin(){
   if(!isChief())return;
   const users=await getUsers();
   $("content").innerHTML=`<div class="grid2">
-    <div class="card"><h3>Gestion système</h3><div class="row"><span>Profils</span><b>${users.length}</b></div><div class="row"><span>Authentication</span><b>Firebase Console</b></div><div class="row"><span>Rôles & unités</span><b>Onglet Officiers</b></div></div>
-    <div class="card"><h3>Archivage</h3><p class="muted">Pour retirer un officier des listes actives sans supprimer son historique, passe son statut à <b>Archivé</b>.</p></div>
+    <div class="card admin-feature"><span class="eyebrow">SYSTEM</span><h3>Gestion système</h3><div class="row"><span>Profils</span><b>${users.length}</b></div><div class="row"><span>Authentication</span><b>Firebase Console</b></div><div class="row"><span>Rôles & unités</span><b>Onglet Officiers</b></div></div>
+    <div class="card admin-feature"><span class="eyebrow">ACCESS CONTROL</span><h3>Permissions</h3><p class="muted">Configure les droits de chaque rôle sans modifier app.js.</p><button class="btn" id="openPermissionsBtn">🔐 Permissions</button></div>
+    <div class="card admin-feature"><span class="eyebrow">OPERATIONS</span><h3>CAD & Watch</h3><p class="muted">Unités live, BOLO et Watch Commander sont intégrés au Command Center.</p></div>
+    <div class="card admin-feature"><span class="eyebrow">ARCHIVE</span><h3>Archivage</h3><p class="muted">Pour retirer un officier des listes actives sans supprimer son historique, passe son statut à <b>Archivé</b>.</p></div>
   </div>`;
+  $("openPermissionsBtn").onclick=()=>render("permissionsAdmin");
 }
 
 async function history(){
-  if(!isCommand())return;
+  if(!hasPerm("audit"))return;
   const s=await getDocs(collection(db,"audit_logs")),data=s.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar"><button class="btn secondary" id="exportHistoryBtn">Exporter CSV</button></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Détails</th></tr></thead><tbody>${data.length?data.map(h=>`<tr><td>${formatDate(h.createdAt)}</td><td>${esc(h.actorName)}</td><td>${esc(h.action)}</td><td>${esc(h.details)}</td></tr>`).join(""):'<tr><td colspan="4">Aucun historique.</td></tr>'}</tbody></table></div>`;
   $("exportHistoryBtn").onclick=()=>csvDownload("historique_lspd.csv",data.map(h=>({date:formatDate(h.createdAt),utilisateur:h.actorName,action:h.action,details:h.details})));
@@ -1841,11 +2239,11 @@ async function globalSearch(term){
   try{
     const usersSnap=await getDocs(collection(db,"users"));
     let evalSnap;
-    if(isCommand()) evalSnap=await getDocs(collection(db,"evaluations"));
-    else if(isFTO()) evalSnap=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid)));
+    if(hasPerm("personnel_view")) evalSnap=await getDocs(collection(db,"evaluations"));
+    else if(hasPerm("fto_tools")) evalSnap=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid)));
     else evalSnap=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
     const annSnap=await getDocs(collection(db,"announcements"));
-    const incSnap=isCommand()
+    const incSnap=hasPerm("incident_review")
       ? await getDocs(collection(db,"incident_reports"))
       : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
 
@@ -1873,6 +2271,19 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("[data-language]").forEach(b=>b.addEventListener("click",()=>setLanguage(b.dataset.language)));
   i18nObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
   setLanguage(currentLang);
+
+  // Phase 14 UX controls
+  document.body.classList.toggle("sidebar-collapsed",localStorage.getItem("lspdSidebarCollapsed")==="1");
+  $("sidebarCollapseBtn")?.addEventListener("click",()=>toggleSidebar());
+  $("mobileMenuBtn")?.addEventListener("click",()=>toggleMobileSidebar());
+  $("sidebarBackdrop")?.addEventListener("click",()=>toggleMobileSidebar(false));
+  $("commandPaletteBtn")?.addEventListener("click",openCommandPalette);
+  document.addEventListener("keydown",e=>{
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){e.preventDefault();openCommandPalette();}
+    if(e.key==="Escape" && document.body.classList.contains("sidebar-open")) toggleMobileSidebar(false);
+  });
+  updateClock();
+  setInterval(updateClock,15000);
 
   $("loginForm")?.addEventListener("submit",handleLogin);
   $("signupForm")?.addEventListener("submit",handleSignup);

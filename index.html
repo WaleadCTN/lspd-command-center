@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=13.0">
+  <link rel="stylesheet" href="style.css?v=15.0">
 </head>
 <body>
 
@@ -54,46 +54,52 @@
   </div>
 </section>
 
+<div id="sidebarBackdrop" class="sidebar-backdrop hidden"></div>
 <div id="appShell" class="hidden">
   <aside class="sidebar">
     <div class="brand">
       <div class="badge small">LSPD</div>
-      <div><b>Command Center</b><small>Training & Operations</small></div>
+      <div class="brand-copy"><b>Command Center</b><small>Training & Operations</small></div>
+      <button id="sidebarCollapseBtn" class="icon-btn sidebar-collapse-btn" type="button" title="Réduire le menu">☰</button>
     </div>
     <nav id="nav">
-      <button data-page="dashboard" class="active">🏠 Dashboard</button>
-      <button data-page="profile">🙍 Mon profil</button>
-      <button data-page="mySpace">🪪 Mon espace opérationnel</button>
-      <button data-page="registrations">🪪 Inscriptions <span id="registrationCount" class="nav-badge hidden"></span></button>
-      <button data-page="notifications">🔔 Notifications <span id="notificationCount" class="nav-badge hidden"></span></button>
-      <button data-page="announcements">📣 Annonces</button>
-      <button data-page="messages">✉️ Messages</button>
-      <button data-page="incidents">📝 Rapports d'incident</button>
-      <button data-page="approvals">🧾 Validations</button>
-      <button data-page="mdt">💻 MDT / Dossiers</button>
-      <button data-page="corrections">🛠️ Corrections & addenda</button>
-      <button data-page="manual">📚 Manuel FTO</button>
-      <button data-page="modules">🎓 Formations</button>
-      <button data-page="evaluations">✅ Évaluations</button>
-      <button data-page="trainees">🧭 Mes recrues</button>
-      <button data-page="officers">👮 Officiers</button>
-      <button data-page="assignments">🔗 Affectations FTO</button>
-      <button data-page="certifications">🏅 Certifications</button>
-      <button data-page="records">📁 Dossiers & distinctions</button>
-      <button data-page="shifts">🕒 Roster & shifts</button>
-      <button data-page="dutyBoard">🚓 Tableau de service</button>
-      <button data-page="leave">🌴 Congés</button>
-      <button data-page="calendar">🗓️ Calendrier formations</button>
-      <button data-page="trainingHub">🎟️ Inscriptions formations</button>
-      <button data-page="requirements">📌 À valider</button>
-      <button data-page="promotionAdvisor">🤖 Promotion advisor</button>
-      <button data-page="promotions">⬆️ Promotions</button>
-      <button data-page="stats">📈 Statistiques</button>
-      <button data-page="divisionsPage">🏢 Divisions & candidatures</button>
-      <button data-page="grades">⭐ Grades & responsabilités</button>
-      <button data-page="scenarios">🎯 Scénarios</button>
-      <button data-page="admin">⚙️ Admin</button>
-      <button data-page="history">📊 Historique</button>
+      <button data-page="dashboard" class="active"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span> </button>
+      <button data-page="profile"><span class="nav-icon">🙍</span><span class="nav-label">Mon profil</span> </button>
+      <button data-page="mySpace"><span class="nav-icon">🪪</span><span class="nav-label">Mon espace opérationnel</span> </button>
+      <button data-page="registrations"><span class="nav-icon">🪪</span><span class="nav-label">Inscriptions</span> <span id="registrationCount" class="nav-badge hidden"></span></button>
+      <button data-page="notifications"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span> <span id="notificationCount" class="nav-badge hidden"></span></button>
+      <button data-page="announcements"><span class="nav-icon">📣</span><span class="nav-label">Annonces</span> </button>
+      <button data-page="messages"><span class="nav-icon">✉️</span><span class="nav-label">Messages</span> </button>
+      <button data-page="incidents"><span class="nav-icon">📝</span><span class="nav-label">Rapports d'incident</span> </button>
+      <button data-page="approvals"><span class="nav-icon">🧾</span><span class="nav-label">Validations</span> </button>
+      <button data-page="mdt"><span class="nav-icon">💻</span><span class="nav-label">MDT / Dossiers</span> </button>
+      <button data-page="bolos"><span class="nav-icon">🚨</span><span class="nav-label">BOLO / Avis</span> </button>
+      <button data-page="corrections"><span class="nav-icon">🛠️</span><span class="nav-label">Corrections & addenda</span> </button>
+      <button data-page="manual"><span class="nav-icon">📚</span><span class="nav-label">Manuel FTO</span> </button>
+      <button data-page="modules"><span class="nav-icon">🎓</span><span class="nav-label">Formations</span> </button>
+      <button data-page="evaluations"><span class="nav-icon">✅</span><span class="nav-label">Évaluations</span> </button>
+      <button data-page="trainees"><span class="nav-icon">🧭</span><span class="nav-label">Mes recrues</span> </button>
+      <button data-page="officers"><span class="nav-icon">👮</span><span class="nav-label">Officiers</span> </button>
+      <button data-page="assignments"><span class="nav-icon">🔗</span><span class="nav-label">Affectations FTO</span> </button>
+      <button data-page="certifications"><span class="nav-icon">🏅</span><span class="nav-label">Certifications</span> </button>
+      <button data-page="records"><span class="nav-icon">📁</span><span class="nav-label">Dossiers & distinctions</span> </button>
+      <button data-page="shifts"><span class="nav-icon">🕒</span><span class="nav-label">Roster & shifts</span> </button>
+      <button data-page="dutyBoard"><span class="nav-icon">🚓</span><span class="nav-label">Tableau de service</span> </button>
+      <button data-page="cad"><span class="nav-icon">📡</span><span class="nav-label">CAD / Dispatch</span> </button>
+      <button data-page="watchCommand"><span class="nav-icon">🛡️</span><span class="nav-label">Watch Commander</span> </button>
+      <button data-page="leave"><span class="nav-icon">🌴</span><span class="nav-label">Congés</span> </button>
+      <button data-page="calendar"><span class="nav-icon">🗓️</span><span class="nav-label">Calendrier formations</span> </button>
+      <button data-page="trainingHub"><span class="nav-icon">🎟️</span><span class="nav-label">Inscriptions formations</span> </button>
+      <button data-page="requirements"><span class="nav-icon">📌</span><span class="nav-label">À valider</span> </button>
+      <button data-page="promotionAdvisor"><span class="nav-icon">🤖</span><span class="nav-label">Promotion advisor</span> </button>
+      <button data-page="promotions"><span class="nav-icon">⬆️</span><span class="nav-label">Promotions</span> </button>
+      <button data-page="stats"><span class="nav-icon">📈</span><span class="nav-label">Statistiques</span> </button>
+      <button data-page="divisionsPage"><span class="nav-icon">🏢</span><span class="nav-label">Divisions & candidatures</span> </button>
+      <button data-page="grades"><span class="nav-icon">⭐</span><span class="nav-label">Grades & responsabilités</span> </button>
+      <button data-page="scenarios"><span class="nav-icon">🎯</span><span class="nav-label">Scénarios</span> </button>
+      <button data-page="admin"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span> </button>
+      <button data-page="permissionsAdmin"><span class="nav-icon">🔐</span><span class="nav-label">Permissions</span> </button>
+      <button data-page="history"><span class="nav-icon">📊</span><span class="nav-label">Historique</span> </button>
     </nav>
     <div class="side-footer">
       <span id="currentUser">Déconnecté</span><br>
@@ -108,7 +114,10 @@
         <h1 id="pageTitle">Dashboard</h1>
       </div>
       <div class="header-actions">
+        <button id="mobileMenuBtn" class="icon-btn mobile-menu-btn" type="button" title="Menu">☰</button>
+        <button id="commandPaletteBtn" class="command-palette-trigger" type="button" title="Navigation rapide">⌘K</button>
         <input id="globalSearch" class="search compact-search" placeholder="Recherche globale...">
+        <div id="liveClock" class="live-clock">--:--</div>
         <div class="userpill" id="userPill">Compte LSPD</div>
       </div>
     </header>
@@ -116,6 +125,7 @@
   </main>
 </div>
 
-<script type="module" src="app.js?v=13.0"></script>
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+<script type="module" src="app.js?v=15.0"></script>
 </body>
 </html>
