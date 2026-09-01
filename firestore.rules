@@ -47,7 +47,8 @@ service cloud.firestore {
     match /fto_assignments/{id} {
       allow read: if isFTO() || isCommand();
       allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if isChief();
+      allow delete: if false;
     }
 
     match /certifications/{id} {

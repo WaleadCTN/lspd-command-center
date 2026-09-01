@@ -1,4 +1,4 @@
-LSPD COMMAND CENTER — PHASE 6.0
+LSPD COMMAND CENTER — PHASE 7.0
 
 REPLACE ON GITHUB
 - index.html
@@ -10,22 +10,17 @@ Firebase > Firestore Database > Règles
 Paste firestore.rules and click Publier.
 
 NEW FEATURES
-- Roster & shifts
-- Leave requests
-- Chief approval/refusal of leave
-- Training calendar
-- FTO can schedule training events
-- Promotion Advisor
-- Command overview on dashboard
-- Expanded operations/RH statistics
-- Everything from Phase 5 retained
-
-PROMOTION ADVISOR
-This is only a decision-support indicator:
-- training completion
-- average FTO score
-- sanctions
-It does NOT automatically promote anyone.
+- Mon profil
+- Password reset email
+- Global search
+- Officer filters
+- CSV exports for officers, evaluations, shifts, audit history
+- "Archivé" status to keep history without showing officer as active
+- Close FTO assignments with audit
+- "À valider" command page
+- More visual Chief dashboard
+- Unit indicators
+- Cleaner UI
 
 TEST
-https://waleadctn.github.io/lspd-command-center/?v=60
+https://waleadctn.github.io/lspd-command-center/?v=70
