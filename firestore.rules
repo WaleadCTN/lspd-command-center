@@ -83,7 +83,8 @@ service cloud.firestore {
       allow read: if signedIn() && (
         request.auth.uid == userId ||
         hasPerm("personnel_view") ||
-        hasPerm("fto_tools")
+        hasPerm("fto_tools") ||
+        (isInternal() && resource.data.role != "Visiteur")
       );
 
       allow create: if signedIn()
@@ -121,8 +122,19 @@ service cloud.firestore {
         resource.data.senderId == request.auth.uid ||
         resource.data.recipientId == request.auth.uid
       );
-      allow create: if isInternal() && request.resource.data.senderId == request.auth.uid;
-      allow update, delete: if false;
+
+      allow create: if isInternal()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.recipientId is string;
+
+      // The recipient may only change read state, like an email inbox.
+      allow update: if isInternal()
+        && resource.data.recipientId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "read","readAt"
+        ]);
+
+      allow delete: if false;
     }
 
     match /incident_reports/{id} {

@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.1 GROUPED NAVIGATION ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
+// LSPD Command Center — Phase 17.2 NOTIFICATIONS + OUTLOOK MESSAGING ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -54,6 +54,8 @@ Object.assign(I18N_EN,{"Visiteur":"Visitor","Portail visiteur":"Visitor Portal",
 Object.assign(I18N_EN,{"Stats formation":"Training analytics","Alertes pédagogiques":"Training alerts","Recrues sans évaluation":"Trainees without evaluation","Taux de validation finale":"Final approval rate","Performance FTO":"FTO performance","Performance par module":"Performance by module"});
 
 Object.assign(I18N_EN,{"Accueil & personnel":"Home & personal","Communication & rapports":"Communication & reports","FTO & formation":"FTO & training","Personnel & carrière":"Personnel & career","Opérations & MDT":"Operations & MDT","Commandement & administration":"Command & administration"});
+
+Object.assign(I18N_EN,{"Tout marquer comme lu":"Mark all as read","Marquer comme lu":"Mark as read","Marquer comme non lu":"Mark as unread","Aucune notification.":"No notifications.","Chargement...":"Loading...","Boîte de réception":"Inbox","Envoyés":"Sent","Tous les messages":"All mail","Nouveau message":"New message","Rechercher dans les messages...":"Search mail...","Répondre":"Reply","Transférer":"Forward","Fermer":"Close","Envoyer":"Send","À":"To","De":"From","Sujet":"Subject","Conversation":"Conversation","Message transféré":"Forwarded message","Message d'origine":"Original message","Aucun message.":"No messages.","message non lu":"unread message","messages non lus":"unread messages","Tout est à jour":"You're all caught up","Actualiser":"Refresh","Boîte LSPD":"LSPD Mail"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -899,12 +901,17 @@ async function loadProfile(user){
   showApp();
   applyRoleVisibility();
   if(!isVisitor()){
+    startNotificationListener();
+    startMailListener();
     refreshNotificationBadge().catch(()=>{});
+    refreshMailBadge().catch(()=>{});
     refreshRegistrationBadge().catch(()=>{});
     generateUpcomingReminders().catch(()=>{});
     if(hasPerm("academy_manage")) generateTrainingAlerts().catch(()=>{});
   }else{
+    $("notificationBellWrap")?.classList.add("hidden");
     $("notificationCount")?.classList.add("hidden");
+    $("mailUnreadCount")?.classList.add("hidden");
     $("registrationCount")?.classList.add("hidden");
   }
   render(isVisitor()?"visitorPortal":"dashboard");
@@ -1003,7 +1010,7 @@ async function handleSignup(e){
   }
 }
 onAuthStateChanged(auth,async user=>{
-  if(!user){window.LSPD.pageCleanup?.();window.LSPD.pageCleanup=null;window.LSPD.user=null;window.LSPD.profile=null;window.LSPD.permissionConfig=null;showLogin();return;}
+  if(!user){window.LSPD.pageCleanup?.();window.LSPD.notificationUnsub?.();window.LSPD.mailUnsub?.();window.LSPD.pageCleanup=null;window.LSPD.notificationUnsub=null;window.LSPD.mailUnsub=null;window.LSPD.user=null;window.LSPD.profile=null;window.LSPD.permissionConfig=null;closeNotificationDropdown();closeMailWindow();showLogin();return;}
   await loadProfile(user);
 });
 function logout(){ return signOut(auth); }
@@ -1061,6 +1068,8 @@ function applyRoleVisibility(){
 }
 
 function render(page){
+  closeNotificationDropdown();
+  closeMailWindow();
   if(!canAccessPage(page)){
     showToast("Cette fonction n'est pas autorisée pour ton rôle.","error");
     page=isVisitor()?"visitorPortal":"dashboard";
@@ -1273,28 +1282,136 @@ async function rejectRegistration(uid){
   }
 }
 
-async function createNotification(recipientId,title,body,type="Info",linkPage=""){
+async function createNotification(recipientId,title,body,type="Info",linkPage="",linkTargetId=""){
   if(!recipientId || recipientId===window.LSPD.user?.uid) return;
-  await addDoc(collection(db,"notifications"),{
+  const payload={
     recipientId,
     senderId:window.LSPD.user.uid,
     senderName:window.LSPD.profile.name,
     title,body,type,linkPage,
     read:false,
     createdAt:serverTimestamp()
-  });
+  };
+  if(linkTargetId) payload.linkTargetId=linkTargetId;
+  await addDoc(collection(db,"notifications"),payload);
+}
+
+
+function notificationTypeIcon(type){
+  if(type==="Urgent") return "🚨";
+  if(type==="Validation") return "✅";
+  if(type==="Message") return "✉️";
+  if(type==="Formation") return "🎓";
+  return "🔔";
+}
+
+function closeNotificationDropdown(){
+  $("notificationDropdown")?.classList.add("hidden");
+  $("notificationBellBtn")?.setAttribute("aria-expanded","false");
+}
+
+async function toggleNotificationDropdown(){
+  const panel=$("notificationDropdown");
+  if(!panel || isVisitor())return;
+  if(!panel.classList.contains("hidden")){ closeNotificationDropdown(); return; }
+  panel.classList.remove("hidden");
+  $("notificationBellBtn")?.setAttribute("aria-expanded","true");
+  await loadNotificationDropdown();
+}
+
+async function loadNotificationDropdown(){
+  const host=$("notificationDropdownList"),summary=$("notificationDropdownSummary");
+  if(!host||!summary||!window.LSPD.user||isVisitor())return;
+
+  host.innerHTML=`<div class="notification-dropdown-loading"><div class="notification-loader"></div><span>Chargement...</span></div>`;
+  try{
+    const snap=await getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid)));
+    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const unread=data.filter(n=>n.read!==true).length;
+    summary.textContent=unread?`${unread} ${unread===1?"non lue":"non lues"}`:B("Tout est à jour","You're all caught up");
+
+    host.innerHTML=data.length?data.slice(0,30).map(n=>`
+      <article class="notification-pop-item ${n.read===true?"is-read":"is-unread"}">
+        <div class="notification-pop-icon ${n.type==="Urgent"?"urgent":n.type==="Validation"?"validation":""}">${notificationTypeIcon(n.type)}</div>
+        <div class="notification-pop-body">
+          <div class="notification-pop-meta"><span>${esc(n.type||"Info")}</span><span>${formatDate(n.createdAt)}</span></div>
+          <h4>${esc(n.title||"Notification")}</h4>
+          <p>${esc(n.body||"")}</p>
+          <div class="notification-pop-footer">
+            <span>${esc(n.senderName||"Système")}</span>
+            <div>
+              ${n.read!==true?`<button class="notification-item-action mark-dropdown-notification" data-id="${n.id}" type="button">Marquer comme lu</button>`:""}
+              ${n.linkTargetId&&n.linkPage==="messages"?`<button class="notification-item-action open-mail-notification" data-id="${n.id}" data-target="${n.linkTargetId}" type="button">Ouvrir</button>`:
+                n.linkPage&&canAccessPage(n.linkPage)?`<button class="notification-item-action open-page-notification" data-id="${n.id}" data-page="${esc(n.linkPage)}" type="button">Ouvrir</button>`:""}
+            </div>
+          </div>
+        </div>
+        ${n.read!==true?'<span class="notification-unread-dot"></span>':""}
+      </article>`).join(""):`<div class="notification-dropdown-empty"><span>🔕</span><p>Aucune notification.</p></div>`;
+
+    document.querySelectorAll(".mark-dropdown-notification").forEach(btn=>btn.onclick=async e=>{
+      e.stopPropagation();
+      await markNotificationRead(btn.dataset.id,false);
+      await loadNotificationDropdown();
+    });
+    document.querySelectorAll(".open-page-notification").forEach(btn=>btn.onclick=async e=>{
+      e.stopPropagation();
+      await markNotificationRead(btn.dataset.id,false);
+      closeNotificationDropdown();
+      render(btn.dataset.page);
+    });
+    document.querySelectorAll(".open-mail-notification").forEach(btn=>btn.onclick=async e=>{
+      e.stopPropagation();
+      await markNotificationRead(btn.dataset.id,false);
+      closeNotificationDropdown();
+      await openMailMessage(btn.dataset.target);
+    });
+  }catch(err){
+    host.innerHTML=`<div class="notification-dropdown-empty"><span>⚠️</span><p>${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function markAllDropdownNotifications(){
+  if(!window.LSPD.user||isVisitor())return;
+  try{
+    const snap=await getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid)));
+    await Promise.all(snap.docs.filter(d=>d.data().read!==true).map(d=>updateDoc(doc(db,"notifications",d.id),{read:true,readAt:serverTimestamp()})));
+    await refreshNotificationBadge();
+    await loadNotificationDropdown();
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+function startNotificationListener(){
+  window.LSPD.notificationUnsub?.();
+  window.LSPD.notificationUnsub=null;
+  if(!window.LSPD.user||isVisitor())return;
+  const q=query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid));
+  window.LSPD.notificationUnsub=onSnapshot(q,snap=>{
+    const unread=snap.docs.filter(d=>d.data().read!==true).length;
+    const el=$("notificationCount"),bell=$("notificationBellBtn");
+    if(el){
+      el.textContent=unread>99?"99+":unread?String(unread):"";
+      el.classList.toggle("hidden",!unread);
+    }
+    bell?.classList.toggle("has-unread",unread>0);
+    if(!$("notificationDropdown")?.classList.contains("hidden")) loadNotificationDropdown().catch(()=>{});
+  },()=>{});
 }
 
 async function refreshNotificationBadge(){
   if(!window.LSPD.user) return;
+  const wrap=$("notificationBellWrap");
+  wrap?.classList.toggle("hidden",isVisitor());
+  if(isVisitor()){closeNotificationDropdown();return;}
   try{
     const snap=await getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid)));
-    const unread=snap.docs.map(d=>d.data()).filter(n=>n.read!==true).length;
-    const el=$("notificationCount");
+    const unread=snap.docs.filter(d=>d.data().read!==true).length;
+    const el=$("notificationCount"),bell=$("notificationBellBtn");
     if(el){
-      el.textContent=unread?String(unread):"";
+      el.textContent=unread>99?"99+":unread?String(unread):"";
       el.classList.toggle("hidden",!unread);
     }
+    bell?.classList.toggle("has-unread",unread>0);
   }catch{}
 }
 
@@ -1328,10 +1445,10 @@ async function notifications(){
   }
 }
 
-async function markNotificationRead(id){
+async function markNotificationRead(id,refreshLegacyPage=true){
   await updateDoc(doc(db,"notifications",id),{read:true,readAt:serverTimestamp()});
   await refreshNotificationBadge();
-  notifications();
+  if(refreshLegacyPage && window.LSPD.currentPage==="notifications") notifications();
 }
 
 async function uploadIncidentAttachments(files){
@@ -2495,33 +2612,290 @@ async function saveAnnouncement(e){
   }catch(err){ $("anError").textContent="Erreur : "+(err.code||err.message); }
 }
 
+async function loadMyMessages(){
+  const [sentSnap,receivedSnap]=await Promise.all([
+    getDocs(query(collection(db,"messages"),where("senderId","==",window.LSPD.user.uid))),
+    getDocs(query(collection(db,"messages"),where("recipientId","==",window.LSPD.user.uid)))
+  ]);
+  const map=new Map();
+  [...sentSnap.docs,...receivedSnap.docs].forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+  return [...map.values()].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+}
+
+function mailCounter(data){
+  return data.filter(m=>m.recipientId===window.LSPD.user.uid && m.read!==true).length;
+}
+
+function refreshMailBadgeFromData(data){
+  const unread=mailCounter(data);
+  const el=$("mailUnreadCount");
+  if(el){
+    el.textContent=unread>99?"99+":unread?String(unread):"";
+    el.classList.toggle("hidden",!unread);
+  }
+}
+
+async function refreshMailBadge(){
+  if(!window.LSPD.user||isVisitor())return;
+  try{refreshMailBadgeFromData(await loadMyMessages());}catch{}
+}
+
+function startMailListener(){
+  window.LSPD.mailUnsub?.();
+  window.LSPD.mailUnsub=null;
+  if(!window.LSPD.user||isVisitor())return;
+  const q=query(collection(db,"messages"),where("recipientId","==",window.LSPD.user.uid));
+  window.LSPD.mailUnsub=onSnapshot(q,snap=>{
+    const unread=snap.docs.filter(d=>d.data().read!==true).length;
+    const el=$("mailUnreadCount");
+    if(el){
+      el.textContent=unread>99?"99+":unread?String(unread):"";
+      el.classList.toggle("hidden",!unread);
+    }
+    if(window.LSPD.currentPage==="messages") messages().catch(()=>{});
+  },()=>{});
+}
+
+function mailFilteredData(data,folder,search=""){
+  const q=(search||"").trim().toLowerCase();
+  let result=data;
+  if(folder==="inbox") result=result.filter(m=>m.recipientId===window.LSPD.user.uid);
+  if(folder==="sent") result=result.filter(m=>m.senderId===window.LSPD.user.uid);
+  if(q) result=result.filter(m=>[
+    m.senderName,m.recipientName,m.subject,m.body
+  ].some(v=>String(v||"").toLowerCase().includes(q)));
+  return result;
+}
+
+function renderMailRows(){
+  const host=$("mailList");
+  if(!host)return;
+  const data=mailFilteredData(window.LSPD.mailData||[],window.LSPD.mailFolder||"inbox",$("mailSearch")?.value||"");
+  host.innerHTML=data.length?data.map(m=>{
+    const incoming=m.recipientId===window.LSPD.user.uid;
+    const unread=incoming&&m.read!==true;
+    const counterpart=incoming?m.senderName:m.recipientName;
+    return `<button class="outlook-mail-row ${unread?"unread":""}" type="button" data-id="${m.id}">
+      <span class="mail-row-dot">${unread?"●":""}</span>
+      <span class="mail-row-person">${esc(counterpart||"—")}</span>
+      <span class="mail-row-main"><b>${esc(m.subject||"(Sans sujet)")}</b><small>${esc(String(m.body||"").replace(/\s+/g," ").slice(0,115))}</small></span>
+      <span class="mail-row-date">${formatDate(m.createdAt)}</span>
+    </button>`;
+  }).join(""):`<div class="outlook-empty"><span>📭</span><p>Aucun message.</p></div>`;
+
+  document.querySelectorAll(".outlook-mail-row").forEach(row=>row.onclick=()=>openMailMessage(row.dataset.id));
+}
+
 async function messages(){
+  if(isVisitor())return;
   try{
-    const users=await getUsers();
-    const [sentSnap,receivedSnap]=await Promise.all([
-      getDocs(query(collection(db,"messages"),where("senderId","==",window.LSPD.user.uid))),
-      getDocs(query(collection(db,"messages"),where("recipientId","==",window.LSPD.user.uid)))
-    ]);
-    const map=new Map();
-    [...sentSnap.docs,...receivedSnap.docs].forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-    const data=[...map.values()].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newMessageBtn">+ Nouveau message</button></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>De</th><th>À</th><th>Sujet</th><th>Message</th></tr></thead><tbody>${data.length?data.map(m=>`<tr><td>${formatDate(m.createdAt)}</td><td>${esc(m.senderName)}</td><td>${esc(m.recipientName)}</td><td>${esc(m.subject)}</td><td>${esc(m.body)}</td></tr>`).join(""):'<tr><td colspan="5">Aucun message.</td></tr>'}</tbody></table></div>`;
-    $("newMessageBtn").onclick=()=>openMessageForm(users);
-  }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
+    const data=await loadMyMessages();
+    window.LSPD.mailData=data;
+    refreshMailBadgeFromData(data);
+    const inbox=data.filter(m=>m.recipientId===window.LSPD.user.uid).length;
+    const sent=data.filter(m=>m.senderId===window.LSPD.user.uid).length;
+    const unread=mailCounter(data);
+
+    $("content").innerHTML=`<div class="outlook-shell card">
+      <aside class="outlook-folders">
+        <div class="outlook-brand"><span>✉️</span><b>Boîte LSPD</b></div>
+        <button class="btn outlook-compose" id="newMessageBtn">＋ Nouveau message</button>
+        <button class="outlook-folder ${window.LSPD.mailFolder==="inbox"?"active":""}" data-folder="inbox"><span>📥 Boîte de réception</span><b>${unread||inbox}</b></button>
+        <button class="outlook-folder ${window.LSPD.mailFolder==="sent"?"active":""}" data-folder="sent"><span>📤 Envoyés</span><b>${sent}</b></button>
+        <button class="outlook-folder ${window.LSPD.mailFolder==="all"?"active":""}" data-folder="all"><span>🗂️ Tous les messages</span><b>${data.length}</b></button>
+      </aside>
+      <section class="outlook-mailbox">
+        <div class="outlook-toolbar">
+          <div>
+            <span class="eyebrow">LSPD INTERNAL MAIL</span>
+            <h2>${window.LSPD.mailFolder==="sent"?"Envoyés":window.LSPD.mailFolder==="all"?"Tous les messages":"Boîte de réception"}</h2>
+          </div>
+          <button class="icon-btn" id="refreshMailBtn" title="Actualiser">↻</button>
+        </div>
+        <div class="outlook-search-wrap">🔎 <input id="mailSearch" placeholder="Rechercher dans les messages..."></div>
+        <div id="mailList" class="outlook-mail-list"></div>
+      </section>
+    </div>`;
+
+    document.querySelectorAll(".outlook-folder").forEach(btn=>btn.onclick=()=>{
+      window.LSPD.mailFolder=btn.dataset.folder;
+      messages();
+    });
+    $("newMessageBtn").onclick=()=>openMessageForm();
+    $("refreshMailBtn").onclick=()=>messages();
+    $("mailSearch").oninput=renderMailRows;
+    renderMailRows();
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
 }
-function openMessageForm(users){
-  showModal(`<h2>Nouveau message</h2><form id="messageForm"><label class="field"><span>Destinataire</span><select id="mRecipient">${users.filter(u=>u.uid!==window.LSPD.user.uid&&u.status!=="Archivé").map(u=>`<option value="${u.uid}" data-name="${esc(u.name)}">${esc(u.badge)} — ${esc(u.name)}</option>`).join("")}</select></label><label class="field"><span>Sujet</span><input id="mSubject" required></label><label class="field full"><span>Message</span><textarea id="mBody" rows="6" required></textarea></label><div id="mError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Envoyer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
-  $("messageForm").onsubmit=saveMessage;
+
+function closeMailWindow(){
+  const root=$("mailOverlayRoot");
+  if(root) root.innerHTML="";
+  document.body.classList.remove("mail-window-open");
 }
+
+async function openMailMessage(id){
+  if(!id||isVisitor())return;
+  try{
+    let data=window.LSPD.mailData||[];
+    let message=data.find(m=>m.id===id);
+    if(!message){
+      const snap=await getDoc(doc(db,"messages",id));
+      if(!snap.exists())return;
+      message={id:snap.id,...snap.data()};
+      if(message.senderId!==window.LSPD.user.uid && message.recipientId!==window.LSPD.user.uid)return;
+      data=await loadMyMessages();
+      window.LSPD.mailData=data;
+    }
+
+    if(message.recipientId===window.LSPD.user.uid && message.read!==true){
+      await updateDoc(doc(db,"messages",message.id),{read:true,readAt:serverTimestamp()});
+      message.read=true;
+      const cached=window.LSPD.mailData.find(m=>m.id===message.id);
+      if(cached)cached.read=true;
+      refreshMailBadgeFromData(window.LSPD.mailData);
+    }
+
+    const threadId=message.threadId||message.id;
+    const thread=(window.LSPD.mailData||[])
+      .filter(m=>(m.threadId||m.id)===threadId)
+      .sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+
+    const root=$("mailOverlayRoot");
+    root.innerHTML=`<div class="mail-window-backdrop" data-mail-close="1"></div>
+      <section class="mail-reader-window" role="dialog" aria-label="${esc(message.subject||"Message")}">
+        <header class="mail-window-header">
+          <div class="mail-window-title"><span>✉️</span><div><small>${message.recipientId===window.LSPD.user.uid?"Boîte de réception":"Envoyés"}</small><h2>${esc(message.subject||"(Sans sujet)")}</h2></div></div>
+          <button class="mail-window-close" id="closeMailWindowBtn" type="button">✕</button>
+        </header>
+        <div class="mail-action-bar">
+          <button class="mail-action" id="replyMailBtn" type="button">↩ Répondre</button>
+          <button class="mail-action" id="forwardMailBtn" type="button">↪ Transférer</button>
+          ${message.recipientId===window.LSPD.user.uid?`<button class="mail-action" id="unreadMailBtn" type="button">◉ Marquer comme non lu</button>`:""}
+        </div>
+        <div class="mail-reader-scroll">
+          <div class="mail-message-envelope">
+            <div class="mail-avatar">${esc((message.senderName||"?").slice(0,1).toUpperCase())}</div>
+            <div class="mail-envelope-info">
+              <b>${esc(message.senderName||"—")}</b>
+              <span>À : ${esc(message.recipientName||"—")}</span>
+            </div>
+            <time>${formatDate(message.createdAt)}</time>
+          </div>
+          <article class="mail-reader-body">${esc(message.body||"").replace(/\n/g,"<br>")}</article>
+          ${thread.length>1?`<section class="mail-thread"><h3>Conversation</h3>${thread.map(t=>`<div class="mail-thread-item ${t.id===message.id?"current":""}"><div><b>${esc(t.senderName)}</b><span> → ${esc(t.recipientName)}</span></div><small>${formatDate(t.createdAt)}</small><p>${esc(String(t.body||"").slice(0,240))}</p></div>`).join("")}</section>`:""}
+        </div>
+      </section>`;
+    document.body.classList.add("mail-window-open");
+
+    $("closeMailWindowBtn").onclick=closeMailWindow;
+    root.querySelector(".mail-window-backdrop").onclick=closeMailWindow;
+    $("replyMailBtn").onclick=()=>openMailComposer("reply",message);
+    $("forwardMailBtn").onclick=()=>openMailComposer("forward",message);
+    $("unreadMailBtn")?.addEventListener("click",async()=>{
+      await updateDoc(doc(db,"messages",message.id),{read:false,readAt:null});
+      const cached=window.LSPD.mailData.find(m=>m.id===message.id);if(cached){cached.read=false;cached.readAt=null;}
+      refreshMailBadgeFromData(window.LSPD.mailData);
+      closeMailWindow();
+      if(window.LSPD.currentPage==="messages")messages();
+    });
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+async function mailDirectory(){
+  const users=await getUsers();
+  return users.filter(u=>
+    u.uid!==window.LSPD.user.uid &&
+    u.role!=="Visiteur" &&
+    !["Archivé","Refusé","En attente"].includes(u.status)
+  ).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+}
+
+async function openMailComposer(mode="new",source=null){
+  try{
+    const users=await mailDirectory();
+    const counterpart=source?(source.senderId===window.LSPD.user.uid?source.recipientId:source.senderId):"";
+    const baseSubject=source?.subject||"";
+    const subject=mode==="reply"
+      ? (/^RE:/i.test(baseSubject)?baseSubject:`RE: ${baseSubject}`)
+      : mode==="forward"
+        ? (/^FW:/i.test(baseSubject)?baseSubject:`FW: ${baseSubject}`)
+        : "";
+    const quote=source?`\n\n------------------------------\n${mode==="forward"?"Message transféré":"Message d'origine"}\nDe: ${source.senderName}\nÀ: ${source.recipientName}\nSujet: ${source.subject}\n\n${source.body}`:"";
+
+    const root=$("mailOverlayRoot");
+    root.innerHTML=`<div class="mail-window-backdrop" data-mail-close="1"></div>
+      <section class="mail-compose-window" role="dialog" aria-label="Nouveau message">
+        <header class="mail-window-header">
+          <div class="mail-window-title"><span>✉️</span><div><small>LSPD INTERNAL MAIL</small><h2>${mode==="reply"?"Répondre":mode==="forward"?"Transférer":"Nouveau message"}</h2></div></div>
+          <button class="mail-window-close" id="closeMailWindowBtn" type="button">✕</button>
+        </header>
+        <form id="messageForm" class="mail-compose-form">
+          <input id="mMode" type="hidden" value="${esc(mode)}">
+          <input id="mSourceId" type="hidden" value="${esc(source?.id||"")}">
+          <input id="mThreadId" type="hidden" value="${esc(source?.threadId||source?.id||"")}">
+          <label class="mail-compose-line"><span>À</span><select id="mRecipient" required>
+            <option value="">— Sélectionner —</option>
+            ${users.map(u=>`<option value="${u.uid}" data-name="${esc(u.name)}" ${u.uid===counterpart&&mode==="reply"?"selected":""}>${esc(u.badge||"—")} — ${esc(u.name)}</option>`).join("")}
+          </select></label>
+          <label class="mail-compose-line"><span>Sujet</span><input id="mSubject" value="${esc(subject)}" required></label>
+          <textarea id="mBody" class="mail-compose-body" placeholder="Écrire votre message..." required>${esc(quote)}</textarea>
+          <div id="mError" class="error mail-compose-error"></div>
+          <footer class="mail-compose-footer"><button class="btn" type="submit">Envoyer</button><button class="btn secondary" id="cancelMailCompose" type="button">Annuler</button></footer>
+        </form>
+      </section>`;
+    document.body.classList.add("mail-window-open");
+    $("messageForm").onsubmit=saveMessage;
+    $("closeMailWindowBtn").onclick=closeMailWindow;
+    $("cancelMailCompose").onclick=closeMailWindow;
+    root.querySelector(".mail-window-backdrop").onclick=closeMailWindow;
+    if(mode==="reply") setTimeout(()=>$("mBody")?.focus(),40);
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+function openMessageForm(){
+  return openMailComposer("new",null);
+}
+
 async function saveMessage(e){
-  e.preventDefault(); const sel=$("mRecipient");
-  if(!sel?.value){ $("mError").textContent="Aucun destinataire disponible."; return; }
+  e.preventDefault();
+  const sel=$("mRecipient");
+  if(!sel?.value){$("mError").textContent="Aucun destinataire disponible.";return;}
   try{
-    await addDoc(collection(db,"messages"),{senderId:window.LSPD.user.uid,senderName:window.LSPD.profile.name,recipientId:sel.value,recipientName:sel.selectedOptions[0].dataset.name,subject:$("mSubject").value.trim(),body:$("mBody").value.trim(),createdAt:serverTimestamp()});
-    await createNotification(sel.value,`Nouveau message : ${$("mSubject").value.trim()}`,`Message de ${window.LSPD.profile.name}`,"Message","messages");
-    document.querySelector(".modal")?.remove(); messages();
-    refreshNotificationBadge().catch(()=>{});
-  }catch(err){ $("mError").textContent="Erreur : "+(err.code||err.message); }
+    const ref=doc(collection(db,"messages"));
+    const mode=$("mMode")?.value||"new";
+    const sourceId=$("mSourceId")?.value||"";
+    const inheritedThread=$("mThreadId")?.value||"";
+    const payload={
+      senderId:window.LSPD.user.uid,
+      senderName:window.LSPD.profile.name,
+      recipientId:sel.value,
+      recipientName:sel.selectedOptions[0].dataset.name,
+      subject:$("mSubject").value.trim(),
+      body:$("mBody").value.trim(),
+      read:false,
+      threadId:inheritedThread||ref.id,
+      messageType:mode==="reply"?"Reply":mode==="forward"?"Forward":"Message",
+      createdAt:serverTimestamp()
+    };
+    if(mode==="reply"&&sourceId)payload.replyToId=sourceId;
+    if(mode==="forward"&&sourceId)payload.forwardedFromId=sourceId;
+
+    await setDoc(ref,payload);
+    await createNotification(
+      sel.value,
+      `Nouveau message : ${payload.subject}`,
+      `Message de ${window.LSPD.profile.name}`,
+      "Message",
+      "messages",
+      ref.id
+    );
+    closeMailWindow();
+    showToast("Message envoyé.","success");
+    if(window.LSPD.currentPage==="messages")await messages();
+  }catch(err){$("mError").textContent="Erreur : "+(err.code||err.message);}
 }
 
 async function incidents(){
@@ -3160,9 +3534,15 @@ document.addEventListener("DOMContentLoaded",()=>{
   $("mobileMenuBtn")?.addEventListener("click",()=>toggleMobileSidebar());
   $("sidebarBackdrop")?.addEventListener("click",()=>toggleMobileSidebar(false));
   $("commandPaletteBtn")?.addEventListener("click",openCommandPalette);
+  $("notificationBellBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleNotificationDropdown();});
+  $("closeNotificationDropdown")?.addEventListener("click",e=>{e.stopPropagation();closeNotificationDropdown();});
+  $("markAllDropdownNotificationsBtn")?.addEventListener("click",e=>{e.stopPropagation();markAllDropdownNotifications();});
+  $("notificationDropdown")?.addEventListener("click",e=>e.stopPropagation());
+  document.addEventListener("click",()=>closeNotificationDropdown());
   document.addEventListener("keydown",e=>{
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){e.preventDefault();openCommandPalette();}
     if(e.key==="Escape" && document.body.classList.contains("sidebar-open")) toggleMobileSidebar(false);
+    if(e.key==="Escape"){closeNotificationDropdown();closeMailWindow();}
   });
   updateClock();
   setInterval(updateClock,15000);

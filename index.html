@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=17.1">
+  <link rel="stylesheet" href="style.css?v=17.2">
 </head>
 <body>
 
@@ -75,8 +75,7 @@
         <button data-page="visitorPortal"><span class="nav-icon">🏛️</span><span class="nav-label">Portail visiteur</span> </button>
         <button data-page="profile"><span class="nav-icon">🙍</span><span class="nav-label">Mon profil</span> </button>
         <button data-page="mySpace"><span class="nav-icon">🪪</span><span class="nav-label">Mon espace opérationnel</span> </button>
-        <button data-page="notifications"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span> <span id="notificationCount" class="nav-badge hidden"></span></button>
-        </div>
+</div>
       </section>
       <section class="nav-group" data-nav-group="communication">
         <button class="nav-group-toggle" type="button" aria-expanded="true">
@@ -86,7 +85,7 @@
         </button>
         <div class="nav-group-items">
         <button data-page="announcements"><span class="nav-icon">📣</span><span class="nav-label">Annonces</span> </button>
-        <button data-page="messages"><span class="nav-icon">✉️</span><span class="nav-label">Messages</span> </button>
+        <button data-page="messages"><span class="nav-icon">✉️</span><span class="nav-label">Messages</span> <span id="mailUnreadCount" class="nav-badge hidden"></span></button>
         <button data-page="incidents"><span class="nav-icon">📝</span><span class="nav-label">Rapports d'incident</span> </button>
         <button data-page="approvals"><span class="nav-icon">🧾</span><span class="nav-label">Validations</span> </button>
         <button data-page="corrections"><span class="nav-icon">🛠️</span><span class="nav-label">Corrections & addenda</span> </button>
@@ -180,6 +179,26 @@
       </div>
       <div class="header-actions">
         <button id="mobileMenuBtn" class="icon-btn mobile-menu-btn" type="button" title="Menu">☰</button>
+        <div id="notificationBellWrap" class="notification-bell-wrap">
+          <button id="notificationBellBtn" class="notification-bell-btn" type="button" title="Notifications" aria-label="Notifications" aria-expanded="false">
+            <span class="notification-bell-icon">🔔</span>
+            <span id="notificationCount" class="notification-bell-badge hidden"></span>
+          </button>
+          <div id="notificationDropdown" class="notification-dropdown hidden" role="dialog" aria-label="Notifications">
+            <div class="notification-dropdown-head">
+              <div>
+                <span class="eyebrow">LSPD</span>
+                <h3>Notifications</h3>
+              </div>
+              <button id="closeNotificationDropdown" class="icon-btn" type="button" aria-label="Fermer">✕</button>
+            </div>
+            <div class="notification-dropdown-actions">
+              <span id="notificationDropdownSummary" class="muted">Chargement...</span>
+              <button id="markAllDropdownNotificationsBtn" class="notification-text-btn" type="button">Tout marquer comme lu</button>
+            </div>
+            <div id="notificationDropdownList" class="notification-dropdown-list"></div>
+          </div>
+        </div>
         <button id="commandPaletteBtn" class="command-palette-trigger" type="button" title="Navigation rapide">⌘K</button>
         <input id="globalSearch" class="search compact-search" placeholder="Recherche globale...">
         <div id="liveClock" class="live-clock">--:--</div>
@@ -190,7 +209,8 @@
   </main>
 </div>
 
+<div id="mailOverlayRoot" class="mail-overlay-root"></div>
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-<script type="module" src="app.js?v=17.1"></script>
+<script type="module" src="app.js?v=17.2"></script>
 </body>
 </html>

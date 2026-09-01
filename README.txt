@@ -312,3 +312,83 @@ Remplacer uniquement :
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=171
+
+
+================================================
+PHASE 17.2 — NOTIFICATIONS + MESSAGERIE OUTLOOK
+================================================
+
+NOTIFICATIONS
+- Notifications retirées du menu de gauche
+- Cloche 🔔 ajoutée en haut
+- Badge rouge = notifications non lues
+- Clic = panneau flottant type téléphone
+- La page derrière ne change jamais
+- Marquer une notification comme lue sans quitter la page
+- Tout marquer comme lu
+- X / clic extérieur / Échap pour fermer
+- Mise à jour du badge en temps réel
+- Si une notification correspond à un nouveau message récent,
+  "Ouvrir" affiche le message dans une fenêtre au-dessus de la page,
+  sans changer la page derrière
+
+MESSAGERIE TYPE OUTLOOK
+La page Messages devient une vraie boîte mail :
+- Boîte de réception
+- Envoyés
+- Tous les messages
+- Recherche
+- Badge de messages non lus
+- Nouveau message
+- Lecture dans une fenêtre flottante
+- La liste derrière reste affichée
+- Répondre
+- Transférer
+- Marquer comme non lu
+- Conversation / thread visible
+- Composer dans une fenêtre flottante
+- Les réponses gardent le threadId
+- Les transferts gardent forwardedFromId
+- Responsive mobile
+
+IMPORTANT
+Les anciens messages restent compatibles.
+S'ils n'ont pas encore de champ "read", ils apparaissent comme non lus
+jusqu'à leur première ouverture.
+
+NOUVELLES DONNÉES POSSIBLES DANS messages/
+- read
+- readAt
+- threadId
+- messageType
+- replyToId
+- forwardedFromId
+
+SÉCURITÉ
+- Seul l'expéditeur et le destinataire peuvent lire un message.
+- Le destinataire peut uniquement modifier read/readAt.
+- Réponse et transfert créent de nouveaux messages.
+- Les Visiteurs n'ont toujours pas accès à la messagerie.
+- Les utilisateurs internes peuvent consulter l'annuaire interne
+  afin de choisir un destinataire. Les profils Visiteur restent exclus
+  de cette sélection.
+
+FIRESTORE
+⚠️ OBLIGATOIRE :
+remplacer firestore.rules puis Publier.
+
+Cette phase modifie les règles pour :
+- autoriser le destinataire à marquer ses messages lus/non lus
+- permettre l'annuaire interne nécessaire à la messagerie
+
+INSTALLATION
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules → Firestore Database → Règles → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=172
