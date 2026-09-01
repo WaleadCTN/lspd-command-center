@@ -1,75 +1,55 @@
-LSPD COMMAND CENTER — PHASE 10.0 ADDITIVE
+LSPD COMMAND CENTER — PHASE 11.0 BILINGUAL FR / EN
 
-BASE STABLE
-Cette version est construite directement depuis Phase 9 ADDITIVE.
-Les fonctions existantes sont conservées.
-La Phase 10 ajoute uniquement le système d'inscription/validation.
+BASE
+Cette version est construite directement depuis Phase 10 REGISTRATION.
+Toutes les fonctions de la Phase 10 sont conservées.
 
-NOUVEAU FONCTIONNEMENT
+NOUVEAUTÉ : FRANÇAIS / ENGLISH
+- Boutons FR / EN visibles même avant la connexion.
+- Le choix de langue est mémorisé dans le navigateur.
+- La langue reste active après déconnexion/reconnexion.
+- Le menu, les pages, les formulaires, les boutons, les tableaux,
+  les modules FTO, les scénarios, les grades, les statuts et les
+  messages système sont traduits.
+- Les pages/modales créées dynamiquement sont automatiquement traduites.
+- Les dates utilisent le format français ou anglais selon la langue.
 
-1. Un nouvel officier ouvre le site LSPD.
-2. Il clique "Créer un compte".
-3. Il saisit :
-   - Nom RP
-   - Email
-   - Mot de passe
-4. Firebase Authentication crée automatiquement son compte et son UID.
-5. Le site crée automatiquement users/{uid} avec :
-   - badge: —
-   - grade: PO1
-   - role: Officer
-   - division: Patrol
-   - status: En attente
-6. Tant qu'il n'est pas validé, il ne voit PAS le Command Center.
-7. Le Chief voit la demande dans :
-   Inscriptions
-8. Le Chief choisit :
-   - Matricule
-   - Grade
-   - Rôle
-   - Division
-9. Le Chief clique "Valider l'inscription".
-10. Le profil devient Actif et l'utilisateur peut accéder au site.
+IMPORTANT — FIREBASE
+Les valeurs internes Firestore ne sont PAS traduites.
+Exemple :
+  Firestore garde status = "En attente"
+mais un utilisateur anglais voit :
+  Pending
 
-REFUS
-Le Chief peut refuser une demande.
-Le compte Firebase Authentication existe toujours, mais il reste bloqué sur un écran "Inscription refusée".
-Il peut ensuite être réexaminé par le Chief.
+Cela évite de casser les règles, les filtres, les rôles, les promotions,
+les évaluations et les données déjà existantes.
 
-IMPORTANT
-Tu n'as plus besoin d'aller dans Firebase Authentication pour créer les nouveaux comptes.
-Le nouvel utilisateur se crée lui-même depuis le site.
+CONTENU ÉCRIT PAR LES UTILISATEURS
+Les messages, commentaires, annonces et rapports rédigés librement par
+les utilisateurs ne sont pas automatiquement traduits : ils restent
+dans la langue dans laquelle leur auteur les a écrits.
+L'interface autour de ces contenus est traduite.
 
-Firebase Console reste utile uniquement pour les opérations exceptionnelles :
-- suppression définitive d'un compte Authentication
-- dépannage
-- réinitialisations administratives
-
-À REMPLACER SUR GITHUB
+INSTALLATION
+Sur GitHub, remplace :
 - index.html
 - app.js
 - style.css
 
-FIRESTORE OBLIGATOIRE
-Firebase > Firestore Database > Règles
-Colle le nouveau firestore.rules
-Puis clique Publier.
+FIRESTORE
+AUCUNE nouvelle règle Firestore n'est nécessaire pour le bilingue.
+Le fichier firestore.rules est inclus et reste compatible avec Phase 10.
 
 STORAGE
-Toujours optionnel.
-Tu as indiqué ne pas utiliser Firebase Storage.
-Tu peux donc IGNORER storage.rules.
+Toujours optionnel. Tu peux continuer à ignorer storage.rules.
 
 TEST
-https://waleadctn.github.io/lspd-command-center/?v=100
+https://waleadctn.github.io/lspd-command-center/?v=110
 
 TEST CONSEILLÉ
-Pour tester une vraie inscription, utilise une autre adresse e-mail que celle du Chief :
-- déconnexion
-- Créer un compte
-- inscription
-- vérifier l'écran "En attente"
-- reconnecter le Chief
-- Inscriptions
-- approuver la demande
-- reconnecter le nouveau compte
+1. Ouvre le site.
+2. Clique EN.
+3. Vérifie la connexion / création de compte.
+4. Connecte le Chief.
+5. Vérifie Dashboard, Inscriptions, FTO, Officiers, Congés, Promotions, etc.
+6. Passe FR pendant que tu es connecté : la page doit revenir en français immédiatement.

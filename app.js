@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 10.0 ADDITIVE — Phase 9 fully preserved + self-registration & Chief approval
+// LSPD Command Center — Phase 11.0 BILINGUAL — Phase 10 fully preserved + FR/EN display layer
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -29,6 +29,142 @@ const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "")
   .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
   .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+// Phase 11 bilingual display layer.
+// Firestore values remain canonical/original; only visible labels are translated.
+const I18N_EN = {"Command Center":"Command Center","Training & Operations":"Training & Operations","Training • Personnel • Operations • Communication":"Training • Personnel • Operations • Communication","Connexion":"Login","Créer un compte":"Create account","Adresse e-mail":"Email address","Mot de passe":"Password","Se connecter":"Log in","Nom RP":"RP name","Confirmer le mot de passe":"Confirm password","Créer ma demande d'inscription":"Submit my registration request","Le compte Firebase est créé automatiquement. L'accès LSPD reste bloqué jusqu'à validation par le Chief.":"The Firebase account is created automatically. LSPD access remains locked until approval by the Chief.","Inscription en attente":"Registration pending","Votre demande doit être validée par le commandement LSPD.":"Your request must be approved by LSPD Command.","Se déconnecter":"Log out","Déconnecté":"Logged out","Connecté":"Connected","Compte LSPD":"LSPD account","Dashboard":"Dashboard","Mon profil":"My profile","Inscriptions":"Registrations","Notifications":"Notifications","Annonces":"Announcements","Messages":"Messages","Rapports d'incident":"Incident reports","Validations":"Approvals","Corrections & addenda":"Corrections & addenda","Manuel FTO":"FTO Manual","Formations":"Training","Évaluations":"Evaluations","Mes recrues":"My trainees","Officiers":"Officers","Affectations FTO":"FTO assignments","Certifications":"Certifications","Dossiers & distinctions":"Personnel records & distinctions","Roster & shifts":"Roster & shifts","Congés":"Leave","Calendrier formations":"Training calendar","À valider":"To validate","Promotion advisor":"Promotion advisor","Promotions":"Promotions","Statistiques":"Statistics","Grades & responsabilités":"Ranks & responsibilities","Scénarios":"Scenarios","Admin":"Admin","Historique":"History","Recherche globale...":"Global search...","Profil incomplet":"Incomplete profile","Ton compte Authentication existe, mais aucun profil LSPD valide n'est associé. Contacte le Chief of Police.":"Your Authentication account exists, but no valid LSPD profile is linked to it. Contact the Chief of Police.","Erreur profil":"Profile error","Erreur de profil":"Profile error","Impossible de charger ton profil LSPD. Réessaie ou contacte le commandement.":"Unable to load your LSPD profile. Try again or contact Command.","Ta demande a bien été enregistrée. Le Chief of Police doit maintenant valider ton matricule, ton grade, ton rôle et ta division.":"Your request has been recorded. The Chief of Police must now approve your badge number, rank, role, and division.","Inscription refusée":"Registration rejected","Ta demande d'inscription n'a pas été validée. Contacte le commandement LSPD si tu penses qu'il s'agit d'une erreur.":"Your registration request was not approved. Contact LSPD Command if you believe this is an error.","Compte archivé":"Archived account","Ton profil LSPD est archivé et l'accès au Command Center est désactivé.":"Your LSPD profile is archived and access to the Command Center is disabled.","Utilisateur":"User","Statut :":"Status:","Entre un nom RP valide.":"Enter a valid RP name.","Les mots de passe ne correspondent pas.":"Passwords do not match.","Inscription enregistrée":"Registration submitted","Ton compte a été créé automatiquement. Tu n'as rien d'autre à faire : attends simplement la validation du Chief of Police.":"Your account was created automatically. You do not need to do anything else; simply wait for approval by the Chief of Police.","Cette adresse e-mail possède déjà un compte.":"This email address already has an account.","Le mot de passe doit contenir au moins 6 caractères.":"The password must contain at least 6 characters.","Adresse e-mail invalide.":"Invalid email address.","Demandes d'inscription":"Registration requests","Les candidats créent eux-mêmes leur compte Firebase Authentication. Ici, tu valides uniquement leur accès LSPD : matricule, grade, rôle et division.":"Applicants create their own Firebase Authentication account. Here, you only approve their LSPD access: badge number, rank, role, and division.","Date":"Date","Email":"Email","Statut":"Status","Profil proposé":"Proposed profile","Action":"Action","Réexaminer":"Review again","Approuver":"Approve","Refuser":"Reject","Aucune demande en attente.":"No pending requests.","Valider l'inscription":"Approve registration","UID géré automatiquement par Firebase":"UID managed automatically by Firebase","Matricule":"Badge number","Grade":"Rank","Rôle":"Role","Division":"Division","Annuler":"Cancel","Le matricule est obligatoire.":"Badge number is required.","Inscription LSPD approuvée":"LSPD registration approved","Tout marquer comme lu":"Mark all as read","Aucune notification.":"No notifications.","Marquer comme lu":"Mark as read","Par":"By","Système":"System","Info":"Info","Validation":"Approval","Command overview":"Command overview","Effectif actif":"Active personnel","Congés en attente":"Pending leave","Shifts aujourd'hui":"Today's shifts","Évaluations totales":"Total evaluations","Identité":"Identity","Progression":"Progress","Progression personnelle":"Personal progress","Dossier":"Record","Accès FTO/Command actif":"FTO/Command access active","Accès Officer":"Officer access","Unité":"Unit","Sécurité du compte":"Account security","Tu peux recevoir un e-mail Firebase pour réinitialiser ton mot de passe.":"You can receive a Firebase email to reset your password.","Envoyer l'e-mail de réinitialisation":"Send password reset email","E-mail de réinitialisation envoyé.":"Password reset email sent.","+ Nouvelle annonce":"+ New announcement","Aucune annonce.":"No announcements.","Nouvelle annonce":"New announcement","Titre":"Title","Priorité":"Priority","Message":"Message","Publier":"Publish","Normal":"Normal","Important":"Important","Urgent":"Urgent","+ Nouveau message":"+ New message","De":"From","À":"To","Sujet":"Subject","Aucun message.":"No messages.","Nouveau message":"New message","Destinataire":"Recipient","Envoyer":"Send","+ Nouveau rapport":"+ New report","Exporter CSV":"Export CSV","Auteur":"Author","Type":"Type","Pièces":"Attachments","Aucun rapport.":"No reports.","Nouveau rapport d'incident":"New incident report","Résumé":"Summary","Détails":"Details","Pièces jointes (optionnel : images/PDF, max 10 Mo par fichier)":"Attachments (optional: images/PDF, max 10 MB per file)","Soumettre pour validation":"Submit for approval","Aucune validation en attente.":"No approvals pending.","Use of Force":"Use of Force","Vehicle Pursuit":"Vehicle Pursuit","Arrestation sensible":"Sensitive arrest","Accident service":"On-duty accident","Plainte citoyen":"Citizen complaint","Incident interne":"Internal incident","Autre":"Other","Approuvé":"Approved","Refusé":"Rejected","+ Demander une correction":"+ Request a correction","Les documents d'origine restent intacts. Une correction approuvée crée un":"Original documents remain unchanged. An approved correction creates a","addendum":"addendum","traçable.":"with a full audit trail.","Demandeur":"Requester","Cible":"Target","Motif":"Reason","Révision":"Review","Demande de correction / addendum":"Correction / addendum request","Document concerné":"Affected document","Pourquoi une correction est nécessaire ?":"Why is a correction needed?","Texte proposé pour l'addendum":"Proposed addendum text","Correction précise, sans effacer l'original...":"Precise correction without deleting the original...","Envoyer la demande":"Submit request","Aucun document disponible pour une demande de correction.":"No document is available for a correction request.","Manuel FTO LSPD":"LSPD FTO Manual","Briefing → démonstration → pratique → observation → feedback → validation → traçabilité.":"Briefing → demonstration → practice → observation → feedback → validation → audit trail.","Sécurité avant performance":"Safety before performance","Expliquer le pourquoi":"Explain the why","Erreur critique = correction immédiate":"Critical error = immediate correction","Feedback factuel":"Factual feedback","Validation traçable":"Traceable validation","Même standard pour tous":"Same standard for everyone","Débutant":"Beginner","Intermédiaire":"Intermediate","Avancé":"Advanced","Commandement":"Command","À faire":"To do","Validé":"Validated","À revoir":"Needs review","Échec":"Failed","Déroulé FTO":"FTO process","Briefing et objectifs":"Briefing and objectives","Démonstration FTO":"FTO demonstration","Mise en pratique":"Practical exercise","Questions/correction":"Questions/correction","Observation en situation":"Field observation","Fermer":"Close","Fondamentaux LSPD":"LSPD Fundamentals","Structure, chaîne de commandement, radio et code de conduite":"Structure, chain of command, radio, and code of conduct","Radio & communications":"Radio & Communications","Codes radio, transmissions, priorités et dispatch":"Radio codes, transmissions, priorities, and dispatch","Patrouille":"Patrol","Positionnement, observation, contrôles et contacts citoyens":"Positioning, observation, stops, and citizen contacts","Code de la route":"Traffic Code","Contrôles routiers, infractions et conduite professionnelle":"Traffic stops, violations, and professional driving","Contrôle d'identité":"Identity Check","Procédure de contact, vérifications et sécurité":"Contact procedure, checks, and safety","Arrestation":"Arrest","Menottage, fouille, droits, transport et remise en garde":"Handcuffing, search, rights, transport, and custody handoff","Usage de la force":"Use of Force","Proportionnalité, désescalade et justification":"Proportionality, de-escalation, and justification","Poursuites":"Pursuits","Poursuite véhicule/pied, coordination et sécurité":"Vehicle/foot pursuit, coordination, and safety","Scènes de crime":"Crime Scenes","Sécurisation, témoins, preuves et préservation":"Scene security, witnesses, evidence, and preservation","Rapports":"Reports","Rédaction factuelle, chronologie, preuves et transmission":"Factual writing, chronology, evidence, and submission","Interventions à risque":"High-Risk Incidents","Renfort, périmètre, négociation et coordination":"Backup, perimeter, negotiation, and coordination","Gestion de scène":"Scene Management","Commandement tactique, briefing et ressources":"Tactical command, briefing, and resources","FTO & pédagogie":"FTO & Training Methods","Démonstration, observation, feedback et validation":"Demonstration, observation, feedback, and validation","Supervision":"Supervision","Contrôle qualité, discipline, coaching et décisions":"Quality control, discipline, coaching, and decisions","Gestion opérationnelle, effectifs et crises":"Operational management, staffing, and crises","Leadership":"Leadership","Culture LSPD, éthique, développement et succession":"LSPD culture, ethics, development, and succession","+ Nouvelle évaluation":"+ New evaluation","Officier":"Officer","FTO":"FTO","Module":"Module","Score":"Score","Résultat":"Result","Aucune évaluation.":"No evaluations.","Nouvelle évaluation FTO":"New FTO evaluation","Officier évalué":"Officer evaluated","Critères":"Criteria","Procédure":"Procedure","Respect des étapes et SOP":"Compliance with steps and SOPs","Sécurité":"Safety","Sécurité personnelle, partenaires et public":"Personal, partner, and public safety","Communication radio":"Radio communication","Clarté, concision et pertinence":"Clarity, concision, and relevance","Jugement":"Judgment","Décision adaptée à la situation":"Decision appropriate to the situation","Professionnalisme":"Professionalism","Comportement et attitude":"Behavior and attitude","Compte rendu":"Report","Qualité du rapport et traçabilité":"Report quality and traceability","Commentaires FTO":"FTO comments","Score :":"Score:","1 — Insuffisant":"1 — Unsatisfactory","2 — À améliorer":"2 — Needs improvement","3 — Conforme":"3 — Meets standard","4 — Très bien":"4 — Very good","5 — Excellent":"5 — Excellent","Enregistrer":"Save","Fiche d'évaluation FTO":"FTO Evaluation Form","Commentaires":"Comments","Aucun commentaire.":"No comments.","Imprimer / PDF":"Print / PDF","Voir / Imprimer":"View / Print","Aucune recrue assignée.":"No trainee assigned.","Ouvrir le dossier":"Open record","Rechercher...":"Search...","Tous statuts":"All statuses","Toutes unités":"All units","+ Ajouter un profil":"+ Add profile","Nom":"Name","Aucun officier.":"No officers.","Modifier":"Edit","Dossier officier":"Officer record","Distinctions / sanctions":"Commendations / sanctions","Dernières évaluations":"Latest evaluations","Ajouter un profil":"Add profile","UID Firebase Authentication":"Firebase Authentication UID","Unité / Division":"Unit / Division","Actif":"Active","En formation":"In training","Suspendu":"Suspended","Inactif":"Inactive","Archivé":"Archived","En attente":"Pending","Officer":"Officer","Sergeant":"Sergeant","Lieutenant":"Lieutenant","Captain":"Captain","Deputy Chief":"Deputy Chief","Assistant Chief":"Assistant Chief","Chief":"Chief","Sergent":"Sergeant","Chief of Police":"Chief of Police","Patrol":"Patrol","Traffic":"Traffic","Detective":"Detective","SWAT":"SWAT","Air Support":"Air Support","Training":"Training","Command":"Command","Police Officer I":"Police Officer I","Police Officer II":"Police Officer II","Police Officer III":"Police Officer III","Applique les procédures sous supervision.":"Applies procedures under supervision.","Officier autonome sur les missions courantes.":"Independent officer on routine duties.","Officier expérimenté, senior et mentor.":"Experienced senior officer and mentor.","Premier niveau de supervision.":"First level of supervision.","Supervise plusieurs équipes et opérations.":"Supervises multiple teams and operations.","Responsable d'une division ou unité.":"Responsible for a division or unit.","Supervise plusieurs divisions.":"Supervises multiple divisions.","Direction stratégique du département.":"Strategic leadership of the department.","Autorité finale du département.":"Final authority of the department.","+ Nouvelle affectation":"+ New assignment","Recrue":"Trainee","Commentaire":"Comment","Aucune affectation.":"No assignments.","Clôturer":"Close assignment","Nouvelle affectation FTO":"New FTO assignment","Affecter":"Assign","+ Ajouter une certification":"+ Add certification","Certification":"Certification","Attribuée par":"Issued by","Aucune certification.":"No certifications.","Ajouter une certification":"Add certification","Attribuer":"Issue","Pursuit":"Pursuit","Supervisor":"Supervisor","+ Nouvelle entrée":"+ New entry","Émis par":"Issued by","Aucune entrée.":"No entries.","Nouvelle entrée au dossier":"New personnel record entry","Commendation":"Commendation","Sanction":"Sanction","+ Ajouter un shift":"+ Add shift","Début":"Start","Fin":"End","Aucun shift.":"No shifts.","Ajouter un shift":"Add shift","Planifié":"Scheduled","+ Demander un congé":"+ Request leave","Du":"From","Au":"To","Aucune demande.":"No requests.","Demande de congé":"Leave request","+ Planifier une formation":"+ Schedule training","Aucune formation planifiée.":"No training scheduled.","Planifier une formation":"Schedule training","Heure":"Time","Lieu":"Location","Notes":"Notes","Planifier":"Schedule","Formateur:":"Trainer:","Modules restants":"Remaining modules","Indicateur d'aide à la décision. Il ne remplace pas le jugement du commandement.":"Decision-support indicator. It does not replace Command judgment.","Moyenne FTO":"FTO average","Sanctions":"Sanctions","Indice":"Index","Lecture":"Assessment","Fort candidat":"Strong candidate","À considérer":"Consider","Pas encore":"Not yet","+ Enregistrer une promotion":"+ Record promotion","Ancien grade":"Previous rank","Nouveau grade":"New rank","Validé par":"Approved by","Aucune promotion.":"No promotions.","Enregistrer une promotion":"Record promotion","Effectif":"Personnel","Affectations actives":"Active assignments","Score moyen":"Average score","Effectif par grade":"Personnel by rank","Operations & RH":"Operations & HR","Commendations":"Commendations","Shifts enregistrés":"Recorded shifts","Par unité":"By unit","officiers":"officers","Contrôle routier":"Traffic Stop","Contrôle d'un véhicule suspect":"Stop of a suspicious vehicle","Sécurité, radio, approche, identification, décision, rapport":"Safety, radio, approach, identification, decision, report","Suspect coopératif":"Cooperative suspect","Contrôle, menottage, fouille, droits, transport":"Control, handcuffing, search, rights, transport","Poursuite véhicule":"Vehicle Pursuit","Fuite après refus d'obtempérer":"Flight after failure to stop","Radio, sécurité, coordination, décision":"Radio, safety, coordination, decision","Poursuite à pied":"Foot Pursuit","Suspect prend la fuite":"Suspect flees","Communication, trajectoire, renfort, arrestation":"Communication, route, backup, arrest","Intervention à risque":"High-Risk Incident","Appel avec menace":"Call involving a threat","Périmètre, briefing, désescalade, commandement":"Perimeter, briefing, de-escalation, command","Scène de crime":"Crime Scene","Vol avec plusieurs témoins":"Theft with multiple witnesses","Sécurisation, témoins, preuves, chronologie":"Scene security, witnesses, evidence, chronology","Incident multi-unités":"Multi-unit incident","Commandement, rôles, briefing, compte rendu":"Command, roles, briefing, report","Évaluation FTO":"FTO Evaluation","Patrouille complète":"Full patrol","Évaluation globale en conditions réalistes":"Overall evaluation under realistic conditions","Lancer":"Start","Points à observer":"Observation points","Terminer":"Finish","Gestion système":"System management","Profils":"Profiles","Authentication":"Authentication","Rôles & unités":"Roles & units","Onglet Officiers":"Officers tab","Archivage":"Archiving","Pour retirer un officier des listes actives sans supprimer son historique, passe son statut à":"To remove an officer from active lists without deleting their history, set their status to","Aucun historique.":"No history.","Recherche globale":"Global search","Aucun résultat.":"No results.","Erreur :":"Error:","Aucune donnée à exporter.":"No data to export."};
+const I18N_FR = {"Command Center":"Centre de commandement","Training & Operations":"Formation & opérations","Training • Personnel • Operations • Communication":"Formation • Personnel • Opérations • Communication","Dashboard":"Tableau de bord","Roster & shifts":"Planning & services","Promotion advisor":"Conseiller promotions","Admin":"Administration","Email":"E-mail","Authentication":"Authentification","Operations & RH":"Opérations & RH","Officer":"Officier","Sergeant":"Sergent","Captain":"Capitaine","Deputy Chief":"Chef adjoint","Assistant Chief":"Chef assistant","Chief":"Chef","Chief of Police":"Chef de la police","Police Officer I":"Officier de police I","Police Officer II":"Officier de police II","Police Officer III":"Officier de police III","Patrol":"Patrouille","Traffic":"Circulation","Detective":"Enquêtes","Air Support":"Support aérien","Training":"Formation","Command":"Commandement","Pursuit":"Poursuite","Supervisor":"Superviseur","Use of Force":"Usage de la force","Vehicle Pursuit":"Poursuite véhicule"};
+
+let currentLang = localStorage.getItem("lspdLanguage")
+  || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
+
+function translateSystemText(source, lang=currentLang){
+  if(source == null) return source;
+  const text=String(source);
+  const dict=lang==="en"?I18N_EN:I18N_FR;
+  if(Object.prototype.hasOwnProperty.call(dict,text)) return dict[text];
+
+  // Common composed UI strings. User-provided content is preserved.
+  let m;
+  if((m=text.match(/^(M\d{2}) — (.+)$/))){
+    const translated=dict[m[2]] ?? m[2];
+    return `${m[1]} — ${translated}`;
+  }
+  if(text.includes(" • ")){
+    const parts=text.split(" • ");
+    const changed=parts.map(p=>dict[p] ?? p);
+    return changed.join(" • ");
+  }
+  if(text.includes(" — ")){
+    const parts=text.split(" — ");
+    const changed=parts.map(p=>dict[p] ?? p);
+    return changed.join(" — ");
+  }
+
+  if(lang==="en"){
+    if((m=text.match(/^Statut : (.+)$/))) return `Status: ${translateSystemText(m[1],"en")}`;
+    if((m=text.match(/^Par (.+)$/))) return `By ${m[1]}`;
+    if((m=text.match(/^Formateur: (.+)$/))) return `Trainer: ${m[1]}`;
+    if((m=text.match(/^(\d+)\/(\d+) modules validés$/))) return `${m[1]}/${m[2]} modules completed`;
+    if((m=text.match(/^Annonce LSPD : (.+)$/))) return `LSPD announcement: ${m[1]}`;
+    if((m=text.match(/^Nouveau message : (.+)$/))) return `New message: ${m[1]}`;
+    if((m=text.match(/^Message de (.+)$/))) return `Message from ${m[1]}`;
+    if((m=text.match(/^Rapport (Approuvé|Refusé)$/))) return `Report ${m[1]==="Approuvé"?"Approved":"Rejected"}`;
+    if((m=text.match(/^(.+) a été (approuvé|refusé) par (.+)\.$/))) return `${m[1]} was ${m[2]==="approuvé"?"approved":"rejected"} by ${m[3]}.`;
+    if((m=text.match(/^Correction (Approuvé|Refusé)$/))) return `Correction ${m[1]==="Approuvé"?"Approved":"Rejected"}`;
+    if((m=text.match(/^(.+) : ta demande a été (approuvée|refusée) par (.+)\.$/))) return `${m[1]}: your request was ${m[2]==="approuvée"?"approved":"rejected"} by ${m[3]}.`;
+    if((m=text.match(/^Ton accès au Command Center est validé\. Matricule (.+), grade (.+)\.$/))) return `Your Command Center access is approved. Badge ${m[1]}, rank ${translateSystemText(m[2],"en")}.`;
+    if((m=text.match(/^Refuser la demande de (.+) \?$/))) return `Reject ${m[1]}'s request?`;
+    if((m=text.match(/^Erreur d'inscription : (.+)$/))) return `Registration error: ${m[1]}`;
+    if((m=text.match(/^Erreur : (.+)$/))) return `Error: ${m[1]}`;
+    if((m=text.match(/^Pièce jointe non envoyée\. Vérifie Firebase Storage et storage\.rules : (.+)$/))) return `Attachment not uploaded. Check Firebase Storage and storage.rules: ${m[1]}`;
+    if((m=text.match(/^(.+) → (.+)$/))) return `${m[1]} → ${m[2]}`;
+  }
+  return text;
+}
+
+let i18nBusy=false;
+
+function translateTextNode(node){
+  if(!node || node.nodeType!==Node.TEXT_NODE) return;
+  const current=node.nodeValue ?? "";
+  if(node.__lspdI18nSource===undefined || (node.__lspdI18nLast!==undefined && current!==node.__lspdI18nLast)){
+    node.__lspdI18nSource=current;
+  }
+  const source=node.__lspdI18nSource;
+  const leading=(source.match(/^\s*/)||[""])[0];
+  const trailing=(source.match(/\s*$/)||[""])[0];
+  const core=source.trim();
+  if(!core){ node.__lspdI18nLast=source; return; }
+  const rendered=leading+translateSystemText(core,currentLang)+trailing;
+  node.__lspdI18nLast=rendered;
+  if(current!==rendered){
+    i18nBusy=true;
+    node.nodeValue=rendered;
+    i18nBusy=false;
+  }
+}
+
+function translateElement(el){
+  if(!el || el.nodeType!==Node.ELEMENT_NODE) return;
+
+  // Preserve canonical OPTION value before changing its visible text.
+  if(el.tagName==="OPTION" && !el.hasAttribute("value")){
+    el.setAttribute("value",el.textContent);
+  }
+
+  for(const attr of ["placeholder","title","aria-label"]){
+    if(el.hasAttribute(attr)){
+      const key=`i18n${attr.replace(/-([a-z])/g,(_,c)=>c.toUpperCase()).replace(/^./,c=>c.toUpperCase())}Source`;
+      if(el.dataset[key]===undefined) el.dataset[key]=el.getAttribute(attr);
+      el.setAttribute(attr,translateSystemText(el.dataset[key],currentLang));
+    }
+  }
+}
+
+function translateDOM(root=document.body){
+  if(!root) return;
+  if(root.nodeType===Node.ELEMENT_NODE) translateElement(root);
+  if(root.nodeType===Node.TEXT_NODE) translateTextNode(root);
+
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT);
+  let node;
+  while((node=walker.nextNode())){
+    if(node.nodeType===Node.ELEMENT_NODE) translateElement(node);
+    else translateTextNode(node);
+  }
+}
+
+function updateLanguageButtons(){
+  document.querySelectorAll("[data-language]").forEach(b=>b.classList.toggle("active",b.dataset.language===currentLang));
+}
+
+function setLanguage(lang){
+  if(!["fr","en"].includes(lang)) return;
+  currentLang=lang;
+  localStorage.setItem("lspdLanguage",lang);
+  document.documentElement.lang=lang;
+  document.title=lang==="fr"?"LSPD — Centre de commandement":"LSPD Command Center";
+  translateDOM(document.body);
+  updateLanguageButtons();
+}
+
+const i18nObserver=new MutationObserver(mutations=>{
+  if(i18nBusy) return;
+  for(const mutation of mutations){
+    if(mutation.type==="characterData") translateTextNode(mutation.target);
+    for(const node of mutation.addedNodes){
+      if(node.nodeType===Node.ELEMENT_NODE || node.nodeType===Node.TEXT_NODE) translateDOM(node);
+    }
+  }
+});
+
+// Translate native alert/confirm messages too.
+const nativeAlert=window.alert.bind(window);
+const nativeConfirm=window.confirm.bind(window);
+window.alert=(message)=>nativeAlert(translateSystemText(String(message),currentLang));
+window.confirm=(message)=>nativeConfirm(translateSystemText(String(message),currentLang));
+
 
 const modules = [
 ["M01","Fondamentaux LSPD","Structure, chaîne de commandement, radio et code de conduite","Débutant"],
@@ -1241,7 +1377,7 @@ async function globalSearch(term){
 
 function formatDate(ts){
   if(!ts)return"—";
-  try{const d=ts.toDate?ts.toDate():new Date(ts.seconds*1000);return d.toLocaleString("fr-FR",{dateStyle:"short",timeStyle:"short"});}catch{return"—";}
+  try{const d=ts.toDate?ts.toDate():new Date(ts.seconds*1000);return d.toLocaleString(currentLang==="en"?"en-US":"fr-FR",{dateStyle:"short",timeStyle:"short"});}catch{return"—";}
 }
 function showModal(html){
   document.querySelector(".modal")?.remove();
@@ -1250,6 +1386,11 @@ function showModal(html){
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
+  document.documentElement.lang=currentLang;
+  document.querySelectorAll("[data-language]").forEach(b=>b.addEventListener("click",()=>setLanguage(b.dataset.language)));
+  i18nObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
+  setLanguage(currentLang);
+
   $("loginForm")?.addEventListener("submit",handleLogin);
   $("signupForm")?.addEventListener("submit",handleSignup);
   $("showLoginBtn")?.addEventListener("click",()=>toggleAuthMode("login"));
