@@ -445,3 +445,117 @@ body.sidebar-collapsed .developer-credit{
 .visitor-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;background:linear-gradient(125deg,#172a40,#101b2b);border-left:4px solid #769abd}.visitor-seal{font-size:64px;opacity:.9}.visitor-public-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.visitor-training-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.visitor-training-list>div{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:11px 13px;border:1px solid #263a50;border-radius:10px;background:#0d1928}.visitor-training-list small{color:#70869e}.academy-cms-stat{display:grid;text-align:center}.academy-cms-stat b{font-size:38px}.academy-cms-stat span{color:#8196ad}.academy-manager-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.academy-manager-module{display:flex;flex-direction:column;gap:10px}.academy-manager-module .btn{margin-top:auto}.academy-scenario-toolbar{margin-top:22px}.academy-language-editor{margin-top:14px;padding:15px;border:1px solid #2a3e56;border-radius:12px;background:#0c1725}.academy-content-editor{max-height:78vh;overflow:auto;padding-right:4px}.quiz-module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.quiz-module{display:flex;flex-direction:column}.quiz-module .btn{margin-top:auto}.quiz-locked{opacity:.58}.quiz-lock{margin-top:auto;padding:9px;border-radius:8px;background:#201b1b;color:#c99898}.quiz-question{padding:14px 0;border-bottom:1px solid #293a4e}.quiz-question>b{display:block;margin-bottom:9px}.quiz-question label{display:block;padding:7px 9px;margin:4px 0;border:1px solid #293b52;border-radius:8px;cursor:pointer}.quiz-question label:hover{background:#15253a}.quiz-result{padding:10px;border-radius:8px;margin:8px 0}.quiz-result.ok{background:#102b21;border:1px solid #285743}.quiz-result.bad{background:#2b171b;border:1px solid #60333c}.dossier-select{min-width:300px}.dossier-header{display:flex;justify-content:space-between;align-items:center}.dossier-kpis{display:flex;gap:10px}.dossier-kpis>div{min-width:105px;padding:10px;border:1px solid #2d4056;border-radius:9px;text-align:center}.dossier-kpis span{display:block;font-size:10px;color:#8093aa;text-transform:uppercase}.dossier-kpis b{font-size:21px}.training-heatmap{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}.heat-cell{display:grid;place-items:center;padding:10px 5px;border-radius:9px;border:1px solid #2a3c52;background:#101b2a}.heat-cell.good{background:#143225;border-color:#2f664d}.heat-cell.warn{background:#382a15;border-color:#72532b}.heat-cell.bad{background:#361b20;border-color:#6c343d}.heat-cell.none{opacity:.55}.heat-cell span{font-size:12px;color:#9db0c5}.remedial-item{padding:10px 0;border-bottom:1px solid #293a4e}.timeline-entry{padding:9px 0;border-bottom:1px solid #293a4e}.timeline-entry b,.timeline-entry small{display:block}.timeline-entry small{color:#70859c;margin-top:2px}.visitor-account .header-actions .compact-search{display:none}
 @media(max-width:1100px){.academy-manager-grid,.quiz-module-grid{grid-template-columns:repeat(2,1fr)}.visitor-public-grid{grid-template-columns:repeat(2,1fr)}.training-heatmap{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:650px){.academy-manager-grid,.quiz-module-grid,.visitor-public-grid,.visitor-training-list{grid-template-columns:1fr}.visitor-hero,.dossier-header{flex-direction:column;align-items:flex-start}.dossier-kpis{width:100%;flex-wrap:wrap}.training-heatmap{grid-template-columns:repeat(4,1fr)}.visitor-training-list>div{grid-template-columns:52px 1fr}}
+
+
+/* ==========================================================
+   PHASE 17.1 — GROUPED / COLLAPSIBLE SIDEBAR NAVIGATION
+   ========================================================== */
+.grouped-nav{
+  display:grid;
+  gap:5px;
+}
+.nav-group{
+  display:block;
+  border-bottom:1px solid rgba(125,160,200,.07);
+  padding-bottom:4px;
+}
+.nav-group:last-child{
+  border-bottom:0;
+}
+.nav-group-toggle{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:34px;
+  padding:7px 10px;
+  margin:2px 0 3px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#758aa2;
+  cursor:pointer;
+  box-shadow:none;
+  text-align:left;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+  transition:background .14s ease,color .14s ease;
+}
+.nav-group-toggle:hover{
+  background:rgba(89,128,170,.10);
+  color:#a9bfd8;
+  transform:none;
+}
+.nav-group-icon{
+  width:19px;
+  min-width:19px;
+  text-align:center;
+  color:#6986a5;
+  font-size:12px;
+}
+.nav-group-title{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.nav-group-chevron{
+  color:#617890;
+  font-size:14px;
+  transition:transform .18s ease;
+}
+.nav-group-items{
+  display:grid;
+  gap:2px;
+  overflow:hidden;
+}
+.nav-group.collapsed .nav-group-items{
+  display:none;
+}
+.nav-group.collapsed .nav-group-chevron{
+  transform:rotate(-90deg);
+}
+.nav-group-items > button[data-page]{
+  margin-left:5px;
+  width:calc(100% - 5px);
+}
+.nav-group-items > button[data-page].active{
+  background:linear-gradient(90deg,rgba(92,140,194,.29),rgba(41,71,108,.25));
+}
+.nav-group.hidden{
+  display:none!important;
+}
+
+/* Compact sidebar: keep all page icons accessible and hide section labels. */
+body.sidebar-collapsed .nav-group-toggle{
+  display:none;
+}
+body.sidebar-collapsed .nav-group{
+  border-bottom:1px solid rgba(125,160,200,.08);
+  padding:3px 0;
+}
+body.sidebar-collapsed .nav-group-items,
+body.sidebar-collapsed .nav-group.collapsed .nav-group-items{
+  display:grid!important;
+}
+body.sidebar-collapsed .nav-group-items > button[data-page]{
+  margin-left:0;
+  width:100%;
+}
+
+/* Mobile: groups behave like an accordion. */
+@media(max-width:1050px){
+  body.sidebar-collapsed .nav-group-toggle{
+    display:flex;
+  }
+  body.sidebar-collapsed .nav-group.collapsed .nav-group-items{
+    display:none!important;
+  }
+  body.sidebar-collapsed .nav-group-items > button[data-page]{
+    margin-left:5px;
+    width:calc(100% - 5px);
+  }
+}

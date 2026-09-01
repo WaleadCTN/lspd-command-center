@@ -225,3 +225,90 @@ Alertes FTO intelligentes :
 IMPORTANT :
 Le site reste 100% client / Firebase gratuit. Les alertes sont générées
 lorsque le FTO ouvre ou reconnecte le site, sans scheduler serveur payant.
+
+
+================================================
+PHASE 17.1 — NAVIGATION REGROUPÉE
+================================================
+Le menu latéral est maintenant organisé en catégories :
+
+1. Accueil & personnel
+   - Dashboard
+   - Portail visiteur
+   - Mon profil
+   - Mon espace opérationnel
+   - Notifications
+
+2. Communication & rapports
+   - Annonces
+   - Messages
+   - Rapports d'incident
+   - Validations
+   - Corrections & addenda
+
+3. FTO & formation
+   - Manuel FTO
+   - FTO Academy
+   - Journal FTO
+   - Évaluation finale
+   - Dossier FTO
+   - Stats formation
+   - Gestion Academy
+   - Quiz
+   - Feedback
+   - Formations
+   - Évaluations
+   - Mes recrues
+   - Affectations FTO
+   - Calendrier
+   - Inscriptions formations
+   - Scénarios
+
+4. Personnel & carrière
+   - Officiers
+   - Certifications
+   - Dossiers & distinctions
+   - Congés
+   - À valider
+   - Promotion Advisor
+   - Promotions
+   - Divisions
+   - Grades
+
+5. Opérations & MDT
+   - Roster & shifts
+   - Tableau de service
+   - CAD / Dispatch
+   - Watch Commander
+   - BOLO
+   - MDT
+
+6. Commandement & administration
+   - Inscriptions
+   - Statistiques
+   - Admin
+   - Permissions
+   - Historique
+
+ERGONOMIE
+- chaque groupe peut être ouvert / fermé
+- l'état des groupes est mémorisé dans le navigateur
+- le groupe de la page active s'ouvre automatiquement
+- les groupes sans aucune page autorisée sont masqués
+- compatible avec les permissions dynamiques
+- compatible avec le rôle Visiteur
+- compatible menu réduit et mobile
+- FR / EN
+
+FIRESTORE
+Aucun changement.
+Ne pas remplacer firestore.rules pour cette phase.
+
+INSTALLATION
+Remplacer uniquement :
+- index.html
+- app.js
+- style.css
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=171

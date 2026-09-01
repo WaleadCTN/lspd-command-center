@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17 ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
+// LSPD Command Center — Phase 17.1 GROUPED NAVIGATION ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -52,6 +52,8 @@ Object.assign(I18N_EN,{"Choisir la formation":"Choose training module","Scénari
 Object.assign(I18N_EN,{"Visiteur":"Visitor","Portail visiteur":"Visitor Portal","Accès externe limité":"Limited external access","Gestion Academy":"Academy Management","Dossier FTO recrue":"Trainee FTO File","Quiz formations":"Training Quizzes","Feedback formation":"Training Feedback","Gestion contenu Academy":"Academy Content Management","Modifier le module":"Edit module","Nouveau scénario personnalisé":"New custom scenario","Scénarios personnalisés":"Custom scenarios","Archiver":"Archive","Personnalisé":"Customized","Contenu d’origine":"Original content","Enregistrer le contenu":"Save content","Accès public":"Public access","Interne":"Internal","Public":"Public","Visibilité":"Visibility","Réservé au département":"Department only","Accessible aux visiteurs":"Visible to visitors","Parcours de formation":"Training pathway","Prérequis non validés":"Prerequisites not validated","Quiz réussi":"Quiz passed","Quiz à refaire":"Quiz to retry","Commencer le quiz":"Start quiz","Soumettre le quiz":"Submit quiz","Dossier pédagogique":"Training file","Plan de rattrapage":"Remedial plan","Passation FTO":"FTO handoff","Ajouter une note de passation":"Add handoff note","Imprimer le rapport final":"Print final report","Feedback de la recrue":"Trainee feedback","Compréhension":"Understanding","Difficulté rencontrée":"Difficulty encountered","Question au FTO":"Question for FTO","Envoyer le feedback":"Send feedback","Validation commandement":"Command approval","En attente Commandement":"Pending Command approval","Validée":"Approved","Refusée":"Rejected","Valider définitivement":"Final approval","Refuser la validation":"Reject approval","academy_content_manage":"academy_content_manage","academy_final_review":"academy_final_review","Gérer le contenu FTO Academy":"Manage FTO Academy content","Valider les fins de parcours FTO":"Approve final FTO reviews","Accès visiteur sécurisé":"Secure visitor access","Informations publiques du département":"Public department information","Aucune donnée opérationnelle ou personnelle n’est accessible avec ce compte.":"No operational or personal data is accessible with this account.","Annonces publiques":"Public announcements","Structure du département":"Department structure","Catalogue de formation":"Training catalog","Compte externe":"External account","Feedback envoyé.":"Feedback sent.","Contenu Academy enregistré.":"Academy content saved.","Scénario enregistré.":"Scenario saved.","Note de passation enregistrée.":"Handoff note saved.","Validation finale mise à jour.":"Final approval updated."});
 
 Object.assign(I18N_EN,{"Stats formation":"Training analytics","Alertes pédagogiques":"Training alerts","Recrues sans évaluation":"Trainees without evaluation","Taux de validation finale":"Final approval rate","Performance FTO":"FTO performance","Performance par module":"Performance by module"});
+
+Object.assign(I18N_EN,{"Accueil & personnel":"Home & personal","Communication & rapports":"Communication & reports","FTO & formation":"FTO & training","Personnel & carrière":"Personnel & career","Opérations & MDT":"Operations & MDT","Commandement & administration":"Command & administration"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -1006,10 +1008,56 @@ onAuthStateChanged(auth,async user=>{
 });
 function logout(){ return signOut(auth); }
 
+
+function navGroupState(){
+  try{return JSON.parse(localStorage.getItem("lspdNavGroups")||"{}");}catch{return {};}
+}
+function saveNavGroupState(){
+  const state={};
+  document.querySelectorAll("#nav .nav-group").forEach(group=>{
+    state[group.dataset.navGroup]=group.classList.contains("collapsed");
+  });
+  localStorage.setItem("lspdNavGroups",JSON.stringify(state));
+}
+function setNavGroupCollapsed(group,collapsed,persist=true){
+  if(!group)return;
+  group.classList.toggle("collapsed",collapsed);
+  const toggle=group.querySelector(".nav-group-toggle");
+  toggle?.setAttribute("aria-expanded",collapsed?"false":"true");
+  if(persist)saveNavGroupState();
+}
+function refreshNavGroups(){
+  const state=navGroupState();
+  document.querySelectorAll("#nav .nav-group").forEach(group=>{
+    const visibleButtons=[...group.querySelectorAll("button[data-page]")].filter(btn=>!btn.classList.contains("hidden"));
+    group.classList.toggle("hidden",visibleButtons.length===0);
+    if(visibleButtons.length){
+      const active=visibleButtons.some(btn=>btn.classList.contains("active"));
+      const collapsed=active?false:Boolean(state[group.dataset.navGroup]);
+      setNavGroupCollapsed(group,collapsed,false);
+    }
+  });
+}
+function ensureActiveNavGroup(page){
+  const btn=document.querySelector(`#nav button[data-page="${page}"]`);
+  const group=btn?.closest(".nav-group");
+  if(group)setNavGroupCollapsed(group,false,false);
+}
+function initNavGroups(){
+  document.querySelectorAll("#nav .nav-group-toggle").forEach(toggle=>{
+    toggle.addEventListener("click",()=>{
+      const group=toggle.closest(".nav-group");
+      setNavGroupCollapsed(group,!group.classList.contains("collapsed"),true);
+    });
+  });
+  refreshNavGroups();
+}
+
 function applyRoleVisibility(){
   document.querySelectorAll("#nav button[data-page]").forEach(btn=>{
     btn.classList.toggle("hidden",!canAccessPage(btn.dataset.page));
   });
+  refreshNavGroups();
 }
 
 function render(page){
@@ -1024,7 +1072,8 @@ function render(page){
   window.LSPD.currentPage=page;
   document.body.classList.remove("sidebar-open");
   $("sidebarBackdrop")?.classList.add("hidden");
-  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  document.querySelectorAll("#nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  ensureActiveNavGroup(page);
   $("pageTitle").textContent=pages[page]||"LSPD";
   const content=$("content");
   content?.classList.remove("page-enter");
@@ -3101,6 +3150,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("[data-language]").forEach(b=>b.addEventListener("click",()=>setLanguage(b.dataset.language)));
   i18nObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
   setLanguage(currentLang);
+
+  // Phase 17.1 grouped navigation
+  initNavGroups();
 
   // Phase 14 UX controls
   document.body.classList.toggle("sidebar-collapsed",localStorage.getItem("lspdSidebarCollapsed")==="1");
