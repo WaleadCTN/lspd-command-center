@@ -4,10 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=4.0">
+  <link rel="stylesheet" href="style.css?v=5.0">
 </head>
 <body>
-
 <section id="loginScreen" class="login-screen">
   <div class="login-card">
     <div class="badge">LSPD</div>
@@ -29,7 +28,6 @@
       <div class="badge small">LSPD</div>
       <div><b>Command Center</b><small>Training & Personnel</small></div>
     </div>
-
     <nav id="nav">
       <button data-page="dashboard" class="active">🏠 Dashboard</button>
       <button data-page="manual">📚 Manuel FTO</button>
@@ -37,13 +35,16 @@
       <button data-page="evaluations">✅ Évaluations</button>
       <button data-page="trainees">🧭 Mes recrues</button>
       <button data-page="officers">👮 Officiers</button>
+      <button data-page="assignments">🔗 Affectations FTO</button>
+      <button data-page="certifications">🏅 Certifications</button>
+      <button data-page="records">📁 Dossiers & distinctions</button>
       <button data-page="promotions">⬆️ Promotions</button>
       <button data-page="stats">📈 Statistiques</button>
       <button data-page="grades">⭐ Grades & responsabilités</button>
       <button data-page="scenarios">🎯 Scénarios</button>
+      <button data-page="admin">⚙️ Admin</button>
       <button data-page="history">📊 Historique</button>
     </nav>
-
     <div class="side-footer">
       <span id="currentUser">Déconnecté</span><br>
       <button id="logoutBtn" class="logout">Se déconnecter</button>
@@ -62,6 +63,6 @@
   </main>
 </div>
 
-<script type="module" src="app.js?v=4.0"></script>
+<script type="module" src="app.js?v=5.0"></script>
 </body>
 </html>
