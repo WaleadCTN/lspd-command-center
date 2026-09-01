@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LSPD Command Center</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="brand"><div class="badge">LSPD</div><div><b>Command Center</b><small>Training & Personnel</small></div></div>
+  <nav id="nav">
+    <button data-page="dashboard" class="active">🏠 Dashboard</button>
+    <button data-page="manual">📚 Manuel FTO</button>
+    <button data-page="modules">🎓 Formations</button>
+    <button data-page="evaluations">✅ Évaluations</button>
+    <button data-page="officers">👮 Officiers</button>
+    <button data-page="grades">⭐ Grades & responsabilités</button>
+    <button data-page="scenarios">🎯 Scénarios</button>
+    <button data-page="history">📊 Historique</button>
+  </nav>
+  <div class="side-footer">LSPD • Internal Training System<br><span id="storageStatus">Mode local</span></div>
+</aside>
+<main class="main">
+<header><div><span class="eyebrow">LOS SANTOS POLICE DEPARTMENT</span><h1 id="pageTitle">Dashboard</h1></div>
+<div class="userpill">FTO / Command Staff</div></header>
+<section id="content"></section>
+</main>
+</div>
+<script src="app.js"></script>
+</body></html>
