@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.5 TRAINING HUB PRO ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
+// LSPD Command Center — Phase 17.6 ONE TRAINING = ONE VALIDATION ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -62,6 +62,8 @@ Object.assign(I18N_EN,{"Destinataires":"Recipients","Personnes":"People","Grades
 Object.assign(I18N_EN,{"Centre FTO & Formation":"FTO & Training Center","Mon parcours formation":"My training path","Quiz & connaissances":"Quizzes & knowledge","Calendrier & inscriptions":"Calendar & enrollment","Sessions & objectifs":"Sessions & objectives","Administration formation":"Training administration","Mon FTO":"My FTO","Prochaine étape":"Next step","Parcours pédagogique":"Training journey","Affectation FTO":"FTO assignment","Session pratique":"Practical session","Évaluation module":"Module evaluation","Objectifs & correction":"Objectives & remediation","Validation finale":"Final validation","Espace recrue":"Trainee workspace","Ouvrir l'espace recrue":"Open trainee workspace","Démarrer une session":"Start a session","Nouvelle évaluation":"New evaluation","Ajouter un objectif":"Add objective","Voir le module":"View module","Module recommandé":"Recommended module","Prêt à commencer":"Ready to start","En progression":"In progress","À retravailler":"Needs work","Verrouillé":"Locked","Validé":"Validated","Aucun FTO actif":"No active FTO","Aucune affectation active":"No active assignment","Activité récente":"Recent activity","Outils FTO":"FTO tools","Outils Commandement":"Command tools","Retour au centre":"Back to center","Progression de la recrue":"Trainee progress","Suivi pédagogique":"Training follow-up","Historique récent":"Recent history","Planning formation":"Training schedule","Raccourcis":"Shortcuts","Programme & guide":"Program & guide","Dossier complet":"Full record"});
 
 Object.assign(I18N_EN,{"Centre Formation":"Training Center","Formation & FTO":"Training & FTO","Configuration formation":"Training settings","Vue d'ensemble":"Overview","Mes formations":"My training","Mon parcours":"My path","Mes recrues":"My trainees","Pilotage":"Management","Créer une formation":"Create training","Formation à venir":"Upcoming training","Invitation en attente":"Pending invitation","Invitations en attente":"Pending invitations","Accepter":"Accept","Refuser":"Decline","Invité":"Invited","Invitation refusée":"Invitation declined","Participants":"Participants","Inviter des membres":"Invite members","Gérer la formation":"Manage training","Mes formations créées":"Training I created","Formation créée":"Training created","Étape 1 sur 3":"Step 1 of 3","Étape 2 sur 3":"Step 2 of 3","Étape 3 sur 3":"Step 3 of 3","Informations":"Details","Invitations":"Invitations","Confirmation":"Review","Continuer":"Continue","Retour":"Back","Créer et envoyer les invitations":"Create and send invitations","Qui veux-tu inviter ?":"Who do you want to invite?","Sélection individuelle":"Individual selection","Par grade":"By rank","Par certification":"By certification","Les sélections se cumulent et les doublons sont supprimés.":"Selections are combined and duplicates are removed.","personne invitée":"person invited","personnes invitées":"people invited","Aucune invitation":"No invitations","Formateur":"Trainer","Places réservées":"Reserved seats","Présences":"Attendance","Voir le programme":"View program","Lancer un scénario":"Start scenario","Formation terminée":"Training completed","Réponse enregistrée":"Response saved","Aujourd'hui":"Today","Cette semaine":"This week","À faire":"To do"});
+
+Object.assign(I18N_EN,{"Formation validée":"Training validated","Formation à refaire":"Training to repeat","Non évaluée":"Not evaluated","Formation planifiée":"Training scheduled","Continuer la formation":"Continue training","Planifier cette formation":"Schedule this training","Évaluer cette formation":"Evaluate this training","Résultat de la formation":"Training result","Formations validées":"Validated training","Formations à refaire":"Training to repeat","Formations non évaluées":"Not evaluated","Terminer la formation":"Complete training","Formation terminée, évalue maintenant les participants.":"Training completed. Now evaluate the participants.","À évaluer":"Needs evaluation","Évalué":"Evaluated","Ancien historique FTO":"Legacy FTO history","Aucun prérequis bloquant":"No blocking prerequisite"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -2216,17 +2218,9 @@ function latestTrainingEvaluations(evals){
 
 function trainingModuleState(code,latest,sessions=[]){
   const evaluation=latest[code];
-  if(evaluation?.result==="Validé")return {key:"validated",label:"Validé",score:Number(evaluation.score)||0};
-  if(evaluation?.result==="Échec")return {key:"failed",label:"À retravailler",score:Number(evaluation.score)||0};
-  if(evaluation?.result==="À revoir")return {key:"review",label:"À retravailler",score:Number(evaluation.score)||0};
-
-  const validated=new Set(Object.entries(latest).filter(([,e])=>e.result==="Validé").map(([c])=>c));
-  const data=getAcademyData(code);
-  const prereq=(data?.prereq||[]).filter(x=>/^M\d\d$/.test(x));
-  if(prereq.some(x=>!validated.has(x)))return {key:"locked",label:"Verrouillé",score:null};
-
-  if(sessions.some(s=>s.moduleCode===code))return {key:"progress",label:"En progression",score:null};
-  return {key:"ready",label:"Prêt à commencer",score:null};
+  if(evaluation?.result==="Validé")return {key:"validated",label:"Formation validée",score:Number(evaluation.score)||0};
+  if(evaluation?.result==="Échec" || evaluation?.result==="À revoir")return {key:"retry",label:"Formation à refaire",score:Number(evaluation.score)||0};
+  return {key:"ready",label:"Non évaluée",score:null};
 }
 
 function recommendTrainingModule(evals,sessions=[]){
@@ -2235,33 +2229,28 @@ function recommendTrainingModule(evals,sessions=[]){
     const e=latest[m[0]];
     if(e && (e.result==="Échec"||e.result==="À revoir"))return m[0];
   }
-  for(const m of modules){
-    const state=trainingModuleState(m[0],latest,sessions);
-    if(state.key==="ready"||state.key==="progress")return m[0];
-  }
-  return modules.find(m=>latest[m[0]]?.result!=="Validé")?.[0]||"M16";
+  return modules.find(m=>!latest[m[0]])?.[0] || modules.find(m=>latest[m[0]]?.result!=="Validé")?.[0] || "M01";
 }
 
 function trainingProgressStats(evals,sessions=[]){
   const latest=latestTrainingEvaluations(evals);
   const scored=Object.values(latest).filter(e=>Number.isFinite(Number(e.score)));
+  const validated=Object.values(latest).filter(e=>e.result==="Validé").length;
+  const retry=Object.values(latest).filter(e=>e.result==="Échec"||e.result==="À revoir").length;
   return {
     latest,
-    validated:Object.values(latest).filter(e=>e.result==="Validé").length,
+    validated,
+    retry,
+    evaluated:Object.keys(latest).length,
+    notEvaluated:Math.max(0,modules.length-Object.keys(latest).length),
     avg:scored.length?Math.round(scored.reduce((a,e)=>a+Number(e.score),0)/scored.length):0,
     next:recommendTrainingModule(evals,sessions)
   };
 }
 
 function trainingStageStrip(active=0){
-  const stages=[
-    ["1","Affectation FTO"],
-    ["2","Session pratique"],
-    ["3","Évaluation module"],
-    ["4","Objectifs & correction"],
-    ["5","Validation finale"]
-  ];
-  return `<div class="training-stage-strip">${stages.map((s,i)=>`<div class="training-stage ${i<active?"done":i===active?"active":""}"><i>${i<active?"✓":s[0]}</i><span>${esc(B(s[1],s[1]))}</span></div>`).join("")}</div>`;
+  const stages=[["1","Formation"],["2","Évaluation"],["3","Résultat"]];
+  return `<div class="training-stage-strip training-stage-strip-simple">${stages.map((s,i)=>`<div class="training-stage ${i<active?"done":i===active?"active":""}"><i>${i<active?"✓":s[0]}</i><span>${esc(s[1])}</span></div>`).join("")}</div>`;
 }
 
 function openTrainingWorkspace(uid){
@@ -2373,7 +2362,7 @@ async function renderTrainingOverview(data){
 
       <div class="training-simple-cards">
         <button class="training-simple-card" data-open-tab="path">
-          <span>🛣️</span><div><small>Mon parcours</small><b>${stats.validated}/16 modules validés</b><p>Prochaine étape : ${esc(stats.next)} — ${esc(nextModule?.[1]||"Formation")}</p></div>
+          <span>🛣️</span><div><small>Mes validations</small><b>${stats.validated} formation(s) validée(s)</b><p>Suggestion : ${esc(stats.next)} — ${esc(nextModule?.[1]||"Formation")} • non obligatoire</p></div>
         </button>
         <button class="training-simple-card" data-open-tab="myTraining">
           <span>🗓️</span><div><small>Formation à venir</small><b>${nextEvent?esc(nextEvent.title):"Aucune formation confirmée"}</b><p>${nextEvent?`${esc(nextEvent.date)} • ${esc(nextEvent.time)} • ${esc(nextEvent.location||"LSPD")}`:"Consulte les formations disponibles ou attends une invitation."}</p></div>
@@ -2443,20 +2432,33 @@ async function renderMyTrainingTab(data){
 }
 
 async function renderTrainingPathTab(data){
-  const stats=trainingProgressStats(data.myEvals,data.mySessions);
-  $("trainingHubContent").innerHTML=`<div class="training-section-heading"><div><span class="eyebrow">MON PARCOURS</span><h2>M01–M16</h2><p>Un module = contenu → pratique avec FTO → évaluation → validation.</p></div><div class="training-path-score"><b>${stats.validated}</b><span>/16</span></div></div>
-  <div class="training-path-legend simple"><span class="validated">● Validé</span><span class="ready">● À faire</span><span class="progress">● En cours</span><span class="review">● À retravailler</span><span class="locked">● Verrouillé</span></div>
+  const stats=trainingProgressStats(data.myEvals,[]);
+  $("trainingHubContent").innerHTML=`<div class="training-section-heading">
+    <div><span class="eyebrow">MES FORMATIONS</span><h2>M01–M16</h2><p>Chaque formation est indépendante. Tu peux valider M03 même si M01 n'est pas encore faite.</p></div>
+    <div class="training-independent-score"><b>${stats.validated}</b><span>validée(s)</span></div>
+  </div>
+  <div class="training-path-legend simple">
+    <span class="validated">● Formation validée</span>
+    <span class="ready">● Non évaluée</span>
+    <span class="review">● Formation à refaire</span>
+  </div>
   <div class="training-path-cards professional">${modules.map((m,i)=>{
-    const s=trainingModuleState(m[0],stats.latest,data.mySessions),e=stats.latest[m[0]],sessions=data.mySessions.filter(x=>x.moduleCode===m[0]).length,quiz=data.myQuizzes.filter(q=>q.moduleCode===m[0]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];
-    return `<button class="training-path-card ${s.key}" data-module="${m[0]}" type="button">
+    const e=stats.latest[m[0]];
+    const state=trainingModuleState(m[0],stats.latest,[]);
+    const quiz=data.myQuizzes.filter(q=>q.moduleCode===m[0]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];
+    return `<button class="training-path-card ${state.key}" data-module="${m[0]}" type="button">
       <div class="training-path-index">${String(i+1).padStart(2,"0")}</div>
-      <div class="training-path-content"><div><span class="module-code">${m[0]}</span></div><h3>${esc(m[1])}</h3><p>${esc(m[2])}</p><small>${sessions} session(s)${e?` • Évaluation ${e.score}/100`:""}${quiz?` • Quiz ${quiz.percentage}%`:""}</small></div>
-      <div class="training-path-state"><span>${s.key==="validated"?"✓":s.key==="locked"?"🔒":s.key==="review"||s.key==="failed"?"↻":"→"}</span><b>${esc(s.label)}</b></div>
+      <div class="training-path-content">
+        <div><span class="module-code">${m[0]}</span></div>
+        <h3>${esc(m[1])}</h3>
+        <p>${esc(m[2])}</p>
+        <small>${e?`Dernière évaluation : ${e.score}/100 • ${esc(e.result)}`:"Pas encore évaluée"}${quiz?` • Quiz ${quiz.percentage}%`:""}</small>
+      </div>
+      <div class="training-path-state"><span>${state.key==="validated"?"✓":state.key==="retry"?"↻":"→"}</span><b>${esc(state.label)}</b></div>
     </button>`;
   }).join("")}</div>`;
   document.querySelectorAll(".training-path-card").forEach(b=>b.onclick=()=>openTrainingModuleContext(b.dataset.module,window.LSPD.user.uid));
 }
-
 async function renderTrainingTraineesTab(){
   if(!(hasPerm("fto_tools")||hasPerm("academy_manage"))){
     $("trainingHubContent").innerHTML='<div class="training-empty-state"><span>🔒</span><b>Accès FTO requis</b></div>';
@@ -2464,30 +2466,43 @@ async function renderTrainingTraineesTab(){
   }
 
   const trainees=await accessibleTrainees();
-  const [es,ss,os,as]=await Promise.all([
+  const [es,os,as]=await Promise.all([
     getDocs(collection(db,"evaluations")),
-    getDocs(collection(db,"fto_sessions")),
     getDocs(collection(db,"training_objectives")),
     getDocs(collection(db,"fto_assignments"))
   ]);
-  const evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),objectives=os.docs.map(d=>d.data()),assignments=as.docs.map(d=>d.data());
+  const evals=es.docs.map(d=>d.data()),objectives=os.docs.map(d=>d.data()),assignments=as.docs.map(d=>d.data());
 
-  $("trainingHubContent").innerHTML=`<div class="training-section-heading"><div><span class="eyebrow">MES RECRUES</span><h2>Suivi pédagogique</h2><p>Trois actions principales : ouvrir le dossier, lancer une session, évaluer.</p></div><button class="btn" id="quickNewSession">+ Session FTO</button></div>
+  $("trainingHubContent").innerHTML=`<div class="training-section-heading">
+    <div><span class="eyebrow">MES RECRUES</span><h2>Suivi pédagogique</h2><p>Pour chaque recrue : planifier une formation, la réaliser une fois, puis l'évaluer.</p></div>
+    <button class="btn" id="quickNewSession">+ Créer une formation</button>
+  </div>
   <div class="training-trainee-grid simplified">${trainees.length?trainees.map(t=>{
-    const te=evals.filter(e=>e.officerId===t.uid),ts=sessions.filter(s=>s.traineeId===t.uid),to=objectives.filter(o=>o.traineeId===t.uid&&o.status==="Ouvert"),st=trainingProgressStats(te,ts),next=modules.find(m=>m[0]===st.next),assignment=assignments.find(a=>a.traineeId===t.uid&&a.status==="Active");
+    const te=evals.filter(e=>e.officerId===t.uid),to=objectives.filter(o=>o.traineeId===t.uid&&o.status==="Ouvert"),st=trainingProgressStats(te,[]),next=modules.find(m=>m[0]===st.next),assignment=assignments.find(a=>a.traineeId===t.uid&&a.status==="Active");
     return `<article class="training-trainee-pro-card">
-      <header><div class="training-workspace-avatar small">${esc((t.name||"?").slice(0,1).toUpperCase())}</div><div><span>${esc(t.badge)}</span><h3>${esc(t.name)}</h3><p>${esc(t.grade)} • ${esc(t.division||"Patrol")}</p></div><div class="training-trainee-percent"><b>${Math.round(st.validated/16*100)}%</b><small>${st.validated}/16</small></div></header>
-      <div class="training-trainee-pro-info"><div><span>FTO actif</span><b>${esc(assignment?.ftoName||"—")}</b></div><div><span>Prochaine étape</span><b>${esc(st.next)} — ${esc(next?.[1]||"")}</b></div><div><span>Objectifs</span><b>${to.length}</b></div></div>
-      <footer><button class="btn trainee-open-workspace" data-id="${t.uid}">Ouvrir le dossier</button><button class="btn secondary trainee-start-session" data-id="${t.uid}" data-module="${st.next}">▶ Session</button><button class="btn secondary trainee-evaluate" data-id="${t.uid}" data-module="${st.next}">✅ Évaluer</button></footer>
+      <header>
+        <div class="training-workspace-avatar small">${esc((t.name||"?").slice(0,1).toUpperCase())}</div>
+        <div><span>${esc(t.badge)}</span><h3>${esc(t.name)}</h3><p>${esc(t.grade)} • ${esc(t.division||"Patrol")}</p></div>
+        <div class="training-trainee-percent"><b>${st.validated}</b><small>validée(s)</small></div>
+      </header>
+      <div class="training-trainee-pro-info">
+        <div><span>FTO actif</span><b>${esc(assignment?.ftoName||"—")}</b></div>
+        <div><span>Suggestion</span><b>${esc(st.next)} — ${esc(next?.[1]||"")}</b></div>
+        <div><span>À refaire</span><b>${st.retry}</b></div>
+      </div>
+      <footer>
+        <button class="btn trainee-open-workspace" data-id="${t.uid}">Ouvrir le dossier</button>
+        <button class="btn secondary trainee-start-session" data-id="${t.uid}" data-module="${st.next}">🗓️ Planifier</button>
+        <button class="btn secondary trainee-evaluate" data-id="${t.uid}" data-module="${st.next}">✅ Évaluer</button>
+      </footer>
     </article>`;
   }).join(""):'<div class="training-empty-state"><span>👥</span><b>Aucune recrue assignée</b><p>Le Commandement doit d’abord créer une affectation FTO.</p></div>'}</div>`;
 
-  $("quickNewSession")?.addEventListener("click",()=>openAcademySessionForm());
+  $("quickNewSession")?.addEventListener("click",()=>openTrainingCreationWizard());
   document.querySelectorAll(".trainee-open-workspace").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));
-  document.querySelectorAll(".trainee-start-session").forEach(b=>b.onclick=()=>openAcademySessionForm(b.dataset.id,b.dataset.module));
-  document.querySelectorAll(".trainee-evaluate").forEach(b=>b.onclick=()=>openEvaluationForm(b.dataset.id,b.dataset.module));
+  document.querySelectorAll(".trainee-start-session").forEach(b=>b.onclick=()=>openTrainingCreationWizard(b.dataset.module,[b.dataset.id]));
+  document.querySelectorAll(".trainee-evaluate").forEach(b=>b.onclick=()=>openEvaluationForm(b.dataset.id,b.dataset.module,null));
 }
-
 async function renderTrainingManagementTab(){
   $("trainingHubContent").innerHTML=`<div class="training-section-heading"><div><span class="eyebrow">PILOTAGE</span><h2>Gestion du programme</h2><p>Les fonctions avancées restent disponibles, sans encombrer l’utilisation quotidienne.</p></div>${hasPerm("training_manage")?'<button class="btn" id="managementCreateTraining">+ Créer une formation</button>':""}</div>
   <div class="training-management-grid">
@@ -2540,106 +2555,150 @@ async function trainingWorkspace(){
   await loadAcademyOverrides();
 
   const uid=window.LSPD.selectedTraineeId;
-  if(!uid){showToast("Sélectionne une recrue depuis le Centre FTO.","warning");return render("trainingCenter");}
+  if(!uid){showToast("Sélectionne une recrue depuis le Centre Formation.","warning");return render("trainingCenter");}
 
   const trainees=await accessibleTrainees();
   const trainee=trainees.find(t=>t.uid===uid);
   if(!trainee){showToast("Cette recrue n'est pas accessible.","error");window.LSPD.selectedTraineeId=null;return render("trainingCenter");}
 
-  const [es,ss,os,qs,fs,hs,fbs,as]=await Promise.all([
+  const [es,os,qs,hs,fbs,as,eventSnap,regSnap,legacySessionSnap]=await Promise.all([
     getDocs(collection(db,"evaluations")),
-    getDocs(collection(db,"fto_sessions")),
     getDocs(collection(db,"training_objectives")),
     getDocs(collection(db,"academy_quiz_attempts")),
-    getDocs(collection(db,"final_fto_reviews")),
     getDocs(collection(db,"fto_handoffs")),
     getDocs(collection(db,"fto_feedback")),
-    getDocs(collection(db,"fto_assignments"))
+    getDocs(collection(db,"fto_assignments")),
+    getDocs(collection(db,"training_events")),
+    getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid))),
+    getDocs(collection(db,"fto_sessions"))
   ]);
 
   const evals=es.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.officerId===uid);
-  const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   const objectives=os.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   const quizzes=qs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.officerId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  const finals=fs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   const handoffs=hs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   const feedback=fbs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   const assignment=as.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid&&x.status==="Active").sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];
+  const events=eventSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const regs=regSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const legacySessions=legacySessionSnap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid);
 
-  const stats=trainingProgressStats(evals,sessions);
+  const stats=trainingProgressStats(evals,[]);
   const next=modules.find(m=>m[0]===stats.next);
   const openObjectives=objectives.filter(o=>o.status==="Ouvert");
-  const completedSessions=sessions.filter(s=>s.status==="Terminée");
-  const lastFinal=finals[0];
+  const today=todayISO();
 
-  $("content").innerHTML=`<div class="training-workspace-head card">
-    <button class="training-back-btn" id="trainingBackBtn">← Retour au centre</button>
+  const activeRegs=regs.filter(r=>["Invité","Inscrit"].includes(r.status));
+  const upcomingEvents=events.filter(e=>e.date>=today&&activeRegs.some(r=>r.eventId===e.id)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const nextEvent=upcomingEvents[0];
+  const nextReg=nextEvent?activeRegs.find(r=>r.eventId===nextEvent.id):null;
+
+  const moduleRows=modules.map(m=>{
+    const ev=stats.latest[m[0]];
+    let key="ready",label="Non évaluée";
+    if(ev?.result==="Validé"){key="validated";label="Formation validée";}
+    else if(ev){key="retry";label="Formation à refaire";}
+    const scheduled=upcomingEvents.find(e=>e.moduleCode===m[0]);
+    if(!ev&&scheduled){key="scheduled";label="Formation planifiée";}
+    return {m,ev,key,label,scheduled};
+  });
+
+  $("content").innerHTML=`<div class="training-workspace-head card simplified-workspace-head">
+    <button class="training-back-btn" id="trainingBackBtn">← Retour au Centre Formation</button>
     <div class="training-workspace-person">
       <div class="training-workspace-avatar">${esc((trainee.name||"?").slice(0,1).toUpperCase())}</div>
       <div><span class="number">${esc(trainee.badge)}</span><h2>${esc(trainee.name)}</h2><p>${esc(trainee.grade)} • ${esc(trainee.division||"Patrol")} • ${esc(trainee.status)}</p></div>
     </div>
-    <div class="training-workspace-assignment"><span>FTO actif</span><b>${esc(assignment?.ftoName||"Aucune affectation active")}</b><small>${assignment?formatDate(assignment.createdAt):""}</small></div>
+    <div class="training-workspace-assignment"><span>FTO actif</span><b>${esc(assignment?.ftoName||"Aucune affectation active")}</b></div>
   </div>
 
-  ${trainingStageStrip(Math.min(4,Math.floor(stats.validated/4)))}
-
-  <div class="grid training-overview-grid">
-    <div class="card training-kpi-card"><span>Modules validés</span><b>${stats.validated}/16</b><small>${Math.round(stats.validated/16*100)}% du parcours</small></div>
-    <div class="card training-kpi-card"><span>Moyenne</span><b>${stats.avg}/100</b><small>${evals.length} évaluation(s)</small></div>
-    <div class="card training-kpi-card"><span>Sessions terminées</span><b>${completedSessions.length}</b><small>${sessions.filter(s=>s.status==="En cours").length} en cours</small></div>
-    <div class="card training-kpi-card"><span>Module recommandé</span><b>${esc(stats.next)} — ${esc(next?.[1]||"")}</b><small>${openObjectives.length} objectif(s) ouvert(s)</small></div>
+  <div class="one-training-philosophy card">
+    <div><span>1</span><b>Une formation</b><small>Contenu + pratique réalisés en une fois.</small></div>
+    <i>→</i>
+    <div><span>2</span><b>Une évaluation</b><small>Le FTO évalue à la fin.</small></div>
+    <i>→</i>
+    <div><span>3</span><b>Un résultat</b><small>Validée ou à refaire, indépendamment des autres.</small></div>
   </div>
 
-  <div class="training-workspace-actions">
-    <button class="btn" id="workspaceSessionBtn">▶️ Démarrer une session</button>
-    <button class="btn secondary" id="workspaceEvalBtn">✅ Nouvelle évaluation</button>
-    <button class="btn secondary" id="workspaceObjectiveBtn">🎯 Ajouter un objectif</button>
-    <button class="btn secondary" id="workspaceScenarioBtn">🎲 Scénario ${esc(stats.next)}</button>
-    <button class="btn secondary" id="workspaceDossierBtn">🗂️ Dossier complet</button>
-    <button class="btn secondary" id="workspaceHandoffBtn">🔄 Passation FTO</button>
+  <section class="continue-training-card ${nextEvent?"scheduled":""}">
+    <div class="continue-training-copy">
+      <span class="eyebrow">ACTION PRINCIPALE</span>
+      <h2>Continuer la formation de ${esc(trainee.name)}</h2>
+      ${nextEvent
+        ?`<p><b>${esc(nextEvent.moduleCode)} — ${esc(nextEvent.title)}</b> est ${nextReg?.status==="Invité"?"en attente de réponse":"planifiée"} le ${esc(nextEvent.date)} à ${esc(nextEvent.time)}.</p>`
+        :`<p>Aucune formation n'est planifiée. Suggestion : <b>${esc(stats.next)} — ${esc(next?.[1]||"Formation")}</b>. Tu peux choisir n'importe quelle autre formation.</p>`}
+    </div>
+    <div class="continue-training-actions">
+      ${nextEvent
+        ?`<button class="btn" id="workspaceManageTrainingBtn">${nextEvent.trainerId===window.LSPD.user.uid?"Gérer la formation":"Voir la formation"}</button>`
+        :`<button class="btn" id="workspacePlanTrainingBtn">＋ Planifier ${esc(stats.next)} pour ${esc(trainee.name)}</button>`}
+      <button class="btn secondary" id="workspaceChooseTrainingBtn">Choisir une autre formation</button>
+    </div>
+  </section>
+
+  <div class="training-result-summary">
+    <div class="validated"><span>✅ Formations validées</span><b>${stats.validated}</b></div>
+    <div class="retry"><span>↻ À refaire</span><b>${stats.retry}</b></div>
+    <div class="neutral"><span>○ Non évaluées</span><b>${stats.notEvaluated}</b></div>
+    <div class="score"><span>Moyenne des évaluations</span><b>${stats.avg?stats.avg+"/100":"—"}</b></div>
   </div>
 
-  <div class="training-center-section-head"><div><span class="eyebrow">PROGRESSION DE LA RECRUE</span><h2>M01–M16</h2></div></div>
-  <div class="training-module-board">${modules.map(m=>{
-    const state=trainingModuleState(m[0],stats.latest,sessions),ev=stats.latest[m[0]],sessionCount=sessions.filter(s=>s.moduleCode===m[0]).length,quiz=quizzes.find(q=>q.moduleCode===m[0]);
-    return `<button class="training-module-tile ${state.key}" data-module="${m[0]}" type="button">
-      <div><span>${m[0]}</span><strong>${esc(m[1])}</strong></div>
-      <small>${state.label}${ev?` • ${ev.score}/100`:""}${quiz?` • Quiz ${quiz.percentage}%`:""}${sessionCount?` • ${sessionCount} session(s)`:""}</small>
-    </button>`;
-  }).join("")}</div>
+  <div class="workspace-secondary-actions">
+    <button id="workspaceEvalBtn">✅ Évaluer une formation</button>
+    <button id="workspaceObjectiveBtn">🎯 Ajouter un objectif</button>
+    <button id="workspaceDossierBtn">🗂️ Dossier complet</button>
+    <button id="workspaceHandoffBtn">🔄 Passation FTO</button>
+  </div>
 
-  <div class="grid2 training-workspace-columns">
+  <div class="training-section-heading"><div><span class="eyebrow">FORMATIONS</span><h2>Résultats par formation</h2><p>Chaque formation est indépendante. Aucune formation ne bloque les autres.</p></div></div>
+  <div class="independent-training-grid">${moduleRows.map(({m,ev,key,label,scheduled})=>`
+    <button class="independent-training-tile ${key}" data-module="${m[0]}" type="button">
+      <div class="independent-training-code">${m[0]}</div>
+      <div><b>${esc(m[1])}</b><small>${esc(label)}${ev?` • ${ev.score}/100`:scheduled?` • ${esc(scheduled.date)} ${esc(scheduled.time)}`:""}</small></div>
+      <span>${key==="validated"?"✓":key==="retry"?"↻":key==="scheduled"?"🗓️":"→"}</span>
+    </button>`).join("")}</div>
+
+  <div class="grid2 training-workspace-columns simplified-history">
     <div class="card">
-      <div class="training-card-title"><h3>🎯 Objectifs & correction</h3><button class="link-btn" id="workspaceObjectiveSmall">+ Ajouter</button></div>
+      <div class="training-card-title"><h3>🎯 Objectifs de correction</h3><button class="link-btn" id="workspaceObjectiveSmall">+ Ajouter</button></div>
       ${openObjectives.length?openObjectives.slice(0,8).map(o=>`<div class="objective-item compact"><div><span class="tag ${o.priority==="Critique"?"red":o.priority==="Haute"?"orange":""}">${esc(o.priority)}</span><p>${esc(o.text)}</p></div><span class="tag orange">${esc(o.status)}</span></div>`).join(""):'<p class="muted">Aucun objectif ouvert.</p>'}
     </div>
     <div class="card">
-      <h3>📝 Sessions récentes</h3>
-      ${sessions.length?sessions.slice(0,7).map(s=>`<button class="training-history-row session-open" data-id="${s.id}"><span><b>${esc(s.moduleCode)} • ${esc(s.phase)}</b><small>${esc(s.ftoName)} • ${formatDate(s.createdAt)}</small></span><span class="tag ${s.status==="Terminée"?"green":"orange"}">${esc(s.status)}</span></button>`).join(""):'<p class="muted">Aucune session.</p>'}
+      <h3>✅ Derniers résultats</h3>
+      ${evals.length?evals.slice().sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)).slice(0,8).map(e=>`<div class="training-history-row"><span><b>${esc(e.moduleCode)} • ${esc(e.moduleTitle)}</b><small>${esc(e.ftoName)} • ${formatDate(e.createdAt)}</small></span><span class="tag ${e.result==="Validé"?"green":e.result==="Échec"?"red":"orange"}">${esc(e.result)} • ${e.score}/100</span></div>`).join(""):'<p class="muted">Aucune formation évaluée.</p>'}
     </div>
-    <div class="card">
-      <h3>✅ Évaluations récentes</h3>
-      ${evals.length?evals.slice().sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)).slice(0,7).map(e=>`<div class="training-history-row"><span><b>${esc(e.moduleCode)} • ${esc(e.moduleTitle)}</b><small>${esc(e.ftoName)} • ${formatDate(e.createdAt)}</small></span><span class="tag ${e.result==="Validé"?"green":e.result==="Échec"?"red":"orange"}">${e.score}/100</span></div>`).join(""):'<p class="muted">Aucune évaluation.</p>'}
-    </div>
+    ${legacySessions.length?`<details class="card legacy-fto-history"><summary>Ancien historique FTO (${legacySessions.length})</summary><p class="muted">Ces anciennes séances sont conservées, mais ne sont plus utilisées dans le nouveau workflow.</p></details>`:""}
     <div class="card">
       <h3>💬 Feedback & passation</h3>
-      ${feedback.length?`<div class="training-note"><b>Dernier feedback recrue • ${feedback[0].understanding}/5</b><p>${esc(feedback[0].difficulty||"—")}</p><small>${esc(feedback[0].question||"")}</small></div>`:'<p class="muted">Aucun feedback recrue.</p>'}
+      ${feedback.length?`<div class="training-note"><b>Dernier feedback • ${feedback[0].understanding}/5</b><p>${esc(feedback[0].difficulty||"—")}</p></div>`:'<p class="muted">Aucun feedback.</p>'}
       ${handoffs.length?`<div class="training-note"><b>Dernière passation • ${esc(handoffs[0].authorName)}</b><p>${esc(handoffs[0].note)}</p></div>`:""}
     </div>
-  </div>
+  </div>`;
 
-  ${lastFinal?`<div class="card training-final-status"><div><span class="eyebrow">VALIDATION FINALE</span><h3>${esc(lastFinal.decision)}</h3><p>${esc(lastFinal.comment||"")}</p></div><span class="tag ${lastFinal.status==="Validée"?"green":lastFinal.status==="Refusée"?"red":"orange"}">${esc(lastFinal.status||"En attente Commandement")}</span></div>`:""}`;
-
-  $("trainingBackBtn").onclick=()=>render("trainingCenter");
-  $("workspaceSessionBtn").onclick=()=>openAcademySessionForm(uid,stats.next);
-  $("workspaceEvalBtn").onclick=()=>openEvaluationForm(uid,stats.next);
+  $("trainingBackBtn").onclick=()=>{window.LSPD.trainingCenterTab="trainees";render("trainingCenter");};
+  $("workspacePlanTrainingBtn")?.addEventListener("click",()=>openTrainingCreationWizard(stats.next,[uid]));
+  $("workspaceManageTrainingBtn")?.addEventListener("click",()=>{
+    if(nextEvent.trainerId===window.LSPD.user.uid||isCommand())openTrainingEventManager(nextEvent.id);
+    else openTrainingEventDetail(nextEvent.id);
+  });
+  $("workspaceChooseTrainingBtn").onclick=()=>openTraineeTrainingPicker(uid);
+  $("workspaceEvalBtn").onclick=()=>openEvaluationForm(uid,null,null);
   $("workspaceObjectiveBtn").onclick=()=>openObjectiveForm(uid);
   $("workspaceObjectiveSmall").onclick=()=>openObjectiveForm(uid);
-  $("workspaceScenarioBtn").onclick=()=>openRandomScenario(stats.next);
   $("workspaceDossierBtn").onclick=()=>{window.LSPD.selectedTraineeId=uid;render("ftoDossier");};
   $("workspaceHandoffBtn").onclick=()=>openHandoffForm(uid,trainees);
-  document.querySelectorAll(".training-module-tile").forEach(b=>b.onclick=()=>openTrainingModuleContext(b.dataset.module,uid));
-  document.querySelectorAll(".session-open").forEach(b=>b.onclick=()=>openGuidedSession(b.dataset.id));
+  document.querySelectorAll(".independent-training-tile").forEach(b=>b.onclick=()=>openTrainingModuleContext(b.dataset.module,uid));
+}
+
+function openTraineeTrainingPicker(traineeId){
+  showModal(`<h2>Choisir une formation</h2>
+    <p class="muted">Toutes les formations sont accessibles indépendamment.</p>
+    <div class="training-picker-grid">${modules.map(m=>`<button class="training-picker-module" data-module="${m[0]}"><span>${m[0]}</span><b>${esc(m[1])}</b></button>`).join("")}</div>
+    <div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+  document.querySelectorAll(".training-picker-module").forEach(b=>b.onclick=()=>{
+    document.querySelector(".modal")?.remove();
+    openTrainingCreationWizard(b.dataset.module,[traineeId]);
+  });
 }
 
 async function openTrainingModuleContext(code,traineeId=null){
@@ -2648,62 +2707,65 @@ async function openTrainingModuleContext(code,traineeId=null){
   if(!m||!data)return;
 
   const targetId=traineeId||window.LSPD.user.uid;
-  let evals=[],sessions=[],quizzes=[],assignment=null,targetName=window.LSPD.profile.name;
+  let evals=[],quizzes=[],targetName=window.LSPD.profile.name;
   try{
-    const [es,ss,qs]=await Promise.all([
+    const [es,qs]=await Promise.all([
       getDocs(query(collection(db,"evaluations"),where("officerId","==",targetId))),
-      getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",targetId))),
       getDocs(query(collection(db,"academy_quiz_attempts"),where("officerId","==",targetId)))
     ]);
     evals=es.docs.map(d=>d.data());
-    sessions=ss.docs.map(d=>d.data());
     quizzes=qs.docs.map(d=>d.data());
-    if(targetId===window.LSPD.user.uid){
-      const as=await getDocs(query(collection(db,"fto_assignments"),where("traineeId","==",targetId)));
-      assignment=as.docs.map(d=>d.data()).find(a=>a.status==="Active")||null;
-    }else{
+    if(targetId!==window.LSPD.user.uid){
       const trainees=await accessibleTrainees();
       targetName=trainees.find(t=>t.uid===targetId)?.name||"Recrue";
     }
   }catch{}
 
-  const stats=trainingProgressStats(evals,sessions);
-  const state=trainingModuleState(code,stats.latest,sessions);
-  const ev=stats.latest[code];
-  const moduleSessions=sessions.filter(s=>s.moduleCode===code).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const latest=latestTrainingEvaluations(evals);
+  const ev=latest[code];
+  const resultLabel=ev?(ev.result==="Validé"?"Formation validée":"Formation à refaire"):"Non évaluée";
   const moduleQuizzes=quizzes.filter(q=>q.moduleCode===code).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
 
-  showModal(`<div class="training-module-modal">
+  showModal(`<div class="training-module-modal independent-module-modal">
     <div class="academy-guide-head">
       <div><span class="module-code large">${esc(code)}</span><h2>${esc(m[1])}</h2><p>${esc(data.objective())}</p></div>
-      <span class="tag ${state.key==="validated"?"green":state.key==="failed"?"red":state.key==="review"?"orange":""}">${esc(state.label)}</span>
+      <span class="tag ${ev?.result==="Validé"?"green":ev?"orange":""}">${esc(resultLabel)}${ev?` • ${ev.score}/100`:""}</span>
     </div>
-    ${targetId!==window.LSPD.user.uid?`<div class="training-target-banner">👤 ${esc(targetName)}</div>`:assignment?`<div class="training-target-banner">👮 Mon FTO : ${esc(assignment.ftoName)}</div>`:""}
+
+    ${targetId!==window.LSPD.user.uid?`<div class="training-target-banner">👤 ${esc(targetName)}</div>`:""}
+
+    <div class="independent-module-rule">
+      <b>Une formation = un passage complet</b>
+      <span>Contenu + pratique + scénario si besoin, puis une évaluation. Le résultat concerne uniquement ${esc(code)}.</span>
+    </div>
+
     <div class="training-module-summary">
-      <div><span>Durée</span><b>${esc(data.duration||"—")}</b></div>
-      <div><span>Dernière évaluation</span><b>${ev?`${ev.score}/100 • ${esc(ev.result)}`:"—"}</b></div>
-      <div><span>Sessions</span><b>${moduleSessions.length}</b></div>
+      <div><span>Durée indicative</span><b>${esc(data.duration||"—")}</b></div>
+      <div><span>Résultat</span><b>${ev?`${esc(ev.result)} • ${ev.score}/100`:"Non évaluée"}</b></div>
       <div><span>Quiz</span><b>${moduleQuizzes[0]?`${moduleQuizzes[0].percentage}%`:"—"}</b></div>
+      <div><span>Prérequis</span><b>Aucun prérequis bloquant</b></div>
     </div>
+
     <div class="grid2">
-      <div class="guide-section"><h3>Objectif & déroulé</h3>${data.steps().map((x,i)=>`<div class="training-step-line"><i>${i+1}</i><span>${esc(x)}</span></div>`).join("")}</div>
-      <div class="guide-section"><h3>Erreurs critiques</h3>${data.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}<h3>Action corrective</h3><p>${esc(data.corrective())}</p></div>
+      <div class="guide-section"><h3>Déroulé de la formation</h3>${data.steps().map((x,i)=>`<div class="training-step-line"><i>${i+1}</i><span>${esc(x)}</span></div>`).join("")}</div>
+      <div class="guide-section"><h3>Erreurs critiques</h3>${data.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}<h3>Si la formation n'est pas validée</h3><p>${esc(data.corrective())}</p></div>
     </div>
+
     <div class="modal-actions training-module-actions">
-      ${hasPerm("academy_manage")?`<button class="btn secondary" id="moduleGuideBtn">📚 Guide FTO complet</button><button class="btn secondary" id="moduleScenarioBtn">🎲 Générer scénario</button>`:""}
-      ${hasPerm("academy_manage")&&targetId!==window.LSPD.user.uid?`<button class="btn" id="moduleSessionBtn">▶️ Démarrer session</button>`:""}
-      ${hasPerm("fto_tools")&&targetId!==window.LSPD.user.uid?`<button class="btn secondary" id="moduleEvalBtn">✅ Évaluer</button>`:""}
-      ${targetId===window.LSPD.user.uid?`<button class="btn" id="moduleQuizBtn">🧠 Faire le quiz</button><button class="btn secondary" id="modulePlanningBtn">🗓️ Planning</button>`:""}
+      ${hasPerm("academy_manage")?`<button class="btn secondary" id="moduleGuideBtn">📚 Guide complet</button><button class="btn secondary" id="moduleScenarioBtn">🎲 Scénario</button>`:""}
+      ${hasPerm("training_manage")&&targetId!==window.LSPD.user.uid?`<button class="btn" id="modulePlanBtn">🗓️ Planifier cette formation</button>`:""}
+      ${hasPerm("fto_tools")&&targetId!==window.LSPD.user.uid?`<button class="btn secondary" id="moduleEvalBtn">✅ Évaluer cette formation</button>`:""}
+      ${targetId===window.LSPD.user.uid?`<button class="btn" id="moduleQuizBtn">🧠 Faire le quiz</button><button class="btn secondary" id="modulePlanningBtn">🗓️ Mes formations</button>`:""}
       <button class="btn secondary" id="closeModal">Fermer</button>
     </div>
   </div>`);
 
   $("moduleGuideBtn")?.addEventListener("click",()=>openAcademyGuide(code));
   $("moduleScenarioBtn")?.addEventListener("click",()=>openRandomScenario(code));
-  $("moduleSessionBtn")?.addEventListener("click",()=>openAcademySessionForm(targetId,code));
-  $("moduleEvalBtn")?.addEventListener("click",()=>openEvaluationForm(targetId,code));
+  $("modulePlanBtn")?.addEventListener("click",()=>{document.querySelector(".modal")?.remove();openTrainingCreationWizard(code,[targetId]);});
+  $("moduleEvalBtn")?.addEventListener("click",()=>openEvaluationForm(targetId,code,null));
   $("moduleQuizBtn")?.addEventListener("click",()=>startTrainingQuiz(code));
-  $("modulePlanningBtn")?.addEventListener("click",()=>{document.querySelector(".modal")?.remove();render("trainingHub");});
+  $("modulePlanningBtn")?.addEventListener("click",()=>{document.querySelector(".modal")?.remove();window.LSPD.trainingCenterTab="myTraining";render("trainingCenter");});
 }
 
 async function accessibleTrainees(){
@@ -2745,7 +2807,7 @@ async function ftoAcademy(){
   <div class="section-title">Bibliothèque pédagogique</div><div class="grid2"><div class="card"><h3>Exemples radio</h3>${RADIO_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div><div class="card"><h3>Exemples de rapports</h3>${REPORT_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div></div>`;
   document.querySelectorAll(".academy-guide-btn").forEach(b=>b.onclick=()=>openAcademyGuide(b.dataset.module));
   document.querySelectorAll(".academy-open-trainee").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));
-  $("academyNewSessionBtn").onclick=()=>openAcademySessionForm();
+  $("academyNewSessionBtn").onclick=()=>openTrainingCreationWizard();
   $("academyManageBtn")?.addEventListener("click",()=>render("academyManager"));
   $("academyRandomScenarioBtn").onclick=()=>openRandomScenario($("academyScenarioModule").value);
 }
@@ -2985,9 +3047,18 @@ function quizQuestionPool(code){
 async function trainingQuiz(){
   if(isVisitor())return;
   await loadAcademyOverrides();
-  const [es,as]=await Promise.all([getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid))),getDocs(query(collection(db,"academy_quiz_attempts"),where("officerId","==",window.LSPD.user.uid)))]);
-  const evals=es.docs.map(d=>d.data()),attempts=as.docs.map(d=>d.data());const validated=new Set(evals.filter(e=>e.result==="Validé").map(e=>e.moduleCode));
-  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">KNOWLEDGE CHECK</span><h2>Parcours de formation</h2><p class="muted">${esc(B("Les prérequis suivent la logique des modules. Les quiz sont enregistrés dans ton historique.","Prerequisites follow module logic. Quiz attempts are saved in your history."))}</p></div></div><div class="quiz-module-grid">${modules.map(m=>{const d=getAcademyData(m[0]),req=(d?.prereq||[]).filter(x=>/^M\d\d$/.test(x)),locked=req.some(r=>!validated.has(r)),last=attempts.filter(a=>a.moduleCode===m[0]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];return `<div class="card quiz-module ${locked?"quiz-locked":""}"><div class="academy-module-top"><span class="module-code">${m[0]}</span>${last?`<span class="tag ${last.passed?"green":"orange"}">${last.percentage}%</span>`:""}</div><h3>${esc(m[1])}</h3><p class="muted">${req.length?`Prérequis : ${req.join(", ")}`:"Aucun prérequis"}</p>${locked?'<div class="quiz-lock">🔒 Prérequis non validés</div>':`<button class="btn secondary start-training-quiz" data-code="${m[0]}">Commencer le quiz</button>`}</div>`}).join("")}</div>`;
+  const [es,as]=await Promise.all([
+    getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid))),
+    getDocs(query(collection(db,"academy_quiz_attempts"),where("officerId","==",window.LSPD.user.uid)))
+  ]);
+  const evals=es.docs.map(d=>d.data()),attempts=as.docs.map(d=>d.data());
+  const latest=latestTrainingEvaluations(evals);
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">KNOWLEDGE CHECK</span><h2>Quiz par formation</h2><p class="muted">Tous les quiz sont accessibles indépendamment. Un quiz ne bloque pas une autre formation.</p></div></div>
+  <div class="quiz-module-grid">${modules.map(m=>{
+    const last=attempts.filter(a=>a.moduleCode===m[0]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];
+    const ev=latest[m[0]];
+    return `<div class="card quiz-module"><div class="academy-module-top"><span class="module-code">${m[0]}</span>${last?`<span class="tag ${last.passed?"green":"orange"}">${last.percentage}%</span>`:""}</div><h3>${esc(m[1])}</h3><p class="muted">${ev?`Formation : ${esc(ev.result)} • ${ev.score}/100`:"Formation non évaluée"}</p><button class="btn secondary start-training-quiz" data-code="${m[0]}">Commencer le quiz</button></div>`;
+  }).join("")}</div>`;
   document.querySelectorAll(".start-training-quiz").forEach(b=>b.onclick=()=>startTrainingQuiz(b.dataset.code));
 }
 async function startTrainingQuiz(code){
@@ -3835,31 +3906,25 @@ function manual(){
 
 async function modulesPage(){
   await loadAcademyOverrides();
-  let evals=[],sessions=[];
+  let evals=[];
   try{
-    const [es,ss]=await Promise.all([
-      getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid))),
-      getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",window.LSPD.user.uid)))
-    ]);
+    const es=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
     evals=es.docs.map(d=>d.data());
-    sessions=ss.docs.map(d=>d.data());
   }catch{}
-
-  const stats=trainingProgressStats(evals,sessions);
+  const stats=trainingProgressStats(evals,[]);
   $("content").innerHTML=`<div class="training-path-hero card">
-    <div><span class="eyebrow">MON PARCOURS</span><h2>Formation M01–M16</h2><p class="muted">Chaque module relie maintenant le guide, les sessions FTO, l'évaluation et le quiz. Commence par les modules prêts, retravaille les modules orange/rouge et suis la progression jusqu'à la validation finale.</p></div>
-    <div class="training-path-total"><b>${stats.validated}</b><span>/16 validés</span></div>
+    <div><span class="eyebrow">MES FORMATIONS</span><h2>Validations M01–M16</h2><p class="muted">Chaque formation est indépendante. Il n'est pas nécessaire d'avoir 16/16 pour être considéré « OK ».</p></div>
+    <div class="training-path-total"><b>${stats.validated}</b><span>validée(s)</span></div>
   </div>
-  <div class="training-path-legend"><span class="validated">● Validé</span><span class="ready">● Prêt</span><span class="progress">● En progression</span><span class="review">● À retravailler</span><span class="locked">● Verrouillé</span></div>
+  <div class="training-path-legend"><span class="validated">● Formation validée</span><span class="ready">● Non évaluée</span><span class="review">● À refaire</span></div>
   <div class="training-path-cards">${modules.map((m,i)=>{
-    const state=trainingModuleState(m[0],stats.latest,sessions),e=stats.latest[m[0]],sessionCount=sessions.filter(s=>s.moduleCode===m[0]).length;
+    const state=trainingModuleState(m[0],stats.latest,[]),e=stats.latest[m[0]];
     return `<button class="training-path-card ${state.key}" data-module="${m[0]}" type="button">
       <div class="training-path-index">${i+1}</div>
-      <div class="training-path-content"><div><span class="module-code">${m[0]}</span><span class="tag">${esc(m[3])}</span></div><h3>${esc(m[1])}</h3><p>${esc(m[2])}</p><small>${sessionCount} session(s) • ${e?`Dernier score ${e.score}/100`:"Pas encore évalué"}</small></div>
-      <div class="training-path-state"><span>${state.key==="locked"?"🔒":state.key==="validated"?"✓":state.key==="review"||state.key==="failed"?"↻":"→"}</span><b>${esc(state.label)}</b></div>
+      <div class="training-path-content"><div><span class="module-code">${m[0]}</span><span class="tag">${esc(m[3])}</span></div><h3>${esc(m[1])}</h3><p>${esc(m[2])}</p><small>${e?`Dernier résultat : ${e.score}/100 • ${esc(e.result)}`:"Pas encore évaluée"}</small></div>
+      <div class="training-path-state"><span>${state.key==="validated"?"✓":state.key==="retry"?"↻":"→"}</span><b>${esc(state.label)}</b></div>
     </button>`;
   }).join("")}</div>`;
-
   document.querySelectorAll(".training-path-card").forEach(c=>c.onclick=()=>openTrainingModuleContext(c.dataset.module,window.LSPD.user.uid));
 }
 function openModule(id){
@@ -3887,10 +3952,10 @@ async function evaluations(){
   document.querySelectorAll(".print-eval").forEach(b=>b.onclick=()=>openEvaluationDetail(data.find(x=>x.id===b.dataset.id)));
 }
 
-async function openEvaluationForm(prefillOfficerId=null,prefillModuleCode=null){
+async function openEvaluationForm(prefillOfficerId=null,prefillModuleCode=null,prefillTrainingEventId=null){
   if(!hasPerm("fto_tools"))return;
   const officers=(await getUsers()).filter(o=>o.role!=="Visiteur" && !["Inactif","Archivé"].includes(o.status));
-  showModal(`<h2>Nouvelle évaluation FTO</h2><form id="evalForm"><div class="formgrid">
+  showModal(`<h2>Évaluer la formation</h2><form id="evalForm"><input id="eTrainingEventId" type="hidden" value="${esc(prefillTrainingEventId||"")}"><div class="formgrid">
   <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" ${o.uid===prefillOfficerId?"selected":""}>${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
   <label class="field"><span>Module</span><select id="eModule">${modules.map(m=>`<option value="${m[0]}" ${m[0]===prefillModuleCode?"selected":""}>${m[0]} — ${m[1]}</option>`).join("")}</select></label></div>
   <h3>Critères</h3><div class="criteria-grid">${criteria.map(c=>`<label class="criterion"><span><b>${c[1]}</b><small>${c[2]}</small></span><select class="criterion-score" data-key="${c[0]}"><option value="5">5 — Excellent</option><option value="4">4 — Très bien</option><option value="3" selected>3 — Conforme</option><option value="2">2 — À améliorer</option><option value="1">1 — Insuffisant</option></select></label>`).join("")}</div>
@@ -3911,9 +3976,25 @@ async function saveEvaluation(e){
   const values={};document.querySelectorAll(".criterion-score").forEach(x=>values[x.dataset.key]=Number(x.value));
   const vals=Object.values(values),score=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length*5)*100),result=score>=75?"Validé":score>=55?"À revoir":"Échec";
   try{
-    await addDoc(collection(db,"evaluations"),{officerId,officerName,ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,moduleCode,moduleTitle:module[1],criteria:values,score,result,comments:$("eComments").value.trim(),createdAt:serverTimestamp()});
+    const trainingEventId=$("eTrainingEventId")?.value||"";
+    const payload={officerId,officerName,ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,moduleCode,moduleTitle:module[1],criteria:values,score,result,comments:$("eComments").value.trim(),createdAt:serverTimestamp()};
+    if(trainingEventId)payload.trainingEventId=trainingEventId;
+    await addDoc(collection(db,"evaluations"),payload);
+    if(trainingEventId){
+      const regs=await getDocs(query(collection(db,"training_registrations"),where("eventId","==",trainingEventId)));
+      const reg=regs.docs.find(d=>d.data().officerId===officerId);
+      if(reg){
+        await updateDoc(doc(db,"training_registrations",reg.id),{
+          attendanceStatus:`Évalué — ${result}`,
+          attendanceMarkedById:window.LSPD.user.uid,
+          attendanceMarkedByName:window.LSPD.profile.name,
+          attendanceMarkedAt:serverTimestamp()
+        });
+      }
+    }
     await addAudit("CREATE_EVALUATION",officerId,`${moduleCode} — ${result} — ${score}/100`);
-    document.querySelector(".modal")?.remove();evaluations();
+    document.querySelector(".modal")?.remove();
+    if(trainingEventId)openTrainingEventManager(trainingEventId);else evaluations();
   }catch(err){$("evalError").textContent="Erreur : "+(err.code||err.message);}
 }
 function openEvaluationDetail(e){
@@ -4198,7 +4279,7 @@ async function loadTrainingInviteDirectory(){
 
 function selectedTrainingInvitees(){
   const directory=window.LSPD.trainingInviteDirectory||[];
-  const manual=new Set([...document.querySelectorAll(".training-person-check:checked")].map(x=>x.value));
+  const manual=new Set([...(window.LSPD.trainingWizardPresetIds||new Set()),...[...document.querySelectorAll(".training-person-check:checked")].map(x=>x.value)]);
   const grades=new Set([...document.querySelectorAll(".training-grade-check:checked")].map(x=>x.value));
   const certs=new Set([...document.querySelectorAll(".training-cert-check:checked")].map(x=>x.value));
 
@@ -4229,26 +4310,27 @@ function renderTrainingInvitePeople(){
       .some(v=>String(v||"").toLowerCase().includes(q))
   );
   host.innerHTML=directory.length?directory.map(u=>`<label class="training-invite-person">
-    <input class="training-person-check" type="checkbox" value="${u.uid}">
+    <input class="training-person-check" type="checkbox" value="${u.uid}" ${window.LSPD.trainingWizardPresetIds?.has(u.uid)?"checked":""}>
     <span class="training-invite-avatar">${esc((u.name||"?").slice(0,1).toUpperCase())}</span>
     <span><b>${esc(u.badge||"—")} — ${esc(u.name)}</b><small>${esc(u.grade||"—")} • ${esc(u.division||"Patrol")}</small></span>
   </label>`).join(""):'<div class="training-empty-mini">Aucun membre trouvé.</div>';
-  document.querySelectorAll(".training-person-check").forEach(c=>c.onchange=updateTrainingInvitePreview);
+  document.querySelectorAll(".training-person-check").forEach(c=>c.onchange=()=>{window.LSPD.trainingWizardPresetIds??=new Set();c.checked?window.LSPD.trainingWizardPresetIds.add(c.value):window.LSPD.trainingWizardPresetIds.delete(c.value);updateTrainingInvitePreview();});
 }
 
-async function openTrainingCreationWizard(){
+async function openTrainingCreationWizard(prefillModuleCode=null,prefillInviteeIds=[]){
   if(!hasPerm("training_manage"))return;
 
   window.LSPD.trainingWizard={
     step:1,
     title:"",
-    moduleCode:"M01",
+    moduleCode:prefillModuleCode||"M01",
     date:"",
     time:"",
     location:"LSPD",
-    capacity:20,
+    capacity:Math.max(20,(prefillInviteeIds||[]).length),
     notes:""
   };
+  window.LSPD.trainingWizardPresetIds=new Set(prefillInviteeIds||[]);
   window.LSPD.trainingInviteDirectory=await loadTrainingInviteDirectory();
   renderTrainingWizard();
 }
@@ -4462,34 +4544,100 @@ async function openTrainingEventDetail(eventId){
 
 async function openTrainingEventManager(eventId){
   if(!hasPerm("training_manage"))return;
-  const [eventSnap,regsSnap]=await Promise.all([
+  const [eventSnap,regsSnap,evalSnap]=await Promise.all([
     getDoc(doc(db,"training_events",eventId)),
-    getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId)))
+    getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId))),
+    getDocs(collection(db,"evaluations"))
   ]);
   if(!eventSnap.exists())return;
   const e={id:eventSnap.id,...eventSnap.data()};
   if(e.trainerId!==window.LSPD.user.uid && !isCommand())return;
 
   const regs=regsSnap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status!=="Annulée");
+  const eventEvals=evalSnap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.trainingEventId===eventId);
   const invited=regs.filter(r=>r.status==="Invité");
   const confirmed=regs.filter(r=>r.status==="Inscrit");
   const declined=regs.filter(r=>r.status==="Refusé");
+  const isDone=e.status==="Terminée";
 
-  showModal(`<div class="training-event-manager">
-    <div class="training-event-detail-head"><span class="module-code large">${esc(e.moduleCode)}</span><div><span class="eyebrow">GESTION FORMATION</span><h2>${esc(e.title)}</h2><p>${esc(e.date)} • ${esc(e.time)} • ${esc(e.location)}</p></div></div>
-    <div class="training-manager-stats"><div><span>Confirmés</span><b>${confirmed.length}</b></div><div><span>En attente</span><b>${invited.length}</b></div><div><span>Refus</span><b>${declined.length}</b></div><div><span>Capacité</span><b>${regs.filter(r=>r.status!=="Refusé").length}/${Number(e.capacity)||20}</b></div></div>
-    <div class="training-manager-actions"><button class="btn" id="eventInviteMoreBtn">+ Inviter des membres</button><button class="btn secondary" id="eventAttendanceBtn">Présences</button>${e.moduleCode?'<button class="btn secondary" id="eventScenarioBtn">Lancer un scénario</button>':""}</div>
-    <div class="training-participant-groups">
-      <section><h3>✅ Confirmés</h3>${confirmed.length?confirmed.map(r=>`<div class="training-participant-line"><b>${esc(r.officerName)}</b><span>${esc(r.attendanceStatus||r.status)}</span></div>`).join(""):'<p class="muted">Aucun.</p>'}</section>
-      <section><h3>⏳ En attente</h3>${invited.length?invited.map(r=>`<div class="training-participant-line"><b>${esc(r.officerName)}</b><span>Invité</span></div>`).join(""):'<p class="muted">Aucun.</p>'}</section>
-      <section><h3>❌ Refus</h3>${declined.length?declined.map(r=>`<div class="training-participant-line"><b>${esc(r.officerName)}</b><span>Refusé</span></div>`).join(""):'<p class="muted">Aucun.</p>'}</section>
+  const participantRows=confirmed.map(r=>{
+    const evaluation=eventEvals.find(ev=>ev.officerId===r.officerId);
+    return `<div class="training-participant-eval-row">
+      <div><b>${esc(r.officerName)}</b><small>${esc(r.attendanceStatus||r.status)}</small></div>
+      ${evaluation
+        ?`<span class="tag ${evaluation.result==="Validé"?"green":evaluation.result==="Échec"?"red":"orange"}">${esc(evaluation.result)} • ${evaluation.score}/100</span>`
+        :isDone
+          ?`<button class="btn evaluate-training-participant" data-officer="${r.officerId}" data-event="${eventId}" data-module="${esc(e.moduleCode)}">✅ Évaluer</button>`
+          :'<span class="tag">À évaluer après la formation</span>'}
+    </div>`;
+  }).join("");
+
+  showModal(`<div class="training-event-manager one-training-manager">
+    <div class="training-event-detail-head">
+      <span class="module-code large">${esc(e.moduleCode)}</span>
+      <div><span class="eyebrow">FORMATION UNIQUE</span><h2>${esc(e.title)}</h2><p>${esc(e.date)} • ${esc(e.time)} • ${esc(e.location)}</p></div>
+      <span class="tag ${isDone?"green":"orange"}">${isDone?"Formation terminée":"Planifiée"}</span>
     </div>
+
+    <div class="one-training-rule">
+      <span>1</span><b>Formation</b><i>→</i><span>2</span><b>Évaluation</b><i>→</i><span>3</span><b>Validée / À refaire</b>
+    </div>
+
+    <div class="training-manager-stats">
+      <div><span>Confirmés</span><b>${confirmed.length}</b></div>
+      <div><span>En attente</span><b>${invited.length}</b></div>
+      <div><span>Refus</span><b>${declined.length}</b></div>
+      <div><span>Évalués</span><b>${eventEvals.length}/${confirmed.length}</b></div>
+    </div>
+
+    <div class="training-manager-actions">
+      ${!isDone?'<button class="btn" id="completeTrainingEventBtn">✓ Terminer la formation</button>':""}
+      <button class="btn secondary" id="eventInviteMoreBtn">+ Inviter des membres</button>
+      <button class="btn secondary" id="eventAttendanceBtn">Présences</button>
+      ${e.moduleCode?'<button class="btn secondary" id="eventScenarioBtn">🎲 Scénario</button>':""}
+      ${e.moduleCode?'<button class="btn secondary" id="eventProgramBtn">📚 Programme</button>':""}
+    </div>
+
+    ${isDone?'<div class="training-completed-callout">Formation terminée, évalue maintenant chaque participant. Le résultat de cette évaluation valide ou non cette formation uniquement.</div>':""}
+
+    <section class="training-evaluation-participants">
+      <h3>Participants & résultat de la formation</h3>
+      ${participantRows||'<p class="muted">Aucun participant confirmé.</p>'}
+    </section>
+
+    ${invited.length?`<details class="training-manager-details"><summary>Invitations sans réponse (${invited.length})</summary>${invited.map(r=>`<div class="training-participant-line"><b>${esc(r.officerName)}</b><span>Invité</span></div>`).join("")}</details>`:""}
+    ${declined.length?`<details class="training-manager-details"><summary>Refus (${declined.length})</summary>${declined.map(r=>`<div class="training-participant-line"><b>${esc(r.officerName)}</b><span>Refusé</span></div>`).join("")}</details>`:""}
+
     <div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>
   </div>`);
 
+  $("completeTrainingEventBtn")?.addEventListener("click",()=>completeTrainingEvent(eventId));
   $("eventInviteMoreBtn").onclick=()=>openAdditionalTrainingInvites(eventId);
   $("eventAttendanceBtn").onclick=()=>openTrainingAttendance(eventId);
   $("eventScenarioBtn")?.addEventListener("click",()=>openRandomScenario(e.moduleCode));
+  $("eventProgramBtn")?.addEventListener("click",()=>openAcademyGuide(e.moduleCode));
+  document.querySelectorAll(".evaluate-training-participant").forEach(b=>b.onclick=()=>{
+    document.querySelector(".modal")?.remove();
+    openEvaluationForm(b.dataset.officer,b.dataset.module,b.dataset.event);
+  });
+}
+
+async function completeTrainingEvent(eventId){
+  if(!hasPerm("training_manage"))return;
+  try{
+    await updateDoc(doc(db,"training_events",eventId),{
+      status:"Terminée",
+      completedAt:serverTimestamp(),
+      completedById:window.LSPD.user.uid,
+      completedByName:window.LSPD.profile.name
+    });
+    await addAudit("TRAINING_EVENT_COMPLETE",eventId,window.LSPD.profile.name);
+    showToast("Formation terminée. Passe maintenant aux évaluations.","success");
+    document.querySelector(".modal")?.remove();
+    await openTrainingEventManager(eventId);
+  }catch(err){
+    showToast("Erreur : "+(err.code||err.message),"error");
+  }
 }
 
 async function openAdditionalTrainingInvites(eventId){

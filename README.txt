@@ -770,3 +770,156 @@ Firebase :
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=175
+
+
+================================================
+PHASE 17.6 — UNE FORMATION = UNE VALIDATION
+================================================
+
+PRINCIPE
+Le modèle pédagogique est simplifié :
+
+FORMATION
+→ ÉVALUATION
+→ RÉSULTAT
+
+Une formation se fait en une fois.
+Le FTO ne doit plus créer plusieurs séances normales sur le même module.
+
+Exemple M04 :
+1. Le FTO crée M04.
+2. Il invite la recrue / les participants.
+3. La formation M04 est faite en une fois.
+4. Le FTO clique "Terminer la formation".
+5. Il évalue chaque participant.
+6. Résultat individuel :
+   - Validé
+   - À revoir
+   - Échec
+
+Dans l'interface :
+Validé = Formation validée
+À revoir / Échec = Formation à refaire
+
+Si la formation est à refaire, une nouvelle formation M04 peut être créée
+plus tard. Ce nouveau passage remplace l'idée d'une accumulation de séances.
+
+FORMATIONS INDÉPENDANTES
+Les M01 à M16 ne se bloquent plus entre elles.
+
+Il est possible d'avoir :
+- M01 non évaluée
+- M02 validée
+- M03 validée
+- M04 à refaire
+- M09 validée
+
+Le système n'exige plus 16/16 pour considérer la situation correcte.
+Les validations sont individuelles.
+
+PRÉREQUIS
+Les prérequis historiques restent dans le contenu Academy comme conseil
+pédagogique, mais ils ne verrouillent plus :
+- le parcours
+- les formations
+- les quiz
+
+ESPACE RECRUE
+L'ancien écran complexe est remplacé par :
+
+1. Identité + FTO actif
+2. Explication :
+   Une formation → Une évaluation → Un résultat
+3. Une grosse action :
+   "Continuer la formation de [recrue]"
+4. Résumé :
+   - formations validées
+   - formations à refaire
+   - non évaluées
+   - moyenne
+5. Actions secondaires :
+   - évaluer
+   - objectif correctif
+   - dossier complet
+   - passation
+6. M01-M16 avec seulement :
+   - Formation validée
+   - Formation à refaire
+   - Formation planifiée
+   - Non évaluée
+
+PLANIFICATION DEPUIS LA RECRUE
+Le bouton principal ouvre directement l'assistant de création :
+- module prérempli
+- recrue pré-sélectionnée
+- date / heure / lieu à compléter
+- possibilité d'ajouter d'autres personnes, grades ou certifications
+
+GESTION FORMATION
+Le FTO ouvre sa formation puis suit :
+
+1. Présences
+2. Programme / scénario si besoin
+3. Terminer la formation
+4. Évaluer chaque participant
+
+Après "Terminer la formation", un bouton Évaluer apparaît pour chaque
+participant confirmé.
+
+ÉVALUATION LIÉE À LA FORMATION
+Les nouvelles évaluations faites depuis une formation enregistrent :
+trainingEventId
+
+Cela permet à la page de formation d'afficher immédiatement :
+- Validé + score
+- À revoir + score
+- Échec + score
+
+La présence passe également à :
+Évalué — Validé
+ou
+Évalué — À revoir
+ou
+Évalué — Échec
+
+QUIZ
+Tous les quiz M01-M16 sont maintenant accessibles indépendamment.
+Plus de verrouillage par prérequis.
+
+ANCIENNES SESSIONS FTO
+Les anciennes données fto_sessions sont conservées.
+Elles apparaissent comme "Ancien historique FTO" lorsqu'elles existent.
+Elles n'influencent plus le fonctionnement normal de la Phase 17.6.
+
+ACADEMY
+Les guides, contenus, scénarios, erreurs critiques, questions et actions
+correctives sont conservés.
+Le bouton principal de l'Academy devient "Créer une formation" au lieu de
+pousser le FTO vers plusieurs sessions guidées.
+
+FIRESTORE
+⚠️ Nouveau firestore.rules à publier.
+
+Le formateur peut maintenant clôturer sa propre training_event :
+status = Terminée
+
+Les seuls champs modifiables sont :
+- status
+- completedAt
+- completedById
+- completedByName
+
+Aucune modification libre du contenu de la formation.
+Aucune suppression.
+
+INSTALLATION
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules → Firestore Database → Règles → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=176
