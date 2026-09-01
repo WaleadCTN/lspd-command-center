@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 11.0 BILINGUAL — Phase 10 fully preserved + FR/EN display layer
+// LSPD Command Center — Phase 11.1 BILINGUAL FIXED — menu/icon-aware FR/EN display layer
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -43,6 +43,20 @@ function translateSystemText(source, lang=currentLang){
   const text=String(source);
   const dict=lang==="en"?I18N_EN:I18N_FR;
   if(Object.prototype.hasOwnProperty.call(dict,text)) return dict[text];
+
+  // Sidebar/nav labels often begin with an emoji or icon.
+  // Keep the icon and translate only the label.
+  // Examples:
+  // "🏠 Dashboard" -> "🏠 Tableau de bord"
+  // "📚 Manuel FTO" -> "📚 FTO Manual"
+  const iconMatch=text.match(/^([^\p{L}\p{N}]*)(.+)$/u);
+  if(iconMatch && iconMatch[1]){
+    const prefix=iconMatch[1];
+    const label=iconMatch[2].trim();
+    if(Object.prototype.hasOwnProperty.call(dict,label)){
+      return prefix + dict[label];
+    }
+  }
 
   // Common composed UI strings. User-provided content is preserved.
   let m;

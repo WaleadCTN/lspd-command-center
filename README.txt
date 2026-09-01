@@ -1,4 +1,4 @@
-LSPD COMMAND CENTER — PHASE 11.0 BILINGUAL FR / EN
+LSPD COMMAND CENTER — PHASE 11.1 BILINGUAL MENU FIXED
 
 BASE
 Cette version est construite directement depuis Phase 10 REGISTRATION.
@@ -53,3 +53,19 @@ TEST CONSEILLÉ
 4. Connecte le Chief.
 5. Vérifie Dashboard, Inscriptions, FTO, Officiers, Congés, Promotions, etc.
 6. Passe FR pendant que tu es connecté : la page doit revenir en français immédiatement.
+
+
+CORRECTION 11.1
+- Le menu latéral est maintenant traduit en FR / EN.
+- Les emoji/icônes restent visibles.
+- Aucun changement Firebase/Firestore.
+- Aucune fonction de la Phase 11 n'est retirée.
+
+Exemples :
+- 🏠 Dashboard -> 🏠 Tableau de bord
+- 📚 Manuel FTO -> 📚 FTO Manual
+- 👮 Officiers -> 👮 Officers
+- 🌴 Congés -> 🌴 Leave
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=111
