@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=7.0">
+  <link rel="stylesheet" href="style.css?v=8.0">
 </head>
 <body>
 <section id="loginScreen" class="login-screen">
@@ -12,7 +12,7 @@
     <div class="badge">LSPD</div>
     <div class="eyebrow">LOS SANTOS POLICE DEPARTMENT</div>
     <h1>Command Center</h1>
-    <p class="muted">Training • Personnel • Operations</p>
+    <p class="muted">Training • Personnel • Operations • Communication</p>
     <form id="loginForm">
       <label class="field"><span>Adresse e-mail</span><input id="loginEmail" type="email" required autocomplete="username"></label>
       <label class="field"><span>Mot de passe</span><input id="loginPassword" type="password" required autocomplete="current-password"></label>
@@ -31,6 +31,10 @@
     <nav id="nav">
       <button data-page="dashboard" class="active">🏠 Dashboard</button>
       <button data-page="profile">🙍 Mon profil</button>
+      <button data-page="announcements">📣 Annonces</button>
+      <button data-page="messages">✉️ Messages</button>
+      <button data-page="incidents">📝 Rapports d'incident</button>
+      <button data-page="approvals">🧾 Validations</button>
       <button data-page="manual">📚 Manuel FTO</button>
       <button data-page="modules">🎓 Formations</button>
       <button data-page="evaluations">✅ Évaluations</button>
@@ -72,6 +76,6 @@
   </main>
 </div>
 
-<script type="module" src="app.js?v=7.0"></script>
+<script type="module" src="app.js?v=8.0"></script>
 </body>
 </html>

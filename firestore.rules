@@ -31,10 +31,41 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /announcements/{id} {
+      allow read: if signedIn();
+      allow create: if isCommand() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isCommand();
+      allow delete: if false;
+    }
+
+    match /messages/{id} {
+      allow read: if signedIn() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.recipientId == request.auth.uid
+      );
+      allow create: if signedIn()
+        && request.resource.data.senderId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /incident_reports/{id} {
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      allow read: if signedIn() && (
+        resource.data.authorId == request.auth.uid ||
+        isCommand()
+      );
+
+      allow update: if isCommand();
+      allow delete: if false;
+    }
+
     match /evaluations/{id} {
       allow read: if signedIn() && (
         resource.data.officerId == request.auth.uid ||
-        resource.data.ftoId == request.auth.uid || isCommand()
+        resource.data.ftoId == request.auth.uid ||
+        isCommand()
       );
       allow create: if isFTO()
         && request.resource.data.ftoId == request.auth.uid
@@ -46,51 +77,71 @@ service cloud.firestore {
 
     match /fto_assignments/{id} {
       allow read: if isFTO() || isCommand();
-      allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
+      allow create: if isChief()
+        && request.resource.data.createdById == request.auth.uid;
       allow update: if isChief();
       allow delete: if false;
     }
 
     match /certifications/{id} {
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isFTO() || isCommand());
-      allow create: if isChief() && request.resource.data.issuedById == request.auth.uid;
+      allow read: if signedIn() && (
+        resource.data.officerId == request.auth.uid ||
+        isFTO() || isCommand()
+      );
+      allow create: if isChief()
+        && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /personnel_records/{id} {
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isCommand());
-      allow create: if isChief() && request.resource.data.issuedById == request.auth.uid;
+      allow read: if signedIn() && (
+        resource.data.officerId == request.auth.uid ||
+        isCommand()
+      );
+      allow create: if isChief()
+        && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /shifts/{id} {
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isCommand());
-      allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
+      allow read: if signedIn() && (
+        resource.data.officerId == request.auth.uid ||
+        isCommand()
+      );
+      allow create: if isChief()
+        && request.resource.data.createdById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /leave_requests/{id} {
-      allow create: if signedIn() && request.resource.data.officerId == request.auth.uid;
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isCommand());
+      allow create: if signedIn()
+        && request.resource.data.officerId == request.auth.uid;
+      allow read: if signedIn() && (
+        resource.data.officerId == request.auth.uid ||
+        isCommand()
+      );
       allow update: if isChief();
       allow delete: if false;
     }
 
     match /training_events/{id} {
       allow read: if signedIn();
-      allow create: if isFTO() && request.resource.data.trainerId == request.auth.uid;
+      allow create: if isFTO()
+        && request.resource.data.trainerId == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /promotions/{id} {
       allow read: if isCommand();
-      allow create: if isChief() && request.resource.data.approvedById == request.auth.uid;
+      allow create: if isChief()
+        && request.resource.data.approvedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /audit_logs/{id} {
       allow read: if isCommand();
-      allow create: if isFTO() && request.resource.data.actorId == request.auth.uid;
+      allow create: if isFTO()
+        && request.resource.data.actorId == request.auth.uid;
       allow update, delete: if false;
     }
 

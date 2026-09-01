@@ -1,4 +1,4 @@
-LSPD COMMAND CENTER — PHASE 7.0
+LSPD COMMAND CENTER — PHASE 8.0
 
 REPLACE ON GITHUB
 - index.html
@@ -7,20 +7,22 @@ REPLACE ON GITHUB
 
 FIRESTORE
 Firebase > Firestore Database > Règles
-Paste firestore.rules and click Publier.
+Paste firestore.rules
+Click Publier
 
 NEW FEATURES
-- Mon profil
-- Password reset email
-- Global search
-- Officer filters
-- CSV exports for officers, evaluations, shifts, audit history
-- "Archivé" status to keep history without showing officer as active
-- Close FTO assignments with audit
-- "À valider" command page
-- More visual Chief dashboard
-- Unit indicators
-- Cleaner UI
+- Command announcements
+- Internal messages
+- Incident reports
+- Hierarchical incident approval
+- Approval signature with name + badge
+- Incident CSV export for command
+- Search extended to announcements and incidents
+- Permissions refined for messages, announcements and incidents
+
+IMPORTANT
+Phase 8 focuses on communication and approval workflows.
+The Firestore collections from Phase 7 remain compatible.
 
 TEST
-https://waleadctn.github.io/lspd-command-center/?v=70
+https://waleadctn.github.io/lspd-command-center/?v=80
