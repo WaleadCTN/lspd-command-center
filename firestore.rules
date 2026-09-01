@@ -46,7 +46,7 @@ service cloud.firestore {
       return isChief()
         || (
           myRole() == "FTO"
-          && ["fto_tools","training_manage"].hasAny([permission])
+          && ["fto_tools","training_manage","academy_manage"].hasAny([permission])
         )
         || (
           isCommand()
@@ -54,7 +54,7 @@ service cloud.firestore {
             "fto_tools","personnel_view","fto_assignments_view","certifications_view",
             "records_view","shifts_view","duty_board","leave_review","training_manage",
             "incident_review","mdt_manage","promotions_view","analytics","audit",
-            "announcements_manage","cad_manage","bolo_manage","watch_manage"
+            "announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"
           ].hasAny([permission])
         );
     }
@@ -361,6 +361,50 @@ service cloud.firestore {
         && request.resource.data.startedById == request.auth.uid;
       allow update: if hasPerm("watch_manage");
       allow delete: if false;
+    }
+
+
+    match /fto_sessions/{id} {
+      allow read: if hasSiteAccess() && (
+        resource.data.traineeId == request.auth.uid ||
+        resource.data.ftoId == request.auth.uid ||
+        hasPerm("academy_manage")
+      );
+
+      allow create: if hasPerm("academy_manage")
+        && request.resource.data.ftoId == request.auth.uid
+        && request.resource.data.status == "En cours";
+
+      allow update: if hasPerm("academy_manage");
+      allow delete: if false;
+    }
+
+    match /training_objectives/{id} {
+      allow read: if hasSiteAccess() && (
+        resource.data.traineeId == request.auth.uid ||
+        resource.data.createdById == request.auth.uid ||
+        hasPerm("academy_manage")
+      );
+
+      allow create: if hasPerm("academy_manage")
+        && request.resource.data.createdById == request.auth.uid
+        && request.resource.data.status == "Ouvert";
+
+      allow update: if hasPerm("academy_manage");
+      allow delete: if false;
+    }
+
+    match /final_fto_reviews/{id} {
+      allow read: if hasSiteAccess() && (
+        resource.data.traineeId == request.auth.uid ||
+        hasPerm("academy_manage") ||
+        hasPerm("personnel_view")
+      );
+
+      allow create: if hasPerm("academy_manage")
+        && request.resource.data.ftoId == request.auth.uid;
+
+      allow update, delete: if false;
     }
 
     match /{document=**} {

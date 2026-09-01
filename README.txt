@@ -1,173 +1,104 @@
-LSPD COMMAND CENTER — PHASE 14+15
-UI/UX REFRESH + CAD + BOLO + WATCH COMMANDER + DYNAMIC PERMISSIONS
+LSPD COMMAND CENTER — PHASE 16 FTO ACADEMY
 
 BASE
-Construite directement depuis Phase 12+13 Operations & MDT.
-Les fonctions existantes sont conservées.
-FR / EN est conservé.
+Construite directement depuis Phase 14+15.
+Aucune ancienne fonction n'est supprimée.
+Bilingue FR / EN conservé.
+Permissions dynamiques conservées.
 
-================================================
-PHASE 14 — REFONTE VISUELLE & ERGONOMIQUE
-================================================
-- Sidebar moderne et rétractable sur PC
-- Menu mobile avec overlay
-- Header sticky
-- Horloge live
-- Command Palette (Ctrl+K / Cmd+K)
-- Navigation rapide vers les pages autorisées
-- Toasts modernes à la place des alert() classiques
-- Cards, tableaux, boutons, formulaires et modales améliorés
-- En-têtes de tableaux sticky
-- Animations de changement de page
-- Responsive amélioré
-- Design plus "Police Command Center"
+NOUVELLE PERMISSION
+academy_manage
+Par défaut : FTO et Command.
+Le Chief peut la modifier depuis 🔐 Permissions.
 
-================================================
-PERMISSIONS DIRECTEMENT DANS L'APPLICATION
-================================================
-NOUVELLE PAGE :
-🔐 Permissions
+🎓 FTO ACADEMY
+Chaque module M01 à M16 contient :
+- objectif pédagogique
+- durée conseillée
+- prérequis
+- étapes exactes du FTO
+- exemple RP
+- variantes
+- erreurs fréquentes
+- erreurs critiques
+- questions à poser
+- réponses attendues
+- action corrective
 
-Le Chief peut cocher/décocher les droits de chaque rôle :
-Officer
-FTO
-Sergeant
-Lieutenant
-Captain
-Deputy Chief
-Assistant Chief
-Chief
+SCÉNARIOS
+Bouton "Générer un scénario".
+Scénarios préparés Facile / Normal / Difficile / Stress test.
+Aucune API externe et aucun coût.
 
-Exemples de permissions :
-- FTO tools
-- voir / gérer les officiers
-- voir / gérer affectations FTO
-- certifications
-- dossiers RH
-- shifts
-- tableau de service
-- congés
-- formations
-- validation incidents
-- MDT
-- candidatures divisions
-- promotions
-- statistiques
-- audit
-- annonces
-- inscriptions
-- CAD
-- BOLO
-- Watch Commander
+SESSION GUIDÉE
+Le FTO sélectionne :
+- recrue
+- module
+- phase FTO
 
-IMPORTANT :
-Les permissions sont enregistrées dans :
-settings/permissions
+Phases :
+1 Observation
+2 Assistance
+3 Autonomie supervisée
+4 Évaluation finale
 
-Les règles Firestore lisent cette configuration.
-Ce n'est donc PAS uniquement du masquage visuel.
+Checklist :
+- Briefing
+- Démonstration
+- Pratique
+- Observation
+- Débrief
 
-Sécurité :
-- Le Chief garde toujours tous les droits.
-- Même si un rôle reçoit "Modifier profils officiers",
-  seul le Chief peut changer le champ ROLE d'un utilisateur.
-  Cela évite qu'un utilisateur se donne Chief.
+Journal :
+- résumé
+- points forts
+- points à améliorer
+- objectifs prochaine session
 
-Si le document settings/permissions n'existe pas encore :
-- le site utilise les permissions par défaut de l'ancienne version
-- le Chief le crée automatiquement à sa première connexion
+📝 JOURNAL FTO
+- historique des sessions
+- sessions en cours / terminées
+- objectifs personnalisés
+- priorité Faible / Moyenne / Haute / Critique
+- marquer un objectif Atteint
 
-================================================
-PHASE 15 — CAD / DISPATCH
-================================================
-NOUVELLE PAGE :
-📡 CAD / Dispatch
+RECOMMANDATIONS
+FTO Academy analyse les évaluations existantes :
+- score moyen
+- module faible
+- prochaine priorité conseillée
 
-Chaque officier peut créer/mettre à jour sa propre unité :
-- indicatif (ex. ADAM-547)
-- partenaire
-- division
-- localisation
-- note
-- statut :
-  Disponible
-  En intervention
-  Transport
-  Pause
-  Hors service
+BIBLIOTHÈQUE
+- mauvais / bons exemples radio
+- mauvais / bons exemples de rapports
+- explication du pourquoi
 
-Le tableau CAD utilise Firestore onSnapshot :
-les modifications apparaissent en temps réel pour les utilisateurs
-qui ont la page CAD ouverte.
+🏁 ÉVALUATION FINALE FTO
+Affiche :
+- modules validés / 16
+- moyenne globale
+- sessions terminées
 
-Permission cad_manage :
-permet de gérer les unités des autres officiers.
+Décisions :
+- Validation FTO
+- Prolongation FTO
+- Échec FTO
 
-================================================
-BOLO
-================================================
-NOUVELLE PAGE :
-🚨 BOLO / Avis
+NOUVELLES COLLECTIONS
+- fto_sessions
+- training_objectives
+- final_fto_reviews
 
-Tous les utilisateurs connectés peuvent consulter les BOLO.
-
-Les rôles ayant bolo_manage peuvent :
-- créer un BOLO
-- Personne / Véhicule / Autre
-- priorité Normal / Important / Critique
-- plaque véhicule
-- description
-- clôturer le BOLO
-
-================================================
-WATCH COMMANDER
-================================================
-NOUVELLE PAGE :
-🛡️ Watch Commander
-
-Le rôle autorisé peut :
-- sélectionner le Watch Commander
-- démarrer un service
-- publier le briefing
-- clôturer le service
-- écrire une note de passation
-- consulter l'historique des watches
-
-Permission :
-watch_manage
-
-================================================
 INSTALLATION
-================================================
-SUR GITHUB — REMPLACER :
+GitHub : remplacer
 - index.html
 - app.js
 - style.css
 
-FIRESTORE — OBLIGATOIRE :
-Firebase > Firestore Database > Règles
-Remplacer avec firestore.rules
-Puis Publier.
+Firebase Firestore :
+OBLIGATOIRE de remplacer firestore.rules puis Publier.
 
-IMPORTANT :
-Le nouveau firestore.rules est indispensable pour les permissions dynamiques,
-CAD, BOLO et Watch Commander.
+Storage reste facultatif / ignorable.
 
-STORAGE :
-Toujours facultatif.
-Tu peux continuer à ignorer storage.rules.
-
-TEST :
-https://waleadctn.github.io/lspd-command-center/?v=150
-
-TEST CONSEILLÉ :
-1. Chief -> Permissions
-2. Modifier un droit pour Sergeant
-3. Se connecter avec un Sergeant et vérifier le menu
-4. Tester CAD avec 2 comptes ouverts
-5. Modifier l'état d'une unité et vérifier la mise à jour live
-6. Créer un BOLO
-7. Démarrer un Watch Commander
-8. Tester Ctrl+K
-9. Tester le menu rétractable
-10. Tester FR puis EN
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=160

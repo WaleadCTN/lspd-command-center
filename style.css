@@ -311,3 +311,34 @@ body.sidebar-collapsed .nav-icon{font-size:18px}
   .cad-topline,.watch-hero{align-items:flex-start;flex-direction:column}
   .permission-table-card{max-height:65vh}
 }
+
+
+/* PHASE 16 — FTO ACADEMY */
+.academy-hero{display:flex;justify-content:space-between;gap:20px;align-items:center;background:linear-gradient(120deg,#142a43,#0c1828)}
+.academy-hero h2{font-size:30px;margin:6px 0}.academy-hero-actions{display:flex;gap:8px;flex-wrap:wrap}
+.academy-recommendations{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.academy-rec{border-top:3px solid #6f9ccc}
+.academy-module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.academy-module{display:flex;flex-direction:column}.academy-module .btn{margin-top:auto}
+.academy-module-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.module-code{display:inline-grid;place-items:center;min-width:43px;height:30px;padding:0 8px;border-radius:8px;background:#17304b;color:#a9cff7;font-family:ui-monospace,monospace;font-size:12px;font-weight:900;letter-spacing:.08em}
+.module-code.large{height:42px;font-size:15px}
+.academy-guide-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:15px;border-bottom:1px solid #2b3d52}
+.academy-guide-head h2{margin:8px 0}
+.guide-section{margin-top:15px;padding:14px;border:1px solid #293c54;border-radius:10px;background:#0d1827}
+.guide-section h3{margin-top:0}.guide-example{border-left:4px solid #678db9}
+.academy-steps{padding-left:22px}.academy-steps li{padding:6px 0;color:#dbe7f4}
+.guide-line{padding:7px 0;border-bottom:1px solid #25364b}.warning-line{color:#e6b26e}
+.critical-box{border-color:#693a43;background:#27171d;color:#f0b4bc}.corrective-box{border-color:#365c50;background:#12261f}
+.qa-item{border-bottom:1px solid #2a3b50;padding:8px 0}.qa-item summary{cursor:pointer;font-weight:700;color:#cfe0f2}.qa-item p{color:#9fb0c4}
+.training-example{border-bottom:1px solid #293a50;padding:14px 0}.training-example p{margin:8px 0}.training-example small{color:#7f92a9}
+.scenario-generated{position:relative}.scenario-stamp{position:absolute;right:0;top:0;font-family:ui-monospace,monospace;font-weight:900;color:#5f7f9f;letter-spacing:.2em}
+.scenario-block{margin-top:14px;padding:13px;border-radius:9px;background:#0c1726;border:1px solid #283a50}.scenario-block span{display:block;font-size:11px;color:#7e95af;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.guided-progress{height:9px;background:#213149;border-radius:999px;margin:16px 0;overflow:hidden}.guided-progress i{display:block;height:100%;background:linear-gradient(90deg,#557ead,#77acd9)}
+.guided-checks{display:grid;gap:8px}.guided-step{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid #293b52;border-radius:9px;background:#0d1827}.guided-step.done{border-color:#32634f;background:#11271f}
+.guided-step input{margin-top:3px}.guided-step span{display:grid;gap:4px}.guided-step small{color:#8396ac}
+.objective-item{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #27384d}.objective-item b{display:block;margin:6px 0}
+.final-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.final-summary>div{border:1px solid #293b52;border-radius:9px;padding:12px}.final-summary span{display:block;color:#8294aa;font-size:11px;margin-bottom:5px}.final-summary b{font-size:20px}
+.final-card{border-top:3px solid #6c90b8}
+@media(max-width:1200px){.academy-module-grid{grid-template-columns:repeat(3,1fr)}.academy-recommendations{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.academy-module-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.academy-hero,.academy-guide-head{flex-direction:column;align-items:flex-start}.academy-module-grid,.academy-recommendations,.final-summary{grid-template-columns:1fr}.objective-item{flex-direction:column}}

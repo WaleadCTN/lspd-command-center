@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 14+15 UI/UX + CAD + Dynamic Permissions — Phase 12+13 fully preserved
+// LSPD Command Center — Phase 16 FTO ACADEMY — Phase 14+15 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -40,6 +40,8 @@ Object.assign(I18N_FR,{"Roster & shifts":"Planning & services","Duty board":"Tab
 
 Object.assign(I18N_EN,{"BOLO / Avis":"BOLO / Alerts","CAD / Dispatch":"CAD / Dispatch","Watch Commander":"Watch Commander","Permissions":"Permissions","Réduire le menu":"Collapse menu","Navigation rapide":"Quick navigation","Accès refusé":"Access denied","Cette fonction n'est pas autorisée pour ton rôle.":"This feature is not allowed for your role.","Permissions & rôles":"Permissions & roles","Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.":"Permissions are stored in Firestore. The Chief can edit them here without changing code.","Enregistrer les permissions":"Save permissions","Réinitialiser les valeurs par défaut":"Reset defaults","Permission":"Permission","Lecture / gestion FTO":"FTO tools","Voir tous les officiers":"View all officers","Modifier les profils officiers":"Manage officer profiles","Voir les affectations FTO":"View FTO assignments","Gérer les affectations FTO":"Manage FTO assignments","Voir les certifications":"View certifications","Gérer les certifications":"Manage certifications","Voir les dossiers RH":"View personnel records","Gérer les dossiers RH":"Manage personnel records","Voir tous les shifts":"View all shifts","Gérer les shifts":"Manage shifts","Voir le tableau de service":"View duty board","Valider les congés":"Review leave","Gérer les formations":"Manage training","Valider les incidents":"Review incidents","Gérer le MDT":"Manage MDT","Valider les candidatures divisions":"Review division applications","Voir les promotions":"View promotions","Gérer les promotions":"Manage promotions","Statistiques & Promotion Advisor":"Statistics & Promotion Advisor","Voir l'historique audit":"View audit history","Publier des annonces":"Publish announcements","Valider les inscriptions":"Review registrations","Gérer toutes les unités CAD":"Manage all CAD units","Gérer les BOLO":"Manage BOLOs","Gérer Watch Commander":"Manage Watch Commander","Permissions enregistrées.":"Permissions saved.","Valeurs par défaut restaurées.":"Default values restored.","Le Chief conserve toujours tous les droits.":"The Chief always keeps all permissions.","Unité CAD":"CAD unit","Mon unité":"My unit","Toutes les unités":"All units","Indicatif":"Call sign","Partenaire":"Partner","Localisation":"Location","État":"Status","Note opérationnelle":"Operational note","Disponible":"Available","En intervention":"On call","Transport":"Transport","Pause":"Break","Hors service":"Off duty","Créer mon unité":"Create my unit","Mettre à jour":"Update","Actualisé":"Updated","Aucune unité active.":"No active units.","BOLO actifs":"Active BOLOs","+ Nouveau BOLO":"+ New BOLO","Personne":"Person","Véhicule":"Vehicle","Plaque":"Plate","Description":"Description","Actif":"Active","Clôturé":"Closed","Clôturer le BOLO":"Close BOLO","Aucun BOLO actif.":"No active BOLO.","Nouveau BOLO":"New BOLO","Publier le BOLO":"Publish BOLO","Priorité":"Priority","Critique":"Critical","Watch en cours":"Current watch","Aucun Watch Commander actif.":"No active Watch Commander.","Démarrer un watch":"Start a watch","Commander":"Commander","Briefing":"Briefing","Démarrer le service":"Start watch","Clôturer le watch":"Close watch","Note de passation":"Pass-down note","Historique des watches":"Watch history","Service actif":"Active watch","Service clôturé":"Closed watch","Tape une page...":"Type a page...","Aucune page trouvée.":"No page found.","Interface améliorée":"Improved interface","En direct":"Live"});
 Object.assign(I18N_FR,{"Command Center":"Centre de commandement","Training & Operations":"Formation & opérations"});
+
+Object.assign(I18N_EN,{"Journal FTO":"FTO Journal","Évaluation finale FTO":"Final FTO Evaluation","Programme guidé":"Guided program","Bibliothèque pédagogique":"Training library","Recommandations FTO":"FTO recommendations","Session guidée":"Guided session","Objectifs de la recrue":"Trainee objectives","Commencer une session":"Start session","Continuer":"Continue","Terminer la session":"Finish session","Ajouter un objectif":"Add objective","Objectif":"Objective","Faible":"Low","Moyenne":"Medium","Haute":"High","Atteint":"Achieved","Objectif pédagogique":"Training objective","Ce que le FTO doit faire":"What the FTO should do","Exemple RP":"RP example","Variantes":"Variants","Erreurs fréquentes":"Common mistakes","Erreurs critiques":"Critical errors","Questions à poser":"Questions to ask","Réponses attendues":"Expected answers","Action corrective":"Corrective action","Durée conseillée":"Suggested duration","Prérequis":"Prerequisites","Checklist live":"Live checklist","Démonstration":"Demonstration","Pratique":"Practice","Observation":"Observation","Débrief":"Debrief","Validation":"Validation","Générer un scénario":"Generate scenario","Nouveau scénario":"New scenario","Difficulté":"Difficulty","Facile":"Easy","Difficile":"Hard","Stress test":"Stress test","Situation":"Situation","Contraintes":"Constraints","Réussite attendue":"Expected success criteria","Voir le guide":"View guide","Créer une session":"Create session","Phase FTO":"FTO phase","Phase 1 — Observation":"Phase 1 — Observation","Phase 2 — Assistance":"Phase 2 — Assistance","Phase 3 — Autonomie supervisée":"Phase 3 — Supervised autonomy","Phase 4 — Évaluation finale":"Phase 4 — Final evaluation","Points forts":"Strengths","Points à améliorer":"Areas to improve","Objectifs prochaine session":"Next-session goals","Résumé de session":"Session summary","Aucune session.":"No sessions.","Aucun objectif.":"No objectives.","Module faible":"Weak module","Prochaine priorité":"Next priority","Sessions terminées":"Completed sessions","Prochaine formation conseillée":"Recommended next training","Évaluation finale":"Final evaluation","Recommandation finale":"Final recommendation","Validation FTO":"FTO pass","Prolongation FTO":"Extend FTO","Échec FTO":"FTO fail","Créer l'évaluation finale":"Create final evaluation","Décision":"Decision","Commentaire final":"Final comments","Modules validés":"Validated modules","Moyenne globale":"Overall average","Historique pédagogique":"Training history","Exemples radio":"Radio examples","Exemples de rapports":"Report examples","Bon exemple":"Good example","Mauvais exemple":"Bad example","Pourquoi":"Why","Session créée.":"Session created.","Journal enregistré.":"Journal saved.","Objectif ajouté.":"Objective added.","Évaluation finale enregistrée.":"Final evaluation saved.","Sélectionner une recrue":"Select a trainee","FTO Academy":"FTO Academy"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -167,6 +169,9 @@ function setLanguage(lang){
   document.title=lang==="fr"?"LSPD — Centre de commandement":"LSPD Command Center";
   translateDOM(document.body);
   updateLanguageButtons();
+  if(window.LSPD?.user && ["ftoAcademy","ftoJournal","ftoFinal"].includes(window.LSPD.currentPage)){
+    setTimeout(()=>render(window.LSPD.currentPage),0);
+  }
 }
 
 const i18nObserver=new MutationObserver(mutations=>{
@@ -258,17 +263,18 @@ const PERMISSION_CATALOG = [
   ["registrations_manage","Valider les inscriptions"],
   ["cad_manage","Gérer toutes les unités CAD"],
   ["bolo_manage","Gérer les BOLO"],
-  ["watch_manage","Gérer Watch Commander"]
+  ["watch_manage","Gérer Watch Commander"],
+  ["academy_manage","FTO Academy"]
 ];
 
 const DEFAULT_PERMISSIONS = {
   Officer: [],
-  FTO: ["fto_tools","training_manage"],
-  Sergeant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
-  Lieutenant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
-  Captain: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
-  "Deputy Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
-  "Assistant Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage"],
+  FTO: ["fto_tools","training_manage","academy_manage"],
+  Sergeant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
+  Lieutenant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
+  Captain: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
+  "Deputy Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
+  "Assistant Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
   Chief: PERMISSION_CATALOG.map(x=>x[0])
 };
 
@@ -286,8 +292,307 @@ const PAGE_PERMISSIONS = {
   promotionAdvisor:"analytics",
   promotions:"promotions_view",
   stats:"analytics",
-  history:"audit"
+  history:"audit",
+  ftoAcademy:"academy_manage",
+  ftoJournal:"academy_manage",
+  ftoFinal:"academy_manage"
 };
+
+
+function B(fr,en){ return currentLang==="en"?en:fr; }
+
+const ACADEMY_MODULES = {
+M01:{
+ duration:"30–45 min",prereq:["—"],
+ objective:()=>B("Comprendre la structure LSPD, la chaîne de commandement et les attentes professionnelles.","Understand LSPD structure, chain of command, and professional expectations."),
+ steps:()=>[
+  B("Présenter grades, rôles, responsabilités et chaîne de commandement.","Explain ranks, roles, responsibilities, and chain of command."),
+  B("Faire identifier à la recrue qui contacter selon plusieurs situations.","Have the trainee identify who to contact in several situations."),
+  B("Faire un briefing radio court et rappeler les standards professionnels.","Run a short radio briefing and review professional standards."),
+  B("Terminer par des questions de compréhension.","Finish with comprehension questions.")
+ ],
+ example:()=>B("Donner trois situations : demande de renfort, conflit interne, incident majeur. La recrue doit expliquer la bonne remontée hiérarchique.","Give three situations: backup request, internal conflict, major incident. The trainee explains the correct escalation path."),
+ variants:()=>[B("Question surprise sur le rôle d'un superviseur.","Surprise question about a supervisor's role."),B("Mini briefing devant une autre unité.","Mini briefing in front of another unit.")],
+ mistakes:()=>[B("Confondre grade et rôle opérationnel.","Confusing rank with operational role."),B("Contourner inutilement la chaîne de commandement.","Unnecessarily bypassing chain of command.")],
+ critical:()=>[B("Refuser un ordre légal RP d'un supérieur.","Refusing a lawful RP order from a supervisor.")],
+ questions:()=>[
+  [B("Qui contactes-tu en premier pour un problème pendant ton shift ?","Who do you contact first for an issue during your shift?"),B("Le superviseur direct ou le Watch Commander selon l'organisation du service.","Your direct supervisor or the Watch Commander depending on the shift structure.")],
+  [B("Pourquoi la chaîne de commandement existe-t-elle ?","Why does the chain of command exist?"),B("Pour garder une communication claire, des responsabilités définies et des décisions cohérentes.","To maintain clear communication, defined accountability, and consistent decisions.")]
+ ],
+ corrective:()=>B("Refaire un briefing de 5 minutes puis poser des questions de situation jusqu'à obtenir des réponses cohérentes.","Repeat a 5-minute briefing and use situational questions until answers are consistent.")
+},
+M02:{
+ duration:"45–60 min",prereq:["M01"],
+ objective:()=>B("Maîtriser les transmissions radio courtes, utiles et structurées.","Master short, useful, structured radio transmissions."),
+ steps:()=>[
+  B("Expliquer le format : indicatif → localisation → situation → besoin.","Explain the format: call sign → location → situation → need."),
+  B("Démontrer cinq transmissions correctes.","Demonstrate five correct transmissions."),
+  B("Faire répéter avec chrono : 10 secondes maximum pour un appel simple.","Practice with a timer: max 10 seconds for a simple call."),
+  B("Ajouter du trafic radio parasite pour tester la discipline radio.","Add radio congestion to test discipline.")
+ ],
+ example:()=>B("« Adam-12, contrôle routier Vespucci Blvd, Sultan noir, deux occupants, pas de renfort demandé. »","“Adam-12, traffic stop Vespucci Blvd, black Sultan, two occupants, no backup requested.”"),
+ variants:()=>[B("Poursuite avec changements rapides de rue.","Pursuit with rapid street changes."),B("Officer down nécessitant une priorité radio.","Officer-down call requiring radio priority.")],
+ mistakes:()=>[B("Parler trop longtemps.","Talking too long."),B("Oublier la localisation.","Forgetting location."),B("Couper une transmission prioritaire.","Stepping on a priority transmission.")],
+ critical:()=>[B("Ne pas annoncer une situation dangereuse nécessitant du renfort.","Failing to broadcast a dangerous situation requiring backup.")],
+ questions:()=>[
+  [B("Quelles sont les informations minimales d'un appel radio ?","What are the minimum details for a radio call?"),B("Indicatif, localisation, nature de l'événement et besoin éventuel.","Call sign, location, event type, and any needed resource.")],
+  [B("Quand interrompre le trafic radio normal ?","When should normal radio traffic be interrupted?"),B("Lors d'une urgence ou information prioritaire affectant directement la sécurité.","During an emergency or priority information directly affecting safety.")]
+ ],
+ corrective:()=>B("Faire 10 transmissions simulées. Objectif : 8/10 claires sans correction.","Run 10 simulated transmissions. Goal: 8/10 clear without correction.")
+},
+M03:{
+ duration:"60 min",prereq:["M01","M02"],
+ objective:()=>B("Conduire une patrouille proactive, sûre et structurée.","Conduct proactive, safe, structured patrol."),
+ steps:()=>[
+  B("Expliquer zones de patrouille, observation et positionnement.","Explain patrol areas, observation, and positioning."),
+  B("Faire identifier cinq éléments suspects sans intervenir immédiatement.","Have the trainee identify five suspicious cues without immediately acting."),
+  B("Faire gérer un contact citoyen puis un appel de service.","Handle a citizen contact then a call for service."),
+  B("Débriefer décision, sécurité et communication.","Debrief decision-making, safety, and communication.")
+ ],
+ example:()=>B("Un véhicule stationne moteur allumé derrière un commerce fermé. La recrue observe, vérifie puis décide si un contact est utile.","A vehicle idles behind a closed business. The trainee observes, checks, then decides whether contact is appropriate."),
+ variants:()=>[B("Patrouille de nuit.","Night patrol."),B("Zone très fréquentée.","Crowded area.")],
+ mistakes:()=>[B("Intervenir trop vite sans observation.","Acting too quickly without observation."),B("Mauvais positionnement du véhicule.","Poor patrol vehicle positioning.")],
+ critical:()=>[B("Se placer dans une zone de danger évitable.","Placing oneself in an avoidable danger zone.")],
+ questions:()=>[[B("Pourquoi observer avant de prendre contact ?","Why observe before making contact?"),B("Pour obtenir du contexte, identifier les risques et choisir la meilleure approche.","To gain context, identify risks, and choose the best approach.")]],
+ corrective:()=>B("Refaire une patrouille d'observation où la recrue doit verbaliser chaque décision.","Repeat an observation-only patrol where the trainee verbalizes each decision.")
+},
+M04:{
+ duration:"60–75 min",prereq:["M02","M03"],
+ objective:()=>B("Réaliser un contrôle routier complet, professionnel et sûr.","Perform a complete, professional, safe traffic stop."),
+ steps:()=>[
+  B("Briefing : motif, positionnement, plaque, radio et approche.","Brief: reason, positioning, plate, radio, and approach."),
+  B("Le FTO démontre un contrôle complet.","FTO demonstrates a full traffic stop."),
+  B("La recrue réalise un contrôle standard.","Trainee performs a standard stop."),
+  B("Ajouter un conducteur nerveux puis un refus de présenter les documents.","Add a nervous driver, then refusal to provide documents."),
+  B("Faire rédiger ou verbaliser le rapport final.","Have the trainee draft or verbally outline the final report.")
+ ],
+ example:()=>B("Véhicule à vive allure. La recrue annonce le stop, choisit une position sûre, gère le conducteur et justifie sa décision finale.","Speeding vehicle. The trainee broadcasts the stop, chooses safe positioning, manages the driver, and justifies the final disposition."),
+ variants:()=>[B("Conducteur coopératif.","Cooperative driver."),B("Conducteur agressif verbalement.","Verbally aggressive driver."),B("Passager qui intervient constamment.","Passenger repeatedly interfering."),B("Véhicule possiblement volé.","Possibly stolen vehicle.")],
+ mistakes:()=>[B("Oublier plaque ou description.","Forgetting plate or description."),B("Se placer trop près du véhicule.","Standing too close to the vehicle."),B("Ne pas expliquer le motif du contrôle.","Not explaining the reason for the stop.")],
+ critical:()=>[B("Approche dangereuse malgré un risque évident.","Unsafe approach despite an obvious risk."),B("Perdre totalement le contrôle des occupants.","Completely losing control of the occupants.")],
+ questions:()=>[
+  [B("Pourquoi annoncer le contrôle avant l'approche ?","Why broadcast the stop before approaching?"),B("Pour informer le dispatch et permettre une réaction rapide si la situation dégénère.","To inform dispatch and allow a rapid response if the situation escalates.")],
+  [B("Quand demandes-tu un renfort ?","When do you request backup?"),B("Quand les occupants, le comportement, les informations ou l'environnement augmentent le risque.","When occupants, behavior, known information, or environment increase risk.")]
+ ],
+ corrective:()=>B("Refaire trois contrôles : standard, agressif, suspicion véhicule volé. Validation si sécurité + radio restent constantes.","Repeat three stops: standard, aggressive, suspected stolen vehicle. Validate if safety + radio stay consistent.")
+},
+M05:{
+ duration:"45–60 min",prereq:["M03"],
+ objective:()=>B("Effectuer un contrôle d'identité professionnel et proportionné.","Conduct a professional and proportionate identity check."),
+ steps:()=>[
+  B("Expliquer les motifs du contact et les limites de la procédure RP.","Explain reasons for contact and limits of the RP procedure."),
+  B("Démontrer un contact consensuel puis un contrôle formel.","Demonstrate consensual contact then a formal check."),
+  B("Faire gérer une personne calme puis méfiante.","Handle a calm person then a wary person."),
+  B("Faire expliquer à la recrue chaque étape avant de la faire.","Have the trainee explain each step before doing it.")
+ ],
+ example:()=>B("Individu correspondant partiellement à un signalement. La recrue vérifie les éléments avant de décider de la suite.","Person partially matching a description. The trainee verifies details before deciding next steps."),
+ variants:()=>[B("Témoin pressé.","Witness in a hurry."),B("Personne refusant de répondre aux questions non obligatoires.","Person declining optional questions.")],
+ mistakes:()=>[B("Transformer trop vite un contact en confrontation.","Turning contact into confrontation too quickly."),B("Poser des questions sans objectif.","Asking questions without purpose.")],
+ critical:()=>[B("Escalader sans justification.","Escalating without justification.")],
+ questions:()=>[[B("Que vérifies-tu avant d'escalader ?","What do you verify before escalating?"),B("Contexte, description, comportement, informations disponibles et justification procédurale.","Context, description, behavior, available information, and procedural justification.")]],
+ corrective:()=>B("Rejouer la scène avec le FTO demandant « pourquoi ? » avant chaque action de la recrue.","Replay the scene with the FTO asking “why?” before each trainee action.")
+},
+M06:{
+ duration:"75 min",prereq:["M05"],
+ objective:()=>B("Effectuer une arrestation sûre, claire et traçable.","Perform a safe, clear, traceable arrest."),
+ steps:()=>[
+  B("Briefing sur contrôle, menottage, fouille et transport.","Brief control, handcuffing, search, and transport."),
+  B("Démonstration lente puis à vitesse normale.","Demonstrate slowly, then at normal speed."),
+  B("Pratique sur suspect coopératif.","Practice on a cooperative suspect."),
+  B("Ajouter une résistance passive.","Add passive resistance."),
+  B("Faire verbaliser la chronologie du rapport.","Have trainee verbalize the report chronology.")
+ ],
+ example:()=>B("Suspect coopératif arrêté après mandat confirmé. La recrue contrôle, menotte, fouille, informe et transporte.","Cooperative suspect arrested after a confirmed warrant. Trainee controls, cuffs, searches, informs, and transports."),
+ variants:()=>[B("Suspect au sol.","Suspect on the ground."),B("Deux suspects avec renfort.","Two suspects with backup.")],
+ mistakes:()=>[B("Fouille incomplète.","Incomplete search."),B("Oublier de vérifier les menottes.","Failing to check cuffs.")],
+ critical:()=>[B("Laisser un suspect menotté sans contrôle pendant une menace active.","Leaving a cuffed suspect uncontrolled during an active threat.")],
+ questions:()=>[[B("Pourquoi la fouille doit-elle être systématique ?","Why must the search be systematic?"),B("Pour la sécurité, la découverte d'objets et la traçabilité avant transport.","For safety, item discovery, and accountability before transport.")]],
+ corrective:()=>B("Répéter contrôle → menottage → vérification → fouille → transport jusqu'à automatisation.","Repeat control → cuffing → check → search → transport until automatic.")
+},
+M07:{
+ duration:"75 min",prereq:["M06"],
+ objective:()=>B("Choisir une réponse proportionnée et privilégier la désescalade.","Choose proportionate responses and prioritize de-escalation."),
+ steps:()=>[
+  B("Présenter des situations de faible à haut risque.","Present situations from low to high risk."),
+  B("Faire expliquer l'option choisie avant action.","Have trainee explain the chosen option before acting."),
+  B("Jouer deux scénarios de désescalade verbale.","Run two verbal de-escalation scenarios."),
+  B("Analyser ensuite les alternatives possibles.","Review alternative options afterward.")
+ ],
+ example:()=>B("Individu agité, mains visibles, refuse de s'asseoir mais n'attaque pas. Objectif : espace et contrôle verbal avant force.","Agitated subject, hands visible, refuses to sit but is not attacking. Goal: space and verbal control before force."),
+ variants:()=>[B("Foule autour de la scène.","Crowd around the scene."),B("Sujet intoxiqué.","Intoxicated subject.")],
+ mistakes:()=>[B("Monter immédiatement le ton.","Immediately raising voice."),B("Se rapprocher inutilement.","Unnecessarily closing distance.")],
+ critical:()=>[B("Usage de force clairement disproportionné.","Clearly disproportionate use of force.")],
+ questions:()=>[[B("Quel est ton premier objectif avant l'usage de force ?","What is your first objective before using force?"),B("Stabiliser la situation et obtenir la coopération si raisonnablement possible.","Stabilize the situation and gain cooperation when reasonably possible.")]],
+ corrective:()=>B("Refaire le scénario sans force pendant 60 secondes sauf menace immédiate.","Replay the scenario with no force for 60 seconds unless there is an immediate threat.")
+},
+M08:{
+ duration:"90 min",prereq:["M02","M03","M07"],
+ objective:()=>B("Gérer une poursuite sans perdre sécurité, radio et coordination.","Manage a pursuit without losing safety, radio, or coordination."),
+ steps:()=>[
+  B("Briefing sur rôle primaire/secondaire et radio.","Brief primary/secondary roles and radio."),
+  B("Faire une poursuite lente d'entraînement.","Run a low-speed training pursuit."),
+  B("Ajouter changement de direction et perte visuelle temporaire.","Add direction changes and temporary loss of visual."),
+  B("Faire décider si la poursuite doit continuer.","Require a decision on whether the pursuit should continue."),
+  B("Débriefer risques et bénéfices.","Debrief risk versus benefit.")
+ ],
+ example:()=>B("Refus d'obtempérer après contrôle routier. La recrue devient unité primaire et donne les mises à jour utiles.","Failure to stop after traffic stop. Trainee becomes primary and provides useful updates."),
+ variants:()=>[B("Trafic dense.","Heavy traffic."),B("Poursuite à pied dans des ruelles.","Foot pursuit through alleys."),B("Perte de visuel.","Loss of visual.")],
+ mistakes:()=>[B("Radio trop détaillée.","Overly detailed radio."),B("Conduite tunnel vision.","Tunnel-vision driving.")],
+ critical:()=>[B("Continuer une poursuite quand le risque dépasse clairement le bénéfice sans justification.","Continuing a pursuit when risk clearly outweighs benefit without justification.")],
+ questions:()=>[[B("Quels éléments réévalues-tu pendant la poursuite ?","What factors do you reassess during a pursuit?"),B("Danger public, gravité, trafic, météo, visibilité, coordination et alternatives.","Public danger, severity, traffic, weather, visibility, coordination, and alternatives.")]],
+ corrective:()=>B("Faire une poursuite où le bon choix est l'arrêt volontaire ; vérifier que la recrue sait renoncer.","Run a pursuit where voluntary termination is correct; verify the trainee can disengage.")
+},
+M09:{
+ duration:"60 min",prereq:["M03"],
+ objective:()=>B("Sécuriser une scène de crime et préserver les informations utiles.","Secure a crime scene and preserve useful information."),
+ steps:()=>[
+  B("Définir périmètre et points d'entrée/sortie.","Define perimeter and entry/exit points."),
+  B("Séparer témoins et identifier les priorités.","Separate witnesses and identify priorities."),
+  B("Lister les éléments à ne pas contaminer.","List items that must not be contaminated."),
+  B("Créer une chronologie simple.","Build a simple timeline.")
+ ],
+ example:()=>B("Vol dans un commerce avec deux témoins et un objet abandonné. La recrue organise la scène avant les questions détaillées.","Store theft with two witnesses and an abandoned item. Trainee organizes the scene before detailed questioning."),
+ variants:()=>[B("Scène extérieure sous pluie.","Outdoor scene in rain."),B("Plusieurs unités déjà présentes.","Multiple units already present.")],
+ mistakes:()=>[B("Laisser les témoins discuter ensemble.","Allowing witnesses to discuss together."),B("Déplacer un élément sans nécessité.","Moving an item unnecessarily.")],
+ critical:()=>[B("Contaminer une preuve importante par négligence RP.","Contaminating important evidence through RP negligence.")],
+ questions:()=>[[B("Quelle est ta première priorité en arrivant ?","What is your first priority on arrival?"),B("Sécurité et stabilisation de la scène avant l'enquête détaillée.","Safety and scene stabilization before detailed investigation.")]],
+ corrective:()=>B("Faire dessiner le périmètre et expliquer chaque zone avant de rejouer la scène.","Have trainee draw the perimeter and explain each zone before replaying.")
+},
+M10:{
+ duration:"60 min",prereq:["M06","M09"],
+ objective:()=>B("Rédiger un rapport factuel, chronologique et exploitable.","Write a factual, chronological, usable report."),
+ steps:()=>[
+  B("Comparer un mauvais et un bon rapport.","Compare a poor and a good report."),
+  B("Faire écrire les faits sans conclusions inutiles.","Write facts without unnecessary conclusions."),
+  B("Vérifier chronologie, personnes, actions et résultat.","Check chronology, people, actions, and outcome."),
+  B("Faire relire par la recrue en cherchant ce qui manque.","Have trainee proofread looking for missing information.")
+ ],
+ example:()=>B("Mauvais : « Le suspect était bizarre donc je l'ai arrêté. » Bon : comportements observables, vérifications et motif précis.","Bad: “The suspect was weird so I arrested him.” Good: observable behavior, checks, and exact grounds."),
+ variants:()=>[B("Rapport de poursuite.","Pursuit report."),B("Rapport d'usage de force.","Use-of-force report.")],
+ mistakes:()=>[B("Opinion présentée comme fait.","Opinion stated as fact."),B("Chronologie incomplète.","Incomplete chronology.")],
+ critical:()=>[B("Inventer un fait ou omettre volontairement un élément essentiel.","Inventing a fact or intentionally omitting an essential detail.")],
+ questions:()=>[[B("Quelle différence entre fait et interprétation ?","What is the difference between fact and interpretation?"),B("Le fait est observable/vérifiable ; l'interprétation doit être justifiée ou identifiée comme telle.","A fact is observable/verifiable; interpretation must be justified or identified as such.")]],
+ corrective:()=>B("Réécrire un ancien rapport avec une structure chronologique stricte.","Rewrite an older report using a strict chronological structure.")
+},
+M11:{
+ duration:"90 min",prereq:["M07","M08"],
+ objective:()=>B("Réagir aux interventions à haut risque avec discipline, renfort et coordination.","Respond to high-risk incidents with discipline, backup, and coordination."),
+ steps:()=>[
+  B("Définir menace, périmètre et ressources.","Define threat, perimeter, and resources."),
+  B("Faire verbaliser le plan avant mouvement.","Require verbal plan before movement."),
+  B("Attribuer les rôles à chaque unité.","Assign roles to each unit."),
+  B("Introduire une information contradictoire.","Introduce conflicting information."),
+  B("Débriefer les décisions clés.","Debrief key decisions.")
+ ],
+ example:()=>B("Appel pour individu armé dans un parking. La recrue évite l'entrée précipitée, demande ressources et structure la réponse.","Call for an armed subject in a parking lot. Trainee avoids rushing in, requests resources, and structures the response."),
+ variants:()=>[B("Victime potentielle à proximité.","Potential victim nearby."),B("Information non confirmée sur l'arme.","Unconfirmed weapon information.")],
+ mistakes:()=>[B("Entrer sans plan.","Entering without a plan."),B("Multiplier les ordres contradictoires.","Giving conflicting commands.")],
+ critical:()=>[B("Exposer inutilement plusieurs unités à une menace connue.","Unnecessarily exposing multiple units to a known threat.")],
+ questions:()=>[[B("Quand ralentir l'intervention ?","When should you slow the response?"),B("Quand le temps permet de gagner information, ressources et position sans augmenter le danger.","When time allows gaining information, resources, and position without increasing danger.")]],
+ corrective:()=>B("Rejouer avec obligation d'attendre un briefing de 30 secondes avant engagement.","Replay with a mandatory 30-second briefing before engagement.")
+},
+M12:{
+ duration:"90 min",prereq:["M11"],
+ objective:()=>B("Prendre le contrôle d'une scène multi-unités et communiquer un plan clair.","Take control of a multi-unit scene and communicate a clear plan."),
+ steps:()=>[
+  B("Identifier commandement, menace et objectifs.","Identify command, threat, and objectives."),
+  B("Nommer rôles : contact, périmètre, circulation, arrestation.","Assign contact, perimeter, traffic, and arrest roles."),
+  B("Donner un briefing de moins de 60 secondes.","Deliver a briefing under 60 seconds."),
+  B("Réévaluer après un changement de situation.","Reassess after a situation change.")
+ ],
+ example:()=>B("Accident + suspect recherché + foule. La recrue priorise, répartit les unités et garde une vue d'ensemble.","Crash + wanted suspect + crowd. Trainee prioritizes, assigns units, and maintains the big picture."),
+ variants:()=>[B("Superviseur retardé.","Supervisor delayed."),B("Deux scènes proches simultanées.","Two nearby scenes at once.")],
+ mistakes:()=>[B("Tout faire soi-même.","Trying to do everything personally."),B("Ne pas confirmer que les rôles sont compris.","Not confirming roles are understood.")],
+ critical:()=>[B("Absence totale de commandement entraînant une confusion dangereuse.","Total lack of command causing dangerous confusion.")],
+ questions:()=>[[B("Quel est le rôle principal du Scene Commander ?","What is the main role of a Scene Commander?"),B("Maintenir la vision globale, fixer les priorités et déléguer efficacement.","Maintain the big picture, set priorities, and delegate effectively.")]],
+ corrective:()=>B("Refaire briefing et attribution des rôles jusqu'à ce qu'ils soient clairs et courts.","Repeat briefing and role assignment until clear and concise.")
+},
+M13:{
+ duration:"90 min",prereq:["M01","M10"],
+ objective:()=>B("Former une recrue avec une méthode cohérente, factuelle et constructive.","Train a recruit using a consistent, factual, constructive method."),
+ steps:()=>[
+  B("Utiliser : expliquer → démontrer → faire pratiquer → observer → débriefer.","Use: explain → demonstrate → practice → observe → debrief."),
+  B("Séparer comportement observé et jugement personnel.","Separate observed behavior from personal judgment."),
+  B("Donner un feedback avec un point fort, un point à corriger et une action concrète.","Give feedback with one strength, one correction, and one concrete action."),
+  B("Documenter les progrès.","Document progress.")
+ ],
+ example:()=>B("Au lieu de « tu es mauvais en radio », dire : « sur trois appels, deux manquaient de localisation ; prochaine session on fait dix appels courts ».","Instead of “you are bad on radio,” say: “two of three calls lacked location; next session we'll do ten short calls.”"),
+ variants:()=>[B("Recrue stressée.","Stressed trainee."),B("Recrue trop confiante.","Overconfident trainee.")],
+ mistakes:()=>[B("Corriger sans expliquer.","Correcting without explaining."),B("Accumuler plusieurs critiques vagues.","Stacking multiple vague criticisms.")],
+ critical:()=>[B("Humilier ou piéger volontairement la recrue au lieu de former.","Humiliating or intentionally trapping the trainee instead of teaching.")],
+ questions:()=>[[B("Quel feedback est le plus utile ?","What feedback is most useful?"),B("Spécifique, observable, rapide et accompagné d'une action corrective.","Specific, observable, timely, and paired with a corrective action.")]],
+ corrective:()=>B("Transformer cinq critiques vagues en feedbacks factuels.","Rewrite five vague criticisms into factual feedback.")
+},
+M14:{
+ duration:"75 min",prereq:["M12","M13"],
+ objective:()=>B("Superviser une équipe, contrôler la qualité et corriger sans micro-manager.","Supervise a team, maintain quality, and correct without micromanaging."),
+ steps:()=>[
+  B("Identifier risques et priorités de l'équipe.","Identify team risks and priorities."),
+  B("Observer avant d'intervenir.","Observe before intervening."),
+  B("Corriger au bon niveau : coaching, rappel ou décision.","Correct at the right level: coaching, reminder, or decision."),
+  B("Documenter les décisions importantes.","Document important decisions.")
+ ],
+ example:()=>B("Deux officiers appliquent différemment une procédure. Le superviseur clarifie le standard puis suit l'application.","Two officers apply a procedure differently. Supervisor clarifies the standard and follows implementation."),
+ variants:()=>[B("Sous-effectif.","Understaffing."),B("Conflit entre officiers.","Officer conflict.")],
+ mistakes:()=>[B("Intervenir dans chaque détail.","Intervening in every detail."),B("Attendre trop longtemps sur une erreur répétée.","Waiting too long on a repeated error.")],
+ critical:()=>[B("Ignorer un problème de sécurité connu.","Ignoring a known safety issue.")],
+ questions:()=>[[B("Quand intervenir immédiatement ?","When should a supervisor intervene immediately?"),B("Quand sécurité, discipline majeure ou cohérence opérationnelle sont menacées.","When safety, major discipline, or operational coherence are threatened.")]],
+ corrective:()=>B("Présenter trois problèmes d'équipe et demander quel niveau d'intervention est proportionné.","Present three team problems and ask what intervention level is proportionate.")
+},
+M15:{
+ duration:"90 min",prereq:["M14"],
+ objective:()=>B("Commander des opérations en gardant objectifs, ressources et communication alignés.","Command operations while keeping objectives, resources, and communication aligned."),
+ steps:()=>[
+  B("Définir l'intention du commandement.","Define command intent."),
+  B("Prioriser objectifs et ressources.","Prioritize objectives and resources."),
+  B("Déléguer des responsables.","Delegate leads."),
+  B("Fixer des points de situation réguliers.","Set regular status checks."),
+  B("Préparer une solution de repli.","Prepare a fallback option.")
+ ],
+ example:()=>B("Plusieurs incidents simultanés. Le commandement répartit les unités, conserve une réserve et évite de saturer une zone.","Multiple simultaneous incidents. Command distributes units, retains a reserve, and avoids overcommitting one area."),
+ variants:()=>[B("Panne radio partielle.","Partial radio outage."),B("Unité spécialisée indisponible.","Specialized unit unavailable.")],
+ mistakes:()=>[B("Changer de priorité sans l'annoncer.","Changing priority without communicating it."),B("Utiliser toutes les ressources immédiatement.","Using all resources immediately.")],
+ critical:()=>[B("Absence de coordination lors d'un événement majeur.","Lack of coordination during a major event.")],
+ questions:()=>[[B("Pourquoi garder une réserve ?","Why keep a reserve?"),B("Pour répondre aux imprévus et éviter que tout le dispositif soit figé.","To respond to unexpected events and avoid committing the entire force.")]],
+ corrective:()=>B("Faire un tabletop de 10 minutes avec ressources limitées et deux imprévus.","Run a 10-minute tabletop with limited resources and two unexpected events.")
+},
+M16:{
+ duration:"60 min",prereq:["M15"],
+ objective:()=>B("Développer une culture de leadership cohérente, éthique et durable.","Build a consistent, ethical, sustainable leadership culture."),
+ steps:()=>[
+  B("Définir les standards attendus d'un leader.","Define expected leadership standards."),
+  B("Analyser une décision impopulaire mais nécessaire.","Analyze an unpopular but necessary decision."),
+  B("Identifier comment développer de futurs leaders.","Identify how to develop future leaders."),
+  B("Créer un plan personnel d'amélioration.","Create a personal improvement plan.")
+ ],
+ example:()=>B("Un excellent officier opérationnel crée des tensions. Le leader protège la performance sans tolérer le comportement nocif.","An excellent operational officer creates team tension. Leader protects performance without tolerating harmful behavior."),
+ variants:()=>[B("Décision contestée publiquement.","Decision challenged publicly."),B("Erreur du leader lui-même.","Leader's own mistake.")],
+ mistakes:()=>[B("Confondre autorité et leadership.","Confusing authority with leadership."),B("Éviter toute décision difficile.","Avoiding every difficult decision.")],
+ critical:()=>[B("Favoritisme manifeste ou standard différent selon les personnes.","Clear favoritism or different standards for different people.")],
+ questions:()=>[[B("Comment un leader gagne-t-il de la crédibilité ?","How does a leader earn credibility?"),B("Par cohérence, compétence, responsabilité, respect et décisions explicables.","Through consistency, competence, accountability, respect, and explainable decisions.")]],
+ corrective:()=>B("Rédiger trois engagements concrets de leadership et les réévaluer plus tard.","Write three concrete leadership commitments and review them later.")
+}
+};
+
+const RADIO_EXAMPLES=[
+ {bad:()=>B("« Euh dispatch je poursuis une voiture là, elle va vite, je sais pas trop où on est... »","“Uh dispatch I'm chasing a car, it's going fast, not really sure where we are...”"),good:()=>B("« Adam-12, poursuite active, nord Alta St, Sultan rouge, vitesse élevée, trafic modéré. »","“Adam-12, active pursuit, north Alta St, red Sultan, high speed, moderate traffic.”"),why:()=>B("Le bon message donne indicatif, action, direction, rue, véhicule et niveau de risque sans saturer la radio.","The good message gives call sign, action, direction, street, vehicle, and risk level without clogging radio.")},
+ {bad:()=>B("« J'ai besoin de quelqu'un ici. »","“I need someone here.”"),good:()=>B("« Adam-12, renfort demandé Mission Row parking nord, individu agressif, mains visibles. »","“Adam-12, backup requested Mission Row north lot, aggressive subject, hands visible.”"),why:()=>B("Le renfort sait où aller et à quoi s'attendre.","Backup knows where to go and what to expect.")}
+];
+
+const REPORT_EXAMPLES=[
+ {bad:()=>B("« Le suspect était bizarre et dangereux donc je l'ai arrêté. »","“The suspect was weird and dangerous so I arrested him.”"),good:()=>B("« À 22:14, j'ai observé l'individu frapper trois fois la vitrine avec une barre métallique. Après sommations, il a lâché l'objet et a été menotté sans résistance. »","“At 22:14, I observed the individual strike the storefront window three times with a metal bar. After commands, he dropped the item and was handcuffed without resistance.”"),why:()=>B("Le bon exemple décrit des faits observables, une chronologie et les actions de l'officier.","The good example describes observable facts, chronology, and officer actions.")}
+];
+
+const SCENARIO_BANK=[
+ {module:"M04",difficulty:"Facile",situation:()=>B("Conducteur coopératif arrêté pour excès de vitesse.","Cooperative driver stopped for speeding."),constraints:()=>B("Un seul occupant, trafic faible, documents valides.","One occupant, light traffic, valid documents."),success:()=>B("Radio complète, positionnement sûr, explication claire, décision proportionnée.","Complete radio call, safe positioning, clear explanation, proportionate disposition.")},
+ {module:"M04",difficulty:"Difficile",situation:()=>B("Conducteur nerveux, passager qui filme et coupe la parole.","Nervous driver, passenger filming and interrupting."),constraints:()=>B("Trafic dense, véhicule partiellement sur la chaussée.","Heavy traffic, vehicle partially in roadway."),success:()=>B("Maintenir sécurité, contrôler la communication et ne pas escalader inutilement.","Maintain safety, control communication, and avoid unnecessary escalation.")},
+ {module:"M08",difficulty:"Normal",situation:()=>B("Refus d'obtempérer après stop routier, vitesse modérée.","Failure to stop after a traffic stop, moderate speed."),constraints:()=>B("Deux unités disponibles, météo claire.","Two units available, clear weather."),success:()=>B("Bonne radio, coordination primaire/secondaire, réévaluation régulière du risque.","Good radio, primary/secondary coordination, regular risk reassessment.")},
+ {module:"M08",difficulty:"Stress test",situation:()=>B("Poursuite véhicule puis suspect abandonne la voiture et fuit à pied.","Vehicle pursuit followed by suspect bailing out and fleeing on foot."),constraints:()=>B("Perte de visuel 10 secondes, ruelles étroites, radio chargée.","10-second loss of visual, narrow alleys, busy radio."),success:()=>B("Ne pas paniquer, annoncer dernière position, coordonner périmètre, éviter tunnel vision.","Stay composed, broadcast last known position, coordinate perimeter, avoid tunnel vision.")},
+ {module:"M11",difficulty:"Difficile",situation:()=>B("Appel pour individu armé dans un parking souterrain.","Call for an armed subject in an underground garage."),constraints:()=>B("Information non confirmée, civils possibles, visibilité faible.","Unconfirmed information, possible civilians, low visibility."),success:()=>B("Périmètre, ressources, briefing, approche méthodique et réévaluation.","Perimeter, resources, briefing, methodical approach, and reassessment.")},
+ {module:"M12",difficulty:"Stress test",situation:()=>B("Accident majeur, foule, suspect recherché et informations contradictoires.","Major crash, crowd, wanted suspect, and conflicting information."),constraints:()=>B("Ressources limitées pendant trois minutes.","Limited resources for three minutes."),success:()=>B("Créer commandement clair, attribuer rôles, prioriser et demander confirmations.","Establish clear command, assign roles, prioritize, and request confirmations.")},
+ {module:"M02",difficulty:"Facile",situation:()=>B("Série de cinq appels radio de patrouille simples.","Series of five simple patrol radio calls."),constraints:()=>B("Chaque appel doit durer moins de 10 secondes.","Each call must last under 10 seconds."),success:()=>B("Indicatif, localisation, situation et besoin si nécessaire.","Call sign, location, situation, and need if applicable.")},
+ {module:"M10",difficulty:"Normal",situation:()=>B("Rédiger le rapport d'une arrestation après contrôle routier.","Write the report for an arrest following a traffic stop."),constraints:()=>B("Le rapport doit être chronologique et uniquement factuel.","Report must be chronological and factual only."),success:()=>B("Motif, observations, actions, arrestation, fouille, transport et résultat présents.","Reason, observations, actions, arrest, search, transport, and outcome included.")}
+];
 
 const CAD_STATUSES = ["Disponible","En intervention","Transport","Pause","Hors service"];
 const BOLO_TYPES = ["Personne","Véhicule","Autre"];
@@ -328,7 +633,7 @@ const scenarios = [
 
 const pages = {
  dashboard:"Dashboard",profile:"Mon profil",mySpace:"Mon espace opérationnel",registrations:"Inscriptions",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
- incidents:"Rapports d'incident",approvals:"Validations",mdt:"MDT / Dossiers",bolos:"BOLO / Avis",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
+ incidents:"Rapports d'incident",approvals:"Validations",mdt:"MDT / Dossiers",bolos:"BOLO / Avis",corrections:"Corrections & addenda",manual:"Manuel FTO",ftoAcademy:"FTO Academy",ftoJournal:"Journal FTO",ftoFinal:"Évaluation finale FTO",modules:"Formations",
  evaluations:"Évaluations",trainees:"Mes recrues",officers:"Officiers",assignments:"Affectations FTO",
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
@@ -548,7 +853,7 @@ function render(page){
   const content=$("content");
   content?.classList.remove("page-enter");
   ({
-    dashboard,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
+    dashboard,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,ftoAcademy,ftoJournal,ftoFinal,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
     stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,history
   }[page]||dashboard)();
@@ -1518,6 +1823,137 @@ function openCloseWatch(id){
       document.querySelector(".modal")?.remove();watchCommand();
     }catch(err){$("watchCloseError").textContent="Erreur : "+(err.code||err.message);}
   };
+}
+
+
+async function accessibleTrainees(){
+  const users=await getUsers();
+  if(hasPerm("personnel_view")) return users.filter(u=>!["Archivé","Refusé","En attente"].includes(u.status));
+  const snap=await getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid)));
+  const ids=new Set(snap.docs.map(d=>d.data()).filter(x=>x.status==="Active").map(x=>x.traineeId));
+  return users.filter(u=>ids.has(u.uid));
+}
+function academyModuleTitle(code){
+  const m=modules.find(x=>x[0]===code);
+  return m?`${m[0]} — ${translateSystemText(m[1],currentLang)}`:code;
+}
+
+async function ftoAcademy(){
+  if(!hasPerm("academy_manage"))return;
+  const trainees=await accessibleTrainees();
+  let rec="";
+  try{
+    const s=await getDocs(collection(db,"evaluations")),evals=s.docs.map(d=>d.data());
+    rec=trainees.slice(0,6).map(t=>{
+      const te=evals.filter(e=>e.officerId===t.uid),avg=te.length?Math.round(te.reduce((a,e)=>a+(Number(e.score)||0),0)/te.length):0;
+      const by={};te.forEach(e=>(by[e.moduleCode]??=[]).push(Number(e.score)||0));
+      const weak=Object.entries(by).map(([m,a])=>[m,Math.round(a.reduce((x,y)=>x+y,0)/a.length)]).sort((a,b)=>a[1]-b[1])[0];
+      return `<div class="academy-rec card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Score moyen</span><b>${avg}/100</b></div><div class="row"><span>Module faible</span><b>${weak?`${esc(weak[0])} • ${weak[1]}/100`:"—"}</b></div><div class="row"><span>Prochaine priorité</span><b>${weak?esc(academyModuleTitle(weak[0])):esc(B("Commencer M01","Start M01"))}</b></div></div>`;
+    }).join("");
+  }catch{}
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FIELD TRAINING PROGRAM</span><h2>FTO Academy</h2><p class="muted">${esc(B("Un guide opérationnel pour savoir quoi expliquer, démontrer, faire pratiquer et évaluer.","An operational guide showing what to explain, demonstrate, practice, and evaluate."))}</p></div><div class="academy-hero-actions"><button class="btn" id="academyNewSessionBtn">Créer une session</button><button class="btn secondary" id="academyRandomScenarioBtn">Générer un scénario</button></div></div>
+  <div class="section-title">Recommandations FTO</div><div class="academy-recommendations">${rec||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>
+  <div class="section-title">Programme guidé</div><div class="academy-module-grid">${modules.map(m=>`<div class="academy-module card"><div class="academy-module-top"><span class="module-code">${m[0]}</span><span class="tag">${esc(translateSystemText(m[3],currentLang))}</span></div><h3>${esc(translateSystemText(m[1],currentLang))}</h3><p class="muted">${esc(translateSystemText(m[2],currentLang))}</p><div class="row"><span>Durée conseillée</span><b>${esc(ACADEMY_MODULES[m[0]]?.duration||"—")}</b></div><button class="btn secondary academy-guide-btn" data-module="${m[0]}">Voir le guide</button></div>`).join("")}</div>
+  <div class="section-title">Bibliothèque pédagogique</div><div class="grid2"><div class="card"><h3>Exemples radio</h3>${RADIO_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div><div class="card"><h3>Exemples de rapports</h3>${REPORT_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div></div>`;
+  document.querySelectorAll(".academy-guide-btn").forEach(b=>b.onclick=()=>openAcademyGuide(b.dataset.module));
+  $("academyNewSessionBtn").onclick=openAcademySessionForm;
+  $("academyRandomScenarioBtn").onclick=()=>openRandomScenario();
+}
+
+function openAcademyGuide(code){
+  const d=ACADEMY_MODULES[code],m=modules.find(x=>x[0]===code);if(!d||!m)return;
+  showModal(`<div class="academy-guide"><div class="academy-guide-head"><div><span class="module-code large">${code}</span><h2>${esc(translateSystemText(m[1],currentLang))}</h2><p>${esc(d.objective())}</p></div><span class="tag">${esc(d.duration)}</span></div>
+  <div class="guide-section"><h3>Prérequis</h3><div class="chip-row">${d.prereq.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div></div>
+  <div class="guide-section"><h3>Ce que le FTO doit faire</h3><ol class="academy-steps">${d.steps().map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>
+  <div class="guide-section guide-example"><h3>Exemple RP</h3><p>${esc(d.example())}</p></div>
+  <div class="grid2"><div class="guide-section"><h3>Variantes</h3>${d.variants().map(x=>`<div class="guide-line">↳ ${esc(x)}</div>`).join("")}</div><div class="guide-section"><h3>Erreurs fréquentes</h3>${d.mistakes().map(x=>`<div class="guide-line warning-line">⚠ ${esc(x)}</div>`).join("")}</div></div>
+  <div class="guide-section critical-box"><h3>Erreurs critiques</h3>${d.critical().map(x=>`<div>🚨 ${esc(x)}</div>`).join("")}</div>
+  <div class="guide-section"><h3>Questions à poser / Réponses attendues</h3>${d.questions().map(([q,a])=>`<details class="qa-item"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>
+  <div class="guide-section corrective-box"><h3>Action corrective</h3><p>${esc(d.corrective())}</p></div>
+  <div class="modal-actions"><button class="btn" id="guideScenarioBtn">Générer un scénario</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
+  $("guideScenarioBtn").onclick=()=>openRandomScenario(code);
+}
+
+function openRandomScenario(moduleCode=null){
+  const pool=SCENARIO_BANK.filter(x=>!moduleCode||x.module===moduleCode),choices=pool.length?pool:SCENARIO_BANK,s=choices[Math.floor(Math.random()*choices.length)];
+  showModal(`<div class="scenario-generated"><div class="scenario-stamp">SCENARIO</div><span class="tag">${esc(s.module)}</span> <span class="tag orange">${esc(translateSystemText(s.difficulty,currentLang))}</span><h2>Nouveau scénario</h2><div class="scenario-block"><span>Situation</span><p>${esc(s.situation())}</p></div><div class="scenario-block"><span>Contraintes</span><p>${esc(s.constraints())}</p></div><div class="scenario-block"><span>Réussite attendue</span><p>${esc(s.success())}</p></div><div class="modal-actions"><button class="btn" id="regenScenarioBtn">Générer un scénario</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
+  $("regenScenarioBtn").onclick=()=>openRandomScenario(moduleCode);
+}
+
+async function openAcademySessionForm(){
+  const trainees=await accessibleTrainees();if(!trainees.length){showToast("Aucune recrue assignée.","warning");return;}
+  showModal(`<h2>Créer une session</h2><form id="academySessionForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="academyTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}">${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Module</span><select id="academyModule">${modules.map(m=>`<option value="${m[0]}">${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select></label><label class="field"><span>Phase FTO</span><select id="academyPhase"><option value="P1">Phase 1 — Observation</option><option value="P2">Phase 2 — Assistance</option><option value="P3">Phase 3 — Autonomie supervisée</option><option value="P4">Phase 4 — Évaluation finale</option></select></label></div><div id="academySessionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Commencer une session</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("academySessionForm").onsubmit=createAcademySession;
+}
+async function createAcademySession(e){
+  e.preventDefault();if(!hasPerm("academy_manage"))return;
+  const t=$("academyTrainee"),code=$("academyModule").value,phase=$("academyPhase").value;
+  try{
+    const ref=await addDoc(collection(db,"fto_sessions"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,moduleCode:code,moduleTitle:modules.find(m=>m[0]===code)?.[1]||code,phase,status:"En cours",checklist:{briefing:false,demonstration:false,practice:false,observation:false,debrief:false},createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    await addAudit("FTO_SESSION_CREATE",t.value,`${code} • ${phase}`);
+    document.querySelector(".modal")?.remove();showToast("Session créée.","success");openGuidedSession(ref.id);
+  }catch(err){$("academySessionError").textContent="Erreur : "+(err.code||err.message);}
+}
+
+async function openGuidedSession(id){
+  const s=await getDoc(doc(db,"fto_sessions",id));if(!s.exists())return;
+  const v={id,...s.data()},d=ACADEMY_MODULES[v.moduleCode];if(!d)return;const c=v.checklist||{};
+  const pct=Math.round(["briefing","demonstration","practice","observation","debrief"].filter(k=>c[k]).length/5*100);
+  const steps=d.steps();
+  showModal(`<div class="guided-session"><div class="academy-guide-head"><div><span class="module-code large">${esc(v.moduleCode)}</span><h2>Session guidée — ${esc(v.traineeName)}</h2><p>${esc(d.objective())}</p></div><span class="tag">${esc(v.phase)}</span></div><div class="guided-progress"><i style="width:${pct}%"></i></div><div class="guided-checks">${[["briefing","Briefing",steps[0]||""],["demonstration","Démonstration",steps[1]||""],["practice","Pratique",steps[2]||""],["observation","Observation",steps[3]||""],["debrief","Débrief",steps[4]||d.corrective()]].map(([key,label,desc])=>`<label class="guided-step ${c[key]?"done":""}"><input type="checkbox" class="session-check" data-key="${key}" ${c[key]?"checked":""}><span><b>${esc(label)}</b><small>${esc(desc)}</small></span></label>`).join("")}</div><div class="grid2"><div class="guide-section"><h3>Erreurs critiques</h3>${d.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}</div><div class="guide-section"><h3>Questions à poser</h3>${d.questions().map(([q,a])=>`<details class="qa-item"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div></div><label class="field full"><span>Résumé de session</span><textarea id="sessionSummary" rows="4">${esc(v.summary||"")}</textarea></label><label class="field full"><span>Points forts</span><textarea id="sessionStrengths" rows="3">${esc(v.strengths||"")}</textarea></label><label class="field full"><span>Points à améliorer</span><textarea id="sessionImprove" rows="3">${esc(v.improvements||"")}</textarea></label><label class="field full"><span>Objectifs prochaine session</span><textarea id="sessionNext" rows="3">${esc(v.nextGoals||"")}</textarea></label><div class="modal-actions"><button class="btn secondary" id="sessionSaveBtn">Enregistrer le journal</button><button class="btn" id="sessionFinishBtn">Terminer la session</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
+  $("sessionSaveBtn").onclick=()=>saveGuidedSession(id,false);$("sessionFinishBtn").onclick=()=>saveGuidedSession(id,true);
+}
+async function saveGuidedSession(id,finish=false){
+  const checklist={};document.querySelectorAll(".session-check").forEach(x=>checklist[x.dataset.key]=x.checked);
+  try{
+    const payload={checklist,summary:$("sessionSummary").value.trim(),strengths:$("sessionStrengths").value.trim(),improvements:$("sessionImprove").value.trim(),nextGoals:$("sessionNext").value.trim(),updatedAt:serverTimestamp()};
+    if(finish){payload.status="Terminée";payload.completedAt=serverTimestamp();}
+    await updateDoc(doc(db,"fto_sessions",id),payload);await addAudit(finish?"FTO_SESSION_COMPLETE":"FTO_SESSION_UPDATE",id,finish?"Terminée":"Journal");showToast("Journal enregistré.","success");
+    if(finish){document.querySelector(".modal")?.remove();ftoJournal();}else openGuidedSession(id);
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+async function ftoJournal(){
+  if(!hasPerm("academy_manage"))return;
+  const trainees=await accessibleTrainees(),ids=new Set(trainees.map(t=>t.uid));
+  const [ss,os]=await Promise.all([getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives"))]);
+  const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).filter(s=>hasPerm("personnel_view")||s.ftoId===window.LSPD.user.uid||ids.has(s.traineeId)).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const objectives=os.docs.map(d=>({id:d.id,...d.data()})).filter(o=>hasPerm("personnel_view")||o.createdById===window.LSPD.user.uid||ids.has(o.traineeId)).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newObjectiveBtn">Ajouter un objectif</button><button class="btn secondary" id="journalNewSessionBtn">Créer une session</button></div><div class="grid2"><div class="card"><h3>Objectifs de la recrue</h3>${objectives.length?objectives.map(o=>`<div class="objective-item"><div><span class="tag ${o.priority==="Critique"?"red":o.priority==="Haute"?"orange":""}">${esc(o.priority)}</span><b>${esc(o.traineeName)}</b><p>${esc(o.text)}</p></div><div><span class="tag ${o.status==="Atteint"?"green":""}">${esc(o.status)}</span>${o.status==="Ouvert"?`<button class="btn secondary objective-done" data-id="${o.id}">Atteint</button>`:""}</div></div>`).join(""):'<p class="muted">Aucun objectif.</p>'}</div><div class="card"><h3>Historique pédagogique</h3><div class="row"><span>Sessions terminées</span><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div class="row"><span>Sessions en cours</span><b>${sessions.filter(s=>s.status==="En cours").length}</b></div></div></div><div class="section-title">Journal FTO</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Module</th><th>Phase FTO</th><th>Statut</th><th>Résumé de session</th><th></th></tr></thead><tbody>${sessions.length?sessions.map(s=>`<tr><td>${formatDate(s.createdAt)}</td><td>${esc(s.traineeName)}</td><td>${esc(s.moduleCode)}</td><td>${esc(s.phase)}</td><td><span class="tag ${s.status==="Terminée"?"green":"orange"}">${esc(s.status)}</span></td><td>${esc(s.summary||"—")}</td><td><button class="btn secondary journal-open" data-id="${s.id}">Continuer</button></td></tr>`).join(""):'<tr><td colspan="7">Aucune session.</td></tr>'}</tbody></table></div>`;
+  $("newObjectiveBtn").onclick=openObjectiveForm;$("journalNewSessionBtn").onclick=openAcademySessionForm;
+  document.querySelectorAll(".journal-open").forEach(b=>b.onclick=()=>openGuidedSession(b.dataset.id));
+  document.querySelectorAll(".objective-done").forEach(b=>b.onclick=()=>markObjectiveDone(b.dataset.id));
+}
+async function openObjectiveForm(){
+  const trainees=await accessibleTrainees();if(!trainees.length){showToast("Aucune recrue assignée.","warning");return;}
+  showModal(`<h2>Ajouter un objectif</h2><form id="objectiveForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="objTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}">${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Priorité</span><select id="objPriority"><option>Faible</option><option selected>Moyenne</option><option>Haute</option><option>Critique</option></select></label></div><label class="field full"><span>Objectif pédagogique</span><textarea id="objText" rows="5" required></textarea></label><div id="objError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter un objectif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("objectiveForm").onsubmit=saveObjective;
+}
+async function saveObjective(e){
+  e.preventDefault();const t=$("objTrainee");
+  try{await addDoc(collection(db,"training_objectives"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,text:$("objText").value.trim(),priority:$("objPriority").value,status:"Ouvert",createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("TRAINING_OBJECTIVE_CREATE",t.value,$("objText").value.trim());document.querySelector(".modal")?.remove();showToast("Objectif ajouté.","success");ftoJournal();}catch(err){$("objError").textContent="Erreur : "+(err.code||err.message);}
+}
+async function markObjectiveDone(id){
+  try{await updateDoc(doc(db,"training_objectives",id),{status:"Atteint",completedById:window.LSPD.user.uid,completedByName:window.LSPD.profile.name,completedAt:serverTimestamp()});await addAudit("TRAINING_OBJECTIVE_COMPLETE",id,"Atteint");ftoJournal();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+async function ftoFinal(){
+  if(!hasPerm("academy_manage"))return;
+  const trainees=await accessibleTrainees(),[es,fs,ss]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"fto_sessions"))]);
+  const evals=es.docs.map(d=>d.data()),finals=fs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),sessions=ss.docs.map(d=>d.data());
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FINAL REVIEW</span><h2>Évaluation finale FTO</h2><p class="muted">${esc(B("Décision finale basée sur modules, scores et historique pédagogique.","Final decision based on modules, scores, and training history."))}</p></div><button class="btn" id="newFinalReviewBtn">Créer l'évaluation finale</button></div><div class="section-title">Recrues</div><div class="academy-module-grid">${trainees.map(t=>{const te=evals.filter(e=>e.officerId===t.uid),valid=[...new Set(te.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=te.length?Math.round(te.reduce((s,e)=>s+(Number(e.score)||0),0)/te.length):0,ts=sessions.filter(s=>s.traineeId===t.uid&&s.status==="Terminée").length;return `<div class="card final-card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Modules validés</span><b>${valid.length}/${modules.length}</b></div><div class="row"><span>Moyenne globale</span><b>${avg}/100</b></div><div class="row"><span>Sessions terminées</span><b>${ts}</b></div><button class="btn secondary final-review-person" data-id="${t.uid}">Évaluation finale</button></div>`;}).join("")||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div><div class="section-title">Historique</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Décision</th><th>Modules validés</th><th>Moyenne globale</th><th>FTO</th></tr></thead><tbody>${finals.length?finals.map(f=>`<tr><td>${formatDate(f.createdAt)}</td><td>${esc(f.traineeName)}</td><td><span class="tag ${f.decision==="Validation FTO"?"green":f.decision==="Échec FTO"?"red":"orange"}">${esc(f.decision)}</span></td><td>${esc(f.validatedModules)}/${modules.length}</td><td>${esc(f.averageScore)}/100</td><td>${esc(f.ftoName)}</td></tr>`).join(""):'<tr><td colspan="6">Aucune entrée.</td></tr>'}</tbody></table></div>`;
+  $("newFinalReviewBtn").onclick=()=>openFinalReviewForm();document.querySelectorAll(".final-review-person").forEach(b=>b.onclick=()=>openFinalReviewForm(b.dataset.id));
+}
+async function openFinalReviewForm(prefillId=null){
+  const trainees=await accessibleTrainees();if(!trainees.length)return;
+  const [es,ss]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions"))]),evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),selected=prefillId||trainees[0].uid;
+  showModal(`<h2>Créer l'évaluation finale</h2><form id="finalReviewForm"><label class="field"><span>Recrue</span><select id="finalTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}" ${t.uid===selected?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><div id="finalStats" class="final-summary"></div><label class="field"><span>Recommandation finale</span><select id="finalDecision"><option>Validation FTO</option><option>Prolongation FTO</option><option>Échec FTO</option></select></label><label class="field full"><span>Commentaire final</span><textarea id="finalComment" rows="6" required></textarea></label><div id="finalError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer l'évaluation finale</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  const refresh=()=>{const id=$("finalTrainee").value,te=evals.filter(e=>e.officerId===id),valid=[...new Set(te.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=te.length?Math.round(te.reduce((s,e)=>s+(Number(e.score)||0),0)/te.length):0,ts=sessions.filter(s=>s.traineeId===id&&s.status==="Terminée").length;$("finalStats").innerHTML=`<div><span>Modules validés</span><b>${valid.length}/${modules.length}</b></div><div><span>Moyenne globale</span><b>${avg}/100</b></div><div><span>Sessions terminées</span><b>${ts}</b></div>`;$("finalStats").dataset.valid=valid.length;$("finalStats").dataset.avg=avg;$("finalStats").dataset.sessions=ts;};
+  $("finalTrainee").onchange=refresh;refresh();$("finalReviewForm").onsubmit=saveFinalReview;
+}
+async function saveFinalReview(e){
+  e.preventDefault();const t=$("finalTrainee");
+  try{await addDoc(collection(db,"final_fto_reviews"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,validatedModules:Number($("finalStats").dataset.valid)||0,averageScore:Number($("finalStats").dataset.avg)||0,completedSessions:Number($("finalStats").dataset.sessions)||0,decision:$("finalDecision").value,comment:$("finalComment").value.trim(),ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_FINAL_REVIEW",t.value,$("finalDecision").value);document.querySelector(".modal")?.remove();showToast("Évaluation finale enregistrée.","success");ftoFinal();}catch(err){$("finalError").textContent="Erreur : "+(err.code||err.message);}
 }
 
 async function dashboard(){
