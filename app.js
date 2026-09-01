@@ -1,6 +1,7 @@
-// LSPD Command Center — Phase 8.1 FIXED — Phase 7 fully preserved + communication workflows
+// LSPD Command Center — Phase 9.0 ADDITIVE — Phase 8.1 fully preserved + notifications, attachments, addenda
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc,
@@ -20,8 +21,9 @@ const firebaseConfig = {
 const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
-window.LSPD = { auth, db, user:null, profile:null };
+window.LSPD = { auth, db, storage, user:null, profile:null };
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "")
@@ -86,8 +88,8 @@ const scenarios = [
 ];
 
 const pages = {
- dashboard:"Dashboard",profile:"Mon profil",announcements:"Annonces",messages:"Messages",
- incidents:"Rapports d'incident",approvals:"Validations",manual:"Manuel FTO",modules:"Formations",
+ dashboard:"Dashboard",profile:"Mon profil",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
+ incidents:"Rapports d'incident",approvals:"Validations",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
  evaluations:"Évaluations",trainees:"Mes recrues",officers:"Officiers",assignments:"Affectations FTO",
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",leave:"Congés",
  calendar:"Calendrier formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
@@ -100,6 +102,7 @@ function isChief(){ return role()==="Chief"; }
 function isFTO(){ return ["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function canApproveIncidents(){ return isCommand(); }
+function isSeniorCommand(){ return ["Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 
 async function loadProfile(user){
   window.LSPD.user=user;
@@ -109,7 +112,7 @@ async function loadProfile(user){
   }catch(e){
     window.LSPD.profile={name:"Erreur profil",badge:"—",grade:"—",role:"Officer",status:"Erreur Firestore"};
   }
-  showApp(); applyRoleVisibility(); render("dashboard");
+  showApp(); applyRoleVisibility(); refreshNotificationBadge().catch(()=>{}); render("dashboard");
 }
 function showApp(){
   $("loginScreen")?.classList.add("hidden"); $("appShell")?.classList.remove("hidden");
@@ -132,6 +135,7 @@ function applyRoleVisibility(){
   const hide=(p,y)=>document.querySelector(`#nav button[data-page="${p}"]`)?.classList.toggle("hidden",y);
   hide("trainees",!isFTO());
   ["officers","assignments","certifications","records","shifts","requirements","promotions","stats","history","promotionAdvisor","approvals"].forEach(p=>hide(p,!isCommand()));
+  hide("corrections",false);
   hide("calendar",!isFTO());
   hide("admin",!isChief());
 }
@@ -140,7 +144,7 @@ function render(page){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   $("pageTitle").textContent=pages[page]||"LSPD";
   ({
-    dashboard,profile,announcements,messages,incidents,approvals,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
+    dashboard,profile,notifications,announcements,messages,incidents,approvals,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,leave,calendar,requirements,promotionAdvisor,promotions,
     stats,grades:gradesPage,scenarios:scenariosPage,admin,history
   }[page]||dashboard)();
@@ -170,6 +174,81 @@ function csvDownload(filename, rows){
   const csv=[headers.join(","),...rows.map(r=>headers.map(h=>`"${String(r[h]??"").replaceAll('"','""')}"`).join(","))].join("\n");
   const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+}
+
+
+async function createNotification(recipientId,title,body,type="Info",linkPage=""){
+  if(!recipientId || recipientId===window.LSPD.user?.uid) return;
+  await addDoc(collection(db,"notifications"),{
+    recipientId,
+    senderId:window.LSPD.user.uid,
+    senderName:window.LSPD.profile.name,
+    title,body,type,linkPage,
+    read:false,
+    createdAt:serverTimestamp()
+  });
+}
+
+async function refreshNotificationBadge(){
+  if(!window.LSPD.user) return;
+  try{
+    const snap=await getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid)));
+    const unread=snap.docs.map(d=>d.data()).filter(n=>n.read!==true).length;
+    const el=$("notificationCount");
+    if(el){
+      el.textContent=unread?String(unread):"";
+      el.classList.toggle("hidden",!unread);
+    }
+  }catch{}
+}
+
+async function notifications(){
+  try{
+    const snap=await getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid)));
+    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    $("content").innerHTML=`<div class="toolbar">
+      <button class="btn secondary" id="markAllNotificationsBtn">Tout marquer comme lu</button>
+    </div>
+    <div class="notification-list">${data.length?data.map(n=>`
+      <div class="card notification-card ${n.read===true?"read":""}">
+        <div class="notification-top">
+          <span class="tag ${n.type==="Urgent"?"red":n.type==="Validation"?"orange":""}">${esc(n.type||"Info")}</span>
+          <span class="muted">${formatDate(n.createdAt)}</span>
+        </div>
+        <h3>${esc(n.title)}</h3>
+        <p>${esc(n.body)}</p>
+        <p class="muted">Par ${esc(n.senderName||"Système")}</p>
+        ${n.read!==true?`<button class="btn secondary mark-notification" data-id="${n.id}">Marquer comme lu</button>`:""}
+      </div>`).join(""):'<div class="card"><p class="muted">Aucune notification.</p></div>'}</div>`;
+    document.querySelectorAll(".mark-notification").forEach(b=>b.onclick=()=>markNotificationRead(b.dataset.id));
+    $("markAllNotificationsBtn")?.addEventListener("click",async()=>{
+      const unread=data.filter(n=>n.read!==true);
+      await Promise.all(unread.map(n=>updateDoc(doc(db,"notifications",n.id),{read:true,readAt:serverTimestamp()})));
+      await refreshNotificationBadge();
+      notifications();
+    });
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function markNotificationRead(id){
+  await updateDoc(doc(db,"notifications",id),{read:true,readAt:serverTimestamp()});
+  await refreshNotificationBadge();
+  notifications();
+}
+
+async function uploadIncidentAttachments(files){
+  const uploaded=[];
+  for(const file of [...files]){
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+    const path=`incident_attachments/${window.LSPD.user.uid}/${Date.now()}_${safeName}`;
+    const r=storageRef(storage,path);
+    await uploadBytes(r,file,{contentType:file.type||"application/octet-stream"});
+    const url=await getDownloadURL(r);
+    uploaded.push({name:file.name,url,path,type:file.type||""});
+  }
+  return uploaded;
 }
 
 async function dashboard(){
@@ -268,6 +347,16 @@ async function saveAnnouncement(e){
   try{
     await addDoc(collection(db,"announcements"),{title:$("anTitle").value.trim(),priority:$("anPriority").value,body:$("anBody").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,active:true,createdAt:serverTimestamp()});
     await addAudit("ANNOUNCEMENT_CREATE","announcement",$("anTitle").value.trim());
+    try{
+      const users=(await getUsers()).filter(u=>u.uid!==window.LSPD.user.uid && u.status!=="Archivé");
+      await Promise.all(users.map(u=>createNotification(
+        u.uid,
+        `Annonce LSPD : ${$("anTitle").value.trim()}`,
+        $("anBody").value.trim(),
+        $("anPriority").value==="Urgent"?"Urgent":"Annonce",
+        "announcements"
+      )));
+    }catch{}
     document.querySelector(".modal")?.remove(); announcements();
   }catch(err){ $("anError").textContent="Erreur : "+(err.code||err.message); }
 }
@@ -295,7 +384,9 @@ async function saveMessage(e){
   if(!sel?.value){ $("mError").textContent="Aucun destinataire disponible."; return; }
   try{
     await addDoc(collection(db,"messages"),{senderId:window.LSPD.user.uid,senderName:window.LSPD.profile.name,recipientId:sel.value,recipientName:sel.selectedOptions[0].dataset.name,subject:$("mSubject").value.trim(),body:$("mBody").value.trim(),createdAt:serverTimestamp()});
+    await createNotification(sel.value,`Nouveau message : ${$("mSubject").value.trim()}`,`Message de ${window.LSPD.profile.name}`,"Message","messages");
     document.querySelector(".modal")?.remove(); messages();
+    refreshNotificationBadge().catch(()=>{});
   }catch(err){ $("mError").textContent="Erreur : "+(err.code||err.message); }
 }
 
@@ -305,19 +396,28 @@ async function incidents(){
       ? await getDocs(collection(db,"incident_reports"))
       : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newIncidentBtn">+ Nouveau rapport</button>${isCommand()?'<button class="btn secondary" id="exportIncidentsBtn">Exporter CSV</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Statut</th><th>Validation</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td><td>${esc(r.approvedByName||"—")}</td></tr>`).join(""):'<tr><td colspan="6">Aucun rapport.</td></tr>'}</tbody></table></div>`;
+    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newIncidentBtn">+ Nouveau rapport</button>${isCommand()?'<button class="btn secondary" id="exportIncidentsBtn">Exporter CSV</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Pièces</th><th>Statut</th><th>Validation</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${(r.attachments||[]).length}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td><td>${esc(r.approvedByName||"—")}</td></tr>`).join(""):'<tr><td colspan="7">Aucun rapport.</td></tr>'}</tbody></table></div>`;
     $("newIncidentBtn").onclick=openIncidentForm;
     $("exportIncidentsBtn")?.addEventListener("click",()=>csvDownload("incidents_lspd.csv",data.map(r=>({date:formatDate(r.createdAt),auteur:r.authorName,type:r.type,titre:r.title,statut:r.status,validation:r.approvedByName||""}))));
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
 }
 function openIncidentForm(){
-  showModal(`<h2>Nouveau rapport d'incident</h2><form id="incidentForm"><div class="formgrid"><label class="field"><span>Type</span><select id="iType">${incidentTypes.map(x=>`<option>${x}</option>`).join("")}</select></label><label class="field"><span>Titre</span><input id="iTitle" required></label></div><label class="field full"><span>Résumé</span><textarea id="iSummary" rows="4" required></textarea></label><label class="field full"><span>Détails</span><textarea id="iDetails" rows="8" required></textarea></label><div id="iError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Soumettre pour validation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  showModal(`<h2>Nouveau rapport d'incident</h2><form id="incidentForm"><div class="formgrid"><label class="field"><span>Type</span><select id="iType">${incidentTypes.map(x=>`<option>${x}</option>`).join("")}</select></label><label class="field"><span>Titre</span><input id="iTitle" required></label></div><label class="field full"><span>Résumé</span><textarea id="iSummary" rows="4" required></textarea></label><label class="field full"><span>Détails</span><textarea id="iDetails" rows="8" required></textarea></label><label class="field full"><span>Pièces jointes (optionnel : images/PDF, max 10 Mo par fichier)</span><input id="iAttachments" type="file" multiple accept="image/*,.pdf,application/pdf"></label><div id="iError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Soumettre pour validation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("incidentForm").onsubmit=saveIncident;
 }
 async function saveIncident(e){
   e.preventDefault();
   try{
-    const ref=await addDoc(collection(db,"incident_reports"),{authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,type:$("iType").value,title:$("iTitle").value.trim(),summary:$("iSummary").value.trim(),details:$("iDetails").value.trim(),status:"En attente",createdAt:serverTimestamp()});
+    const files=$("iAttachments")?.files||[];
+    let attachments=[];
+    if(files.length){
+      try{ attachments=await uploadIncidentAttachments(files); }
+      catch(uploadErr){
+        $("iError").textContent="Pièce jointe non envoyée. Vérifie Firebase Storage et storage.rules : "+(uploadErr.code||uploadErr.message);
+        return;
+      }
+    }
+    const ref=await addDoc(collection(db,"incident_reports"),{authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,type:$("iType").value,title:$("iTitle").value.trim(),summary:$("iSummary").value.trim(),details:$("iDetails").value.trim(),attachments,status:"En attente",createdAt:serverTimestamp()});
     await addAudit("INCIDENT_SUBMIT",ref.id,$("iTitle").value.trim());
     document.querySelector(".modal")?.remove(); incidents();
   }catch(err){ $("iError").textContent="Erreur : "+(err.code||err.message); }
@@ -328,15 +428,122 @@ async function approvals(){
   try{
     const snap=await getDocs(collection(db,"incident_reports"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="En attente").sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="grid2">${data.length?data.map(r=>`<div class="card"><span class="number">${esc(r.type)}</span><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p><p class="muted">Par ${esc(r.authorName)} • ${formatDate(r.createdAt)}</p><div class="approval-box"><p>${esc(r.details)}</p></div><div class="modal-actions"><button class="btn approve-incident" data-id="${r.id}" data-status="Approuvé">Approuver</button><button class="btn secondary approve-incident" data-id="${r.id}" data-status="Refusé">Refuser</button></div></div>`).join(""):'<div class="card">Aucune validation en attente.</div>'}</div>`;
+    $("content").innerHTML=`<div class="grid2">${data.length?data.map(r=>`<div class="card"><span class="number">${esc(r.type)}</span><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p><p class="muted">Par ${esc(r.authorName)} • ${formatDate(r.createdAt)}</p><div class="approval-box"><p>${esc(r.details)}</p>${(r.attachments||[]).length?`<div class="attachment-list">${r.attachments.map(a=>`<a class="attachment-link" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join("")}</div>`:""}</div><div class="modal-actions><button class="btn approve-incident" data-id="${r.id}" data-status="Approuvé">Approuver</button><button class="btn secondary approve-incident" data-id="${r.id}" data-status="Refusé">Refuser</button></div></div>`).join(""):'<div class="card">Aucune validation en attente.</div>'}</div>`;
     document.querySelectorAll(".approve-incident").forEach(b=>b.onclick=()=>reviewIncident(b.dataset.id,b.dataset.status));
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
 }
 async function reviewIncident(id,status){
   try{
+    const incidentSnap=await getDoc(doc(db,"incident_reports",id));
+    const incident=incidentSnap.exists()?incidentSnap.data():null;
     await updateDoc(doc(db,"incident_reports",id),{status,approvedById:window.LSPD.user.uid,approvedByName:window.LSPD.profile.name,approvedAt:serverTimestamp(),signature:`${window.LSPD.profile.name} / ${window.LSPD.profile.badge}`});
     await addAudit("INCIDENT_"+(status==="Approuvé"?"APPROVED":"REJECTED"),id,status);
+    if(incident?.authorId){
+      await createNotification(incident.authorId,`Rapport ${status}`,`${incident.title||"Rapport"} a été ${status.toLowerCase()} par ${window.LSPD.profile.name}.`,"Validation","incidents");
+    }
     approvals();
+  }catch(err){ alert("Erreur : "+(err.code||err.message)); }
+}
+
+
+async function corrections(){
+  try{
+    const snap=isCommand()
+      ? await getDocs(collection(db,"correction_requests"))
+      : await getDocs(query(collection(db,"correction_requests"),where("requestedById","==",window.LSPD.user.uid)));
+    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newCorrectionBtn">+ Demander une correction</button></div>
+    <div class="card"><p class="muted">Les documents d'origine restent intacts. Une correction approuvée crée un <b>addendum</b> traçable.</p></div>
+    <div class="card table-card" style="margin-top:14px"><table class="table"><thead><tr><th>Date</th><th>Demandeur</th><th>Cible</th><th>Motif</th><th>Statut</th><th>Révision</th>${isSeniorCommand()?"<th></th>":""}</tr></thead><tbody>
+    ${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.requestedByName)}</td><td>${esc(c.targetType)} — ${esc(c.targetLabel)}</td><td>${esc(c.reason)}</td><td><span class="tag ${c.status==="Approuvé"?"green":c.status==="Refusé"?"red":"orange"}">${esc(c.status)}</span></td><td>${esc(c.reviewedByName||"—")}</td>${isSeniorCommand()?`<td>${c.status==="En attente"?`<button class="btn secondary correction-review" data-id="${c.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary correction-review" data-id="${c.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="7">Aucune demande.</td></tr>'}
+    </tbody></table></div>`;
+    $("newCorrectionBtn").onclick=openCorrectionForm;
+    document.querySelectorAll(".correction-review").forEach(b=>b.onclick=()=>reviewCorrection(b.dataset.id,b.dataset.status));
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function openCorrectionForm(){
+  try{
+    const incidentSnap=isCommand()
+      ? await getDocs(collection(db,"incident_reports"))
+      : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
+    let evalDocs=[];
+    if(isCommand()){
+      const s=await getDocs(collection(db,"evaluations")); evalDocs=s.docs;
+    }else if(isFTO()){
+      const s=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid))); evalDocs=s.docs;
+    }
+
+    const targets=[
+      ...incidentSnap.docs.map(d=>({value:`Incident:${d.id}`,label:`Incident — ${d.data().title||d.id}`})),
+      ...evalDocs.map(d=>({value:`Évaluation:${d.id}`,label:`Évaluation — ${d.data().officerName||""} ${d.data().moduleCode||""}`}))
+    ];
+
+    showModal(`<h2>Demande de correction / addendum</h2><form id="correctionForm">
+      <label class="field"><span>Document concerné</span><select id="crTarget">${targets.map(t=>`<option value="${esc(t.value)}">${esc(t.label)}</option>`).join("")}</select></label>
+      <label class="field full"><span>Motif</span><textarea id="crReason" rows="3" required placeholder="Pourquoi une correction est nécessaire ?"></textarea></label>
+      <label class="field full"><span>Texte proposé pour l'addendum</span><textarea id="crText" rows="7" required placeholder="Correction précise, sans effacer l'original..."></textarea></label>
+      <div id="crError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Envoyer la demande</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div>
+    </form>`);
+    if(!targets.length){
+      $("crError").textContent="Aucun document disponible pour une demande de correction.";
+      $("correctionForm").querySelector('button[type="submit"]').disabled=true;
+    }
+    $("correctionForm").onsubmit=saveCorrection;
+  }catch(err){
+    alert("Erreur : "+(err.code||err.message));
+  }
+}
+
+async function saveCorrection(e){
+  e.preventDefault();
+  const raw=$("crTarget").value;
+  const [targetType,targetId]=raw.split(":");
+  const label=$("crTarget").selectedOptions[0].textContent.trim();
+  try{
+    await addDoc(collection(db,"correction_requests"),{
+      targetType,targetId,targetLabel:label,
+      reason:$("crReason").value.trim(),
+      proposedText:$("crText").value.trim(),
+      requestedById:window.LSPD.user.uid,
+      requestedByName:window.LSPD.profile.name,
+      status:"En attente",
+      createdAt:serverTimestamp()
+    });
+    await addAudit("CORRECTION_REQUEST",targetId,label);
+    document.querySelector(".modal")?.remove(); corrections();
+  }catch(err){ $("crError").textContent="Erreur : "+(err.code||err.message); }
+}
+
+async function reviewCorrection(id,status){
+  if(!isSeniorCommand()) return;
+  try{
+    const s=await getDoc(doc(db,"correction_requests",id));
+    if(!s.exists()) return;
+    const c=s.data();
+    await updateDoc(doc(db,"correction_requests",id),{
+      status,
+      reviewedById:window.LSPD.user.uid,
+      reviewedByName:window.LSPD.profile.name,
+      reviewedAt:serverTimestamp()
+    });
+    if(status==="Approuvé"){
+      await addDoc(collection(db,"amendments"),{
+        targetType:c.targetType,targetId:c.targetId,targetLabel:c.targetLabel,
+        text:c.proposedText,
+        sourceCorrectionId:id,
+        requestedById:c.requestedById,
+        requestedByName:c.requestedByName,
+        approvedById:window.LSPD.user.uid,
+        approvedByName:window.LSPD.profile.name,
+        createdAt:serverTimestamp()
+      });
+    }
+    await addAudit("CORRECTION_"+(status==="Approuvé"?"APPROVED":"REJECTED"),c.targetId,c.targetLabel);
+    await createNotification(c.requestedById,`Correction ${status}`,`${c.targetLabel} : ta demande a été ${status.toLowerCase()} par ${window.LSPD.profile.name}.`,"Validation","corrections");
+    corrections();
   }catch(err){ alert("Erreur : "+(err.code||err.message)); }
 }
 

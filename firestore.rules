@@ -25,6 +25,14 @@ service cloud.firestore {
 
     function isChief() { return signedIn() && myRole() == "Chief"; }
 
+    function isSeniorCommand() {
+      return signedIn() && (
+        myRole() == "Lieutenant" || myRole() == "Captain" ||
+        myRole() == "Deputy Chief" || myRole() == "Assistant Chief" ||
+        myRole() == "Chief"
+      );
+    }
+
     match /users/{userId} {
       // Internal directory: every authenticated LSPD user may resolve names/badges for messaging.
       allow read: if signedIn();
@@ -124,6 +132,52 @@ service cloud.firestore {
     match /audit_logs/{id} {
       allow read: if isCommand();
       allow create: if signedIn() && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+
+    match /notifications/{id} {
+      allow read: if signedIn() && resource.data.recipientId == request.auth.uid;
+
+      allow create: if signedIn()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.recipientId is string
+        && request.resource.data.read == false;
+
+      allow update: if signedIn()
+        && resource.data.recipientId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "read","readAt"
+        ]);
+
+      allow delete: if false;
+    }
+
+    match /correction_requests/{id} {
+      allow create: if signedIn()
+        && request.resource.data.requestedById == request.auth.uid
+        && request.resource.data.status == "En attente";
+
+      allow read: if signedIn() && (
+        resource.data.requestedById == request.auth.uid ||
+        isCommand()
+      );
+
+      allow update: if isSeniorCommand()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","reviewedById","reviewedByName","reviewedAt"
+        ]);
+
+      allow delete: if false;
+    }
+
+    match /amendments/{id} {
+      allow read: if signedIn();
+
+      allow create: if isSeniorCommand()
+        && request.resource.data.approvedById == request.auth.uid
+        && request.resource.data.sourceCorrectionId is string;
+
       allow update, delete: if false;
     }
 

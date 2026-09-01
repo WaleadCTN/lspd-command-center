@@ -21,3 +21,8 @@ nav{display:grid;gap:4px}nav button{background:transparent;border:0;color:#aab8c
 @media(max-width:1050px){.calendar-grid{grid-template-columns:1fr 1fr}.sidebar{position:static;width:auto;height:auto}.main{margin-left:0;padding:20px}.grid,.grid2{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}.header-actions{flex-direction:column;align-items:flex-end}}
 @media(max-width:650px){.grid,.grid2,.formgrid,.detail-grid,.calendar-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.main{padding:15px}.toolbar{align-items:stretch;flex-direction:column}.criterion{align-items:stretch;flex-direction:column}.header-actions{display:none}}
 \n/* Phase 8.1 communication */\n.notice{border-top:3px solid #6b8db6}.muted-card{opacity:.6}.approval-box{border:1px solid #2a3a50;border-radius:9px;background:#0b1523;padding:12px;max-height:220px;overflow:auto}\n
+
+/* Phase 9 — additive UI */
+.nav-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:#8d3240;color:#fff;font-size:11px;font-weight:800}
+.notification-list{display:grid;gap:12px}.notification-card{border-left:4px solid #6f91bd}.notification-card.read{opacity:.62;border-left-color:#39485b}.notification-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.attachment-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.attachment-link{display:inline-block;padding:7px 10px;border:1px solid #31445e;border-radius:8px;background:#132239;color:#b9d7fa;text-decoration:none}.attachment-link:hover{filter:brightness(1.15)}

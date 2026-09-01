@@ -1,33 +1,42 @@
-LSPD COMMAND CENTER — PHASE 8.1 FIXED
+LSPD COMMAND CENTER — PHASE 9.0 ADDITIVE
 
-IMPORTANT: this build is based on the FULL Phase 7 and adds Phase 8 communication features on top. No Phase 7 page is replaced by placeholders.
+BASE
+Cette version est construite directement depuis Phase 8.1 FIXED.
+Les fonctions/pages de 8.1 sont conservées et les nouveautés sont ajoutées par-dessus.
 
-REPLACE ON GITHUB:
+À REMPLACER SUR GITHUB
 - index.html
 - app.js
 - style.css
 
-FIRESTORE:
-- Firebase > Firestore Database > Règles
-- Paste firestore.rules
-- Click Publier
+FIRESTORE
+Firebase > Firestore Database > Règles
+Colle firestore.rules puis clique Publier.
 
-FIXES:
-- Mes recrues restored
-- Officer management restored
-- FTO assignments restored, including closing assignments
-- Certifications restored
-- Sanctions / commendations restored
-- Roster & shifts restored
-- Leave requests restored
-- Training calendar restored
-- À valider restored
-- Promotion Advisor restored
-- Promotions restored
-- Statistics restored
-- Phase 8 announcements/messages/incidents/approvals added without deleting old functions
-- Messages now use permission-safe Firestore queries
-- Incident reports use permission-safe queries for officers
+NOUVEAUTÉS PHASE 9
+- Centre de notifications + compteur non lu
+- Notification lors d'un message reçu
+- Notification lors d'une annonce
+- Notification après validation/refus d'un rapport
+- Workflow Corrections & addenda
+- Le document original n'est jamais écrasé
+- Une correction approuvée crée un addendum immuable
+- Pièces jointes optionnelles sur les rapports d'incident
+- Images/PDF visibles depuis la page de validation
+- Approbation des corrections réservée à Lieutenant+
 
-TEST URL:
-https://waleadctn.github.io/lspd-command-center/?v=81
+PIÈCES JOINTES / FIREBASE STORAGE
+C'est optionnel. Le reste du site fonctionne sans pièce jointe.
+
+Pour les activer :
+1. Firebase Console > Storage
+2. Active/crée le bucket si nécessaire
+3. Storage > Rules
+4. Colle storage.rules
+5. Publie
+
+Limite incluse : 10 Mo par fichier.
+Types autorisés : images et PDF.
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=90
