@@ -1,12 +1,19 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
-    match /users/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
-      allow create: if signedIn() && request.auth.uid == uid && request.resource.data.grade == 'PO1' && request.resource.data.role == 'Officer';
-      allow update, delete: if false;
+
+    function isSignedIn() {
+      return request.auth != null;
     }
-    match /{document=**} { allow read, write: if false; }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
