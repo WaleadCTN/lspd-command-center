@@ -1,7 +1,11 @@
+// LSPD Command Center — Firebase version
+// Single Firebase entry point. index.html should ONLY load this file as a module.
+
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
@@ -27,10 +31,13 @@ const db = getFirestore(firebaseApp);
 window.LSPD = window.LSPD || {};
 window.LSPD.auth = auth;
 window.LSPD.db = db;
+window.LSPD.user = null;
+window.LSPD.profile = null;
+
+const $ = (id) => document.getElementById(id);
 
 async function loadOfficerProfile(user) {
   window.LSPD.user = user;
-  window.LSPD.profile = null;
 
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
@@ -38,7 +45,6 @@ async function loadOfficerProfile(user) {
     if (snap.exists()) {
       window.LSPD.profile = snap.data();
     } else {
-      console.warn("Aucun profil Firestore trouvé pour l'UID :", user.uid);
       window.LSPD.profile = {
         name: "Profil non configuré",
         badge: "—",
@@ -46,6 +52,7 @@ async function loadOfficerProfile(user) {
         role: "—",
         status: "Profil Firestore manquant"
       };
+      console.warn("Document users/" + user.uid + " introuvable.");
     }
   } catch (error) {
     console.error("Erreur Firestore :", error);
@@ -54,34 +61,63 @@ async function loadOfficerProfile(user) {
       badge: "—",
       grade: "—",
       role: "—",
-      status: "Vérifier les règles Firestore"
+      status: "Erreur Firestore"
     };
   }
+
+  const loginScreen = $("loginScreen");
+  const appShell = $("appShell");
+
+  if (loginScreen) loginScreen.classList.add("hidden");
+  if (appShell) appShell.classList.remove("hidden");
 
   if (typeof window.initLSPD === "function") {
     window.initLSPD();
   }
 }
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    loadOfficerProfile(user);
-  } else {
+function showLogin() {
+  const loginScreen = $("loginScreen");
+  const appShell = $("appShell");
+
+  if (loginScreen) loginScreen.classList.remove("hidden");
+  if (appShell) appShell.classList.add("hidden");
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const email = $("loginEmail")?.value?.trim();
+  const password = $("loginPassword")?.value;
+  const error = $("loginError");
+
+  if (error) error.textContent = "";
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    console.error(err);
+    if (error) error.textContent = "Email ou mot de passe incorrect.";
+  }
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
     window.LSPD.user = null;
     window.LSPD.profile = null;
-    // index.html handles the login screen when no user is connected.
+    showLogin();
+    return;
   }
+
+  await loadOfficerProfile(user);
 });
 
 window.logoutLSPD = async () => {
   await signOut(auth);
 };
 
-// LSPD Command Center — Firebase version
-// Firebase is initialized in index.html.
-// This file handles the LSPD interface. Firestore CRUD/permissions will be added next.
-
 const modules = [
+
   ["M01","Fondamentaux LSPD","Structure, chaîne de commandement, radio et code de conduite","Débutant"],
   ["M02","Radio & communications","Codes radio, transmissions, priorités et dispatch","Débutant"],
   ["M03","Patrouille","Positionnement, observation, contrôles et contacts citoyens","Débutant"],
@@ -254,7 +290,11 @@ function showModal(html) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  el("nav")?.addEventListener("click", e => {
+  $("loginForm")?.addEventListener("submit", handleLogin);
+
+  $("logoutBtn")?.addEventListener("click", window.logoutLSPD);
+
+  $("nav")?.addEventListener("click", e => {
     const btn = e.target.closest("button[data-page]");
     if (btn) render(btn.dataset.page);
   });
