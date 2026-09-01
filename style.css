@@ -385,3 +385,57 @@ body.sidebar-collapsed .developer-credit{
     font-size:10px;
   }
 }
+
+
+/* Phase 16.2 — scenarios strictly scoped to selected training */
+.scenario-module-picker{
+  display:grid;
+  gap:5px;
+  min-width:250px;
+}
+.scenario-module-picker label{
+  color:#8295ad;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+.scenario-module-picker select{
+  border:1px solid #2b4058;
+  background:#0e1c2d;
+  color:#e3edf8;
+  border-radius:9px;
+  min-height:38px;
+  padding:7px 10px;
+  outline:none;
+}
+.scenario-module-picker select:focus{
+  border-color:#6092c9;
+  box-shadow:0 0 0 3px rgba(96,146,201,.12);
+}
+.scenario-scope{
+  display:flex;
+  gap:7px;
+  margin-bottom:8px;
+}
+.scenario-selected-module{
+  display:grid;
+  gap:4px;
+  margin:12px 0 4px;
+  padding:12px 14px;
+  border:1px solid #34516e;
+  border-left:4px solid #6e9dce;
+  border-radius:9px;
+  background:#101e30;
+}
+.scenario-selected-module span{
+  color:#7891ad;
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.scenario-selected-module b{color:#dbeafa}
+.scenario-selected-module small{color:#7f94aa}
+@media(max-width:750px){
+  .scenario-module-picker{width:100%;min-width:0}
+  .academy-hero-actions{width:100%}
+}

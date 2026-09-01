@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 16.1 WALEAD BRANDING — Phase 16 fully preserved
+// LSPD Command Center — Phase 16.2 SCENARIOS PAR FORMATION — Phase 16.1 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -46,6 +46,8 @@ Object.assign(I18N_EN,{"Journal FTO":"FTO Journal","Évaluation finale FTO":"Fin
 Object.assign(I18N_EN,{
   "Développé par":"Developed by"
 });
+
+Object.assign(I18N_EN,{"Choisir la formation":"Choose training module","Scénario de formation":"Training scenario","Scénario du module":"Module scenario","Générer un scénario pour ce module":"Generate a scenario for this module","Formation sélectionnée":"Selected training","Le générateur reste limité à la formation sélectionnée.":"The generator stays limited to the selected training module.","Variante pédagogique":"Training variant"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -597,6 +599,77 @@ const SCENARIO_BANK=[
  {module:"M02",difficulty:"Facile",situation:()=>B("Série de cinq appels radio de patrouille simples.","Series of five simple patrol radio calls."),constraints:()=>B("Chaque appel doit durer moins de 10 secondes.","Each call must last under 10 seconds."),success:()=>B("Indicatif, localisation, situation et besoin si nécessaire.","Call sign, location, situation, and need if applicable.")},
  {module:"M10",difficulty:"Normal",situation:()=>B("Rédiger le rapport d'une arrestation après contrôle routier.","Write the report for an arrest following a traffic stop."),constraints:()=>B("Le rapport doit être chronologique et uniquement factuel.","Report must be chronological and factual only."),success:()=>B("Motif, observations, actions, arrestation, fouille, transport et résultat présents.","Reason, observations, actions, arrest, search, transport, and outcome included.")}
 ];
+
+function buildModuleScenarioPool(moduleCode){
+  const code=modules.some(m=>m[0]===moduleCode)?moduleCode:"M01";
+  const d=ACADEMY_MODULES[code];
+  const explicit=SCENARIO_BANK.filter(s=>s.module===code);
+  const generated=[];
+
+  if(d){
+    generated.push({
+      module:code,
+      difficulty:"Normal",
+      situation:()=>d.example(),
+      constraints:()=>B(
+        `Le FTO laisse la recrue prendre le lead. Il n'intervient que si une erreur critique apparaît. ${d.variants()[0] ? "Variante : "+d.variants()[0] : ""}`,
+        `The FTO lets the trainee take the lead and only intervenes if a critical error appears. ${d.variants()[0] ? "Variant: "+d.variants()[0] : ""}`
+      ),
+      success:()=>B(
+        `La recrue doit atteindre l'objectif du module : ${d.objective()} Le FTO contrôle particulièrement les erreurs critiques.`,
+        `The trainee must meet the module objective: ${d.objective()} The FTO pays special attention to critical errors.`
+      )
+    });
+
+    d.variants().forEach((variant,index)=>{
+      const difficulties=["Facile","Normal","Difficile","Stress test"];
+      const difficulty=difficulties[index%difficulties.length];
+      generated.push({
+        module:code,
+        difficulty,
+        situation:()=>B(
+          `${d.example()} Variante pédagogique : ${variant}`,
+          `${d.example()} Training variant: ${variant}`
+        ),
+        constraints:()=>{
+          const common=[
+            B("La recrue doit verbaliser ses décisions importantes.","The trainee must verbalize important decisions."),
+            B("Le FTO ajoute une information nouvelle au milieu de l'exercice.","The FTO adds new information halfway through the exercise."),
+            B("La recrue doit gérer la situation avec une intervention minimale du FTO.","The trainee must manage the situation with minimal FTO intervention."),
+            B("Le FTO augmente la pression : radio chargée, temps limité ou changement soudain de situation.","The FTO increases pressure: busy radio, limited time, or a sudden situation change.")
+          ];
+          return common[index%common.length];
+        },
+        success:()=>B(
+          `Respecter la procédure du ${code}, éviter les erreurs critiques et être capable d'expliquer les choix effectués.`,
+          `Follow ${code} procedure, avoid critical errors, and be able to explain the decisions made.`
+        )
+      });
+    });
+
+    d.questions().slice(0,2).forEach(([question,answer],index)=>{
+      generated.push({
+        module:code,
+        difficulty:index===0?"Normal":"Difficile",
+        situation:()=>B(
+          `${d.example()} Après l'action principale, le FTO modifie un élément de la situation et demande : « ${question} »`,
+          `${d.example()} After the main action, the FTO changes one element of the situation and asks: “${question}”`
+        ),
+        constraints:()=>B(
+          "La recrue doit agir puis justifier immédiatement sa décision au FTO.",
+          "The trainee must act and immediately justify the decision to the FTO."
+        ),
+        success:()=>B(
+          `La réponse attendue est proche de : « ${answer} », tout en appliquant correctement la procédure du module.`,
+          `The expected answer is close to: “${answer}”, while correctly applying the module procedure.`
+        )
+      });
+    });
+  }
+
+  // Strict isolation: no scenario from another module can enter this pool.
+  return [...explicit,...generated].filter(s=>s.module===code);
+}
 
 const CAD_STATUSES = ["Disponible","En intervention","Transport","Pause","Hors service"];
 const BOLO_TYPES = ["Personne","Véhicule","Autre"];
@@ -1855,13 +1928,20 @@ async function ftoAcademy(){
       return `<div class="academy-rec card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Score moyen</span><b>${avg}/100</b></div><div class="row"><span>Module faible</span><b>${weak?`${esc(weak[0])} • ${weak[1]}/100`:"—"}</b></div><div class="row"><span>Prochaine priorité</span><b>${weak?esc(academyModuleTitle(weak[0])):esc(B("Commencer M01","Start M01"))}</b></div></div>`;
     }).join("");
   }catch{}
-  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FIELD TRAINING PROGRAM</span><h2>FTO Academy</h2><p class="muted">${esc(B("Un guide opérationnel pour savoir quoi expliquer, démontrer, faire pratiquer et évaluer.","An operational guide showing what to explain, demonstrate, practice, and evaluate."))}</p></div><div class="academy-hero-actions"><button class="btn" id="academyNewSessionBtn">Créer une session</button><button class="btn secondary" id="academyRandomScenarioBtn">Générer un scénario</button></div></div>
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FIELD TRAINING PROGRAM</span><h2>FTO Academy</h2><p class="muted">${esc(B("Un guide opérationnel pour savoir quoi expliquer, démontrer, faire pratiquer et évaluer.","An operational guide showing what to explain, demonstrate, practice, and evaluate."))}</p></div><div class="academy-hero-actions">
+    <button class="btn" id="academyNewSessionBtn">Créer une session</button>
+    <div class="scenario-module-picker">
+      <label for="academyScenarioModule">Choisir la formation</label>
+      <select id="academyScenarioModule">${modules.map(m=>`<option value="${m[0]}">${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select>
+    </div>
+    <button class="btn secondary" id="academyRandomScenarioBtn">Générer un scénario</button>
+  </div></div>
   <div class="section-title">Recommandations FTO</div><div class="academy-recommendations">${rec||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>
   <div class="section-title">Programme guidé</div><div class="academy-module-grid">${modules.map(m=>`<div class="academy-module card"><div class="academy-module-top"><span class="module-code">${m[0]}</span><span class="tag">${esc(translateSystemText(m[3],currentLang))}</span></div><h3>${esc(translateSystemText(m[1],currentLang))}</h3><p class="muted">${esc(translateSystemText(m[2],currentLang))}</p><div class="row"><span>Durée conseillée</span><b>${esc(ACADEMY_MODULES[m[0]]?.duration||"—")}</b></div><button class="btn secondary academy-guide-btn" data-module="${m[0]}">Voir le guide</button></div>`).join("")}</div>
   <div class="section-title">Bibliothèque pédagogique</div><div class="grid2"><div class="card"><h3>Exemples radio</h3>${RADIO_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div><div class="card"><h3>Exemples de rapports</h3>${REPORT_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div></div>`;
   document.querySelectorAll(".academy-guide-btn").forEach(b=>b.onclick=()=>openAcademyGuide(b.dataset.module));
   $("academyNewSessionBtn").onclick=openAcademySessionForm;
-  $("academyRandomScenarioBtn").onclick=()=>openRandomScenario();
+  $("academyRandomScenarioBtn").onclick=()=>openRandomScenario($("academyScenarioModule").value);
 }
 
 function openAcademyGuide(code){
@@ -1878,10 +1958,39 @@ function openAcademyGuide(code){
   $("guideScenarioBtn").onclick=()=>openRandomScenario(code);
 }
 
-function openRandomScenario(moduleCode=null){
-  const pool=SCENARIO_BANK.filter(x=>!moduleCode||x.module===moduleCode),choices=pool.length?pool:SCENARIO_BANK,s=choices[Math.floor(Math.random()*choices.length)];
-  showModal(`<div class="scenario-generated"><div class="scenario-stamp">SCENARIO</div><span class="tag">${esc(s.module)}</span> <span class="tag orange">${esc(translateSystemText(s.difficulty,currentLang))}</span><h2>Nouveau scénario</h2><div class="scenario-block"><span>Situation</span><p>${esc(s.situation())}</p></div><div class="scenario-block"><span>Contraintes</span><p>${esc(s.constraints())}</p></div><div class="scenario-block"><span>Réussite attendue</span><p>${esc(s.success())}</p></div><div class="modal-actions"><button class="btn" id="regenScenarioBtn">Générer un scénario</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
-  $("regenScenarioBtn").onclick=()=>openRandomScenario(moduleCode);
+function openRandomScenario(moduleCode="M01"){
+  const code=modules.some(m=>m[0]===moduleCode)?moduleCode:"M01";
+  const choices=buildModuleScenarioPool(code);
+  if(!choices.length){
+    showToast(B("Aucun scénario disponible pour ce module.","No scenario is available for this module."),"warning");
+    return;
+  }
+
+  const s=choices[Math.floor(Math.random()*choices.length)];
+  const moduleTitle=academyModuleTitle(code);
+
+  showModal(`<div class="scenario-generated">
+    <div class="scenario-stamp">SCENARIO</div>
+    <div class="scenario-scope">
+      <span class="tag">${esc(code)}</span>
+      <span class="tag orange">${esc(translateSystemText(s.difficulty,currentLang))}</span>
+    </div>
+    <h2>Scénario de formation</h2>
+    <div class="scenario-selected-module">
+      <span>Formation sélectionnée</span>
+      <b>${esc(moduleTitle)}</b>
+      <small>Le générateur reste limité à la formation sélectionnée.</small>
+    </div>
+    <div class="scenario-block"><span>Situation</span><p>${esc(s.situation())}</p></div>
+    <div class="scenario-block"><span>Contraintes</span><p>${esc(s.constraints())}</p></div>
+    <div class="scenario-block"><span>Réussite attendue</span><p>${esc(s.success())}</p></div>
+    <div class="modal-actions">
+      <button class="btn" id="regenScenarioBtn">Générer un scénario pour ce module</button>
+      <button class="btn secondary" id="closeModal">Fermer</button>
+    </div>
+  </div>`);
+
+  $("regenScenarioBtn").onclick=()=>openRandomScenario(code);
 }
 
 async function openAcademySessionForm(){
@@ -1904,8 +2013,8 @@ async function openGuidedSession(id){
   const v={id,...s.data()},d=ACADEMY_MODULES[v.moduleCode];if(!d)return;const c=v.checklist||{};
   const pct=Math.round(["briefing","demonstration","practice","observation","debrief"].filter(k=>c[k]).length/5*100);
   const steps=d.steps();
-  showModal(`<div class="guided-session"><div class="academy-guide-head"><div><span class="module-code large">${esc(v.moduleCode)}</span><h2>Session guidée — ${esc(v.traineeName)}</h2><p>${esc(d.objective())}</p></div><span class="tag">${esc(v.phase)}</span></div><div class="guided-progress"><i style="width:${pct}%"></i></div><div class="guided-checks">${[["briefing","Briefing",steps[0]||""],["demonstration","Démonstration",steps[1]||""],["practice","Pratique",steps[2]||""],["observation","Observation",steps[3]||""],["debrief","Débrief",steps[4]||d.corrective()]].map(([key,label,desc])=>`<label class="guided-step ${c[key]?"done":""}"><input type="checkbox" class="session-check" data-key="${key}" ${c[key]?"checked":""}><span><b>${esc(label)}</b><small>${esc(desc)}</small></span></label>`).join("")}</div><div class="grid2"><div class="guide-section"><h3>Erreurs critiques</h3>${d.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}</div><div class="guide-section"><h3>Questions à poser</h3>${d.questions().map(([q,a])=>`<details class="qa-item"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div></div><label class="field full"><span>Résumé de session</span><textarea id="sessionSummary" rows="4">${esc(v.summary||"")}</textarea></label><label class="field full"><span>Points forts</span><textarea id="sessionStrengths" rows="3">${esc(v.strengths||"")}</textarea></label><label class="field full"><span>Points à améliorer</span><textarea id="sessionImprove" rows="3">${esc(v.improvements||"")}</textarea></label><label class="field full"><span>Objectifs prochaine session</span><textarea id="sessionNext" rows="3">${esc(v.nextGoals||"")}</textarea></label><div class="modal-actions"><button class="btn secondary" id="sessionSaveBtn">Enregistrer le journal</button><button class="btn" id="sessionFinishBtn">Terminer la session</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
-  $("sessionSaveBtn").onclick=()=>saveGuidedSession(id,false);$("sessionFinishBtn").onclick=()=>saveGuidedSession(id,true);
+  showModal(`<div class="guided-session"><div class="academy-guide-head"><div><span class="module-code large">${esc(v.moduleCode)}</span><h2>Session guidée — ${esc(v.traineeName)}</h2><p>${esc(d.objective())}</p></div><span class="tag">${esc(v.phase)}</span></div><div class="guided-progress"><i style="width:${pct}%"></i></div><div class="guided-checks">${[["briefing","Briefing",steps[0]||""],["demonstration","Démonstration",steps[1]||""],["practice","Pratique",steps[2]||""],["observation","Observation",steps[3]||""],["debrief","Débrief",steps[4]||d.corrective()]].map(([key,label,desc])=>`<label class="guided-step ${c[key]?"done":""}"><input type="checkbox" class="session-check" data-key="${key}" ${c[key]?"checked":""}><span><b>${esc(label)}</b><small>${esc(desc)}</small></span></label>`).join("")}</div><div class="grid2"><div class="guide-section"><h3>Erreurs critiques</h3>${d.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}</div><div class="guide-section"><h3>Questions à poser</h3>${d.questions().map(([q,a])=>`<details class="qa-item"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div></div><label class="field full"><span>Résumé de session</span><textarea id="sessionSummary" rows="4">${esc(v.summary||"")}</textarea></label><label class="field full"><span>Points forts</span><textarea id="sessionStrengths" rows="3">${esc(v.strengths||"")}</textarea></label><label class="field full"><span>Points à améliorer</span><textarea id="sessionImprove" rows="3">${esc(v.improvements||"")}</textarea></label><label class="field full"><span>Objectifs prochaine session</span><textarea id="sessionNext" rows="3">${esc(v.nextGoals||"")}</textarea></label><div class="modal-actions"><button class="btn secondary" id="sessionScenarioBtn">Générer un scénario pour ce module</button><button class="btn secondary" id="sessionSaveBtn">Enregistrer le journal</button><button class="btn" id="sessionFinishBtn">Terminer la session</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
+  $("sessionScenarioBtn").onclick=()=>openRandomScenario(v.moduleCode);$("sessionSaveBtn").onclick=()=>saveGuidedSession(id,false);$("sessionFinishBtn").onclick=()=>saveGuidedSession(id,true);
 }
 async function saveGuidedSession(id,finish=false){
   const checklist={};document.querySelectorAll(".session-check").forEach(x=>checklist[x.dataset.key]=x.checked);

@@ -131,3 +131,53 @@ firestore.rules peut rester inchangé.
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=161
+
+
+================================================
+PHASE 16.2 — SCÉNARIOS PAR FORMATION
+================================================
+Le générateur est maintenant STRICTEMENT lié au module sélectionné.
+
+AVANT
+Si un module ne possédait pas de scénario prédéfini,
+il pouvait retomber sur un scénario d'une autre formation.
+
+MAINTENANT
+- Le FTO choisit M01 à M16 avant de générer.
+- Le pool est construit uniquement pour le module choisi.
+- Aucun fallback vers un autre module.
+- Tous les modules M01 à M16 disposent de scénarios grâce
+  au contenu pédagogique, aux variantes et aux questions du module.
+
+EXEMPLE
+Si le FTO choisit :
+M04 — Code de la route
+
+Seuls des scénarios M04 peuvent être générés :
+- contrôle routier
+- conducteur nerveux
+- passager perturbateur
+- véhicule suspect
+- variantes / niveau difficile / stress test liés à M04
+
+Il est impossible que le générateur retourne M08 ou M11.
+
+Le bouton dans le guide d'un module est également verrouillé
+sur ce module.
+
+Une session guidée M04 possède maintenant :
+"Générer un scénario pour ce module"
+et génère uniquement du M04.
+
+FIRESTORE
+Aucun changement.
+Pas besoin de republier firestore.rules.
+
+INSTALLATION
+Remplacer sur GitHub :
+- index.html
+- app.js
+- style.css
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=162
