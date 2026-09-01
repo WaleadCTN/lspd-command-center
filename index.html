@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=9.0">
+  <link rel="stylesheet" href="style.css?v=10.0">
 </head>
 <body>
 <section id="loginScreen" class="login-screen">
@@ -13,12 +13,38 @@
     <div class="eyebrow">LOS SANTOS POLICE DEPARTMENT</div>
     <h1>Command Center</h1>
     <p class="muted">Training • Personnel • Operations • Communication</p>
+    <div class="auth-tabs">
+      <button id="showLoginBtn" class="auth-tab active" type="button">Connexion</button>
+      <button id="showSignupBtn" class="auth-tab" type="button">Créer un compte</button>
+    </div>
+
     <form id="loginForm">
       <label class="field"><span>Adresse e-mail</span><input id="loginEmail" type="email" required autocomplete="username"></label>
       <label class="field"><span>Mot de passe</span><input id="loginPassword" type="password" required autocomplete="current-password"></label>
       <button class="btn full" type="submit">Se connecter</button>
       <p id="loginError" class="error"></p>
     </form>
+
+    <form id="signupForm" class="hidden">
+      <label class="field"><span>Nom RP</span><input id="signupName" required maxlength="60" placeholder="Ex. John Smith"></label>
+      <label class="field"><span>Adresse e-mail</span><input id="signupEmail" type="email" required autocomplete="email"></label>
+      <label class="field"><span>Mot de passe</span><input id="signupPassword" type="password" required minlength="6" autocomplete="new-password"></label>
+      <label class="field"><span>Confirmer le mot de passe</span><input id="signupPassword2" type="password" required minlength="6" autocomplete="new-password"></label>
+      <button class="btn full" type="submit">Créer ma demande d'inscription</button>
+      <p class="muted signup-note">Le compte Firebase est créé automatiquement. L'accès LSPD reste bloqué jusqu'à validation par le Chief.</p>
+      <p id="signupError" class="error"></p>
+    </form>
+  </div>
+</section>
+
+<section id="approvalScreen" class="approval-screen hidden">
+  <div class="approval-card">
+    <div class="badge">LSPD</div>
+    <div class="eyebrow">LOS SANTOS POLICE DEPARTMENT</div>
+    <h1 id="approvalTitle">Inscription en attente</h1>
+    <p id="approvalMessage">Votre demande doit être validée par le commandement LSPD.</p>
+    <div id="approvalIdentity" class="approval-identity"></div>
+    <button id="approvalLogoutBtn" class="btn full" type="button">Se déconnecter</button>
   </div>
 </section>
 
@@ -31,6 +57,7 @@
     <nav id="nav">
       <button data-page="dashboard" class="active">🏠 Dashboard</button>
       <button data-page="profile">🙍 Mon profil</button>
+      <button data-page="registrations">🪪 Inscriptions <span id="registrationCount" class="nav-badge hidden"></span></button>
       <button data-page="notifications">🔔 Notifications <span id="notificationCount" class="nav-badge hidden"></span></button>
       <button data-page="announcements">📣 Annonces</button>
       <button data-page="messages">✉️ Messages</button>
@@ -78,6 +105,6 @@
   </main>
 </div>
 
-<script type="module" src="app.js?v=9.0"></script>
+<script type="module" src="app.js?v=10.0"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
-// LSPD Command Center — Phase 9.0 ADDITIVE — Phase 8.1 fully preserved + notifications, attachments, addenda
+// LSPD Command Center — Phase 10.0 ADDITIVE — Phase 9 fully preserved + self-registration & Chief approval
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc,
   collection, query, where, serverTimestamp
@@ -62,7 +62,7 @@ const gradeList = [
 ];
 
 const roles = ["Officer","FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"];
-const statuses = ["Actif","En formation","Suspendu","Inactif","Archivé"];
+const statuses = ["Actif","En formation","Suspendu","Inactif","Archivé","En attente","Refusé"];
 const divisions = ["Patrol","Traffic","Detective","SWAT","Air Support","Training","Command"];
 const certificationsCatalog = ["FTO","Pursuit","Traffic","Detective","SWAT","Air Support","Supervisor"];
 const incidentTypes = ["Use of Force","Vehicle Pursuit","Arrestation sensible","Accident service","Plainte citoyen","Incident interne","Autre"];
@@ -88,7 +88,7 @@ const scenarios = [
 ];
 
 const pages = {
- dashboard:"Dashboard",profile:"Mon profil",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
+ dashboard:"Dashboard",profile:"Mon profil",registrations:"Inscriptions",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
  incidents:"Rapports d'incident",approvals:"Validations",corrections:"Corrections & addenda",manual:"Manuel FTO",modules:"Formations",
  evaluations:"Évaluations",trainees:"Mes recrues",officers:"Officiers",assignments:"Affectations FTO",
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",leave:"Congés",
@@ -108,22 +108,139 @@ async function loadProfile(user){
   window.LSPD.user=user;
   try{
     const snap=await getDoc(doc(db,"users",user.uid));
-    window.LSPD.profile=snap.exists()?snap.data():{name:"Profil non configuré",badge:"—",grade:"—",role:"Officer",status:"Profil Firestore manquant"};
+    if(!snap.exists()){
+      window.LSPD.profile={name:"Profil incomplet",badge:"—",grade:"PO1",role:"Officer",status:"Profil manquant"};
+      showApprovalGate("Profil incomplet","Ton compte Authentication existe, mais aucun profil LSPD valide n'est associé. Contacte le Chief of Police.");
+      return;
+    }
+    window.LSPD.profile=snap.data();
   }catch(e){
     window.LSPD.profile={name:"Erreur profil",badge:"—",grade:"—",role:"Officer",status:"Erreur Firestore"};
+    showApprovalGate("Erreur de profil","Impossible de charger ton profil LSPD. Réessaie ou contacte le commandement.");
+    return;
   }
-  showApp(); applyRoleVisibility(); refreshNotificationBadge().catch(()=>{}); render("dashboard");
+
+  if(window.LSPD.profile.status==="En attente"){
+    showApprovalGate(
+      "Inscription en attente",
+      "Ta demande a bien été enregistrée. Le Chief of Police doit maintenant valider ton matricule, ton grade, ton rôle et ta division."
+    );
+    return;
+  }
+
+  if(window.LSPD.profile.status==="Refusé"){
+    showApprovalGate(
+      "Inscription refusée",
+      "Ta demande d'inscription n'a pas été validée. Contacte le commandement LSPD si tu penses qu'il s'agit d'une erreur."
+    );
+    return;
+  }
+
+  if(window.LSPD.profile.status==="Archivé"){
+    showApprovalGate(
+      "Compte archivé",
+      "Ton profil LSPD est archivé et l'accès au Command Center est désactivé."
+    );
+    return;
+  }
+
+  showApp();
+  applyRoleVisibility();
+  refreshNotificationBadge().catch(()=>{});
+  refreshRegistrationBadge().catch(()=>{});
+  render("dashboard");
 }
 function showApp(){
-  $("loginScreen")?.classList.add("hidden"); $("appShell")?.classList.remove("hidden");
+  $("loginScreen")?.classList.add("hidden");
+  $("approvalScreen")?.classList.add("hidden");
+  $("appShell")?.classList.remove("hidden");
   if($("currentUser")) $("currentUser").textContent=window.LSPD.user?.email||"Connecté";
   if($("userPill")) $("userPill").textContent=`${window.LSPD.profile?.grade||"Officer"} • ${window.LSPD.profile?.role||"Officer"}`;
 }
-function showLogin(){ $("loginScreen")?.classList.remove("hidden"); $("appShell")?.classList.add("hidden"); }
+function showLogin(){
+  $("approvalScreen")?.classList.add("hidden");
+  $("loginScreen")?.classList.remove("hidden");
+  $("appShell")?.classList.add("hidden");
+}
+function showApprovalGate(title,message){
+  $("loginScreen")?.classList.add("hidden");
+  $("appShell")?.classList.add("hidden");
+  $("approvalScreen")?.classList.remove("hidden");
+  if($("approvalTitle")) $("approvalTitle").textContent=title;
+  if($("approvalMessage")) $("approvalMessage").textContent=message;
+  if($("approvalIdentity")){
+    $("approvalIdentity").innerHTML=`<b>${esc(window.LSPD.profile?.name||"Utilisateur")}</b><span>${esc(window.LSPD.user?.email||"")}</span><span>Statut : ${esc(window.LSPD.profile?.status||"—")}</span>`;
+  }
+}
 async function handleLogin(e){
   e.preventDefault(); $("loginError").textContent="";
   try{ await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value); }
   catch(err){ $("loginError").textContent="Email ou mot de passe incorrect."; }
+}
+
+function toggleAuthMode(mode){
+  const signup=mode==="signup";
+  $("loginForm")?.classList.toggle("hidden",signup);
+  $("signupForm")?.classList.toggle("hidden",!signup);
+  $("showLoginBtn")?.classList.toggle("active",!signup);
+  $("showSignupBtn")?.classList.toggle("active",signup);
+  if($("loginError")) $("loginError").textContent="";
+  if($("signupError")) $("signupError").textContent="";
+}
+
+async function handleSignup(e){
+  e.preventDefault();
+  $("signupError").textContent="";
+
+  const name=$("signupName").value.trim();
+  const email=$("signupEmail").value.trim().toLowerCase();
+  const password=$("signupPassword").value;
+  const password2=$("signupPassword2").value;
+
+  if(name.length<3){
+    $("signupError").textContent="Entre un nom RP valide.";
+    return;
+  }
+  if(password!==password2){
+    $("signupError").textContent="Les mots de passe ne correspondent pas.";
+    return;
+  }
+
+  try{
+    const credential=await createUserWithEmailAndPassword(auth,email,password);
+    const uid=credential.user.uid;
+
+    await setDoc(doc(db,"users",uid),{
+      name,
+      badge:"—",
+      grade:"PO1",
+      role:"Officer",
+      status:"En attente",
+      division:"Patrol",
+      registeredEmail:email,
+      selfRegistered:true,
+      createdAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+
+    window.LSPD.user=credential.user;
+    window.LSPD.profile={
+      name,badge:"—",grade:"PO1",role:"Officer",
+      status:"En attente",division:"Patrol",
+      registeredEmail:email,selfRegistered:true
+    };
+
+    showApprovalGate(
+      "Inscription enregistrée",
+      "Ton compte a été créé automatiquement. Tu n'as rien d'autre à faire : attends simplement la validation du Chief of Police."
+    );
+  }catch(err){
+    const code=err.code||"";
+    if(code==="auth/email-already-in-use") $("signupError").textContent="Cette adresse e-mail possède déjà un compte.";
+    else if(code==="auth/weak-password") $("signupError").textContent="Le mot de passe doit contenir au moins 6 caractères.";
+    else if(code==="auth/invalid-email") $("signupError").textContent="Adresse e-mail invalide.";
+    else $("signupError").textContent="Erreur d'inscription : "+(err.message||code);
+  }
 }
 onAuthStateChanged(auth,async user=>{
   if(!user){window.LSPD.user=null;window.LSPD.profile=null;showLogin();return;}
@@ -136,6 +253,7 @@ function applyRoleVisibility(){
   hide("trainees",!isFTO());
   ["officers","assignments","certifications","records","shifts","requirements","promotions","stats","history","promotionAdvisor","approvals"].forEach(p=>hide(p,!isCommand()));
   hide("corrections",false);
+  hide("registrations",!isChief());
   hide("calendar",!isFTO());
   hide("admin",!isChief());
 }
@@ -144,7 +262,7 @@ function render(page){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   $("pageTitle").textContent=pages[page]||"LSPD";
   ({
-    dashboard,profile,notifications,announcements,messages,incidents,approvals,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
+    dashboard,profile,registrations,notifications,announcements,messages,incidents,approvals,corrections,manual,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,leave,calendar,requirements,promotionAdvisor,promotions,
     stats,grades:gradesPage,scenarios:scenariosPage,admin,history
   }[page]||dashboard)();
@@ -176,6 +294,157 @@ function csvDownload(filename, rows){
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
 }
 
+
+
+async function refreshRegistrationBadge(){
+  if(!isChief()) return;
+  try{
+    const snap=await getDocs(query(collection(db,"users"),where("status","==","En attente")));
+    const count=snap.size;
+    const el=$("registrationCount");
+    if(el){
+      el.textContent=count?String(count):"";
+      el.classList.toggle("hidden",!count);
+    }
+  }catch{}
+}
+
+async function registrations(){
+  if(!isChief()) return;
+  try{
+    const snap=await getDocs(collection(db,"users"));
+    const data=snap.docs
+      .map(d=>({uid:d.id,...d.data()}))
+      .filter(u=>u.status==="En attente" || u.status==="Refusé")
+      .sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+
+    $("content").innerHTML=`<div class="card">
+      <h3>Demandes d'inscription</h3>
+      <p class="muted">Les candidats créent eux-mêmes leur compte Firebase Authentication. Ici, tu valides uniquement leur accès LSPD : matricule, grade, rôle et division.</p>
+    </div>
+    <div class="card table-card" style="margin-top:14px">
+      <table class="table"><thead><tr>
+        <th>Date</th><th>Nom RP</th><th>Email</th><th>Statut</th><th>Profil proposé</th><th>Action</th>
+      </tr></thead><tbody>
+      ${data.length?data.map(u=>`<tr>
+        <td>${formatDate(u.createdAt)}</td>
+        <td><b>${esc(u.name)}</b></td>
+        <td>${esc(u.registeredEmail||"—")}</td>
+        <td><span class="tag ${u.status==="Refusé"?"red":"orange"}">${esc(u.status)}</span></td>
+        <td>${esc(u.grade||"PO1")} • ${esc(u.role||"Officer")} • ${esc(u.division||"Patrol")}</td>
+        <td>
+          <button class="btn approve-registration" data-uid="${u.uid}">${u.status==="Refusé"?"Réexaminer":"Approuver"}</button>
+          ${u.status==="En attente"?`<button class="btn secondary reject-registration" data-uid="${u.uid}">Refuser</button>`:""}
+        </td>
+      </tr>`).join(""):'<tr><td colspan="6">Aucune demande en attente.</td></tr>'}
+      </tbody></table>
+    </div>`;
+
+    document.querySelectorAll(".approve-registration").forEach(b=>b.onclick=()=>openRegistrationApproval(b.dataset.uid));
+    document.querySelectorAll(".reject-registration").forEach(b=>b.onclick=()=>rejectRegistration(b.dataset.uid));
+  }catch(err){
+    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+  }
+}
+
+async function openRegistrationApproval(uid){
+  if(!isChief()) return;
+  const u=await getUser(uid);
+  if(!u) return;
+
+  showModal(`<h2>Valider l'inscription</h2>
+    <div class="card compact-info">
+      <b>${esc(u.name)}</b>
+      <p class="muted">${esc(u.registeredEmail||"")} • UID géré automatiquement par Firebase</p>
+    </div>
+    <form id="registrationApprovalForm">
+      <input id="regUid" type="hidden" value="${esc(uid)}">
+      <div class="formgrid">
+        <label class="field"><span>Matricule</span><input id="regBadge" required placeholder="Ex. 625" value="${u.badge==="—"?"":esc(u.badge||"")}"></label>
+        <label class="field"><span>Grade</span><select id="regGrade">${gradeList.map(g=>`<option ${g[0]===(u.grade||"PO1")?"selected":""}>${g[0]}</option>`).join("")}</select></label>
+        <label class="field"><span>Rôle</span><select id="regRole">${roles.map(r=>`<option ${r===(u.role||"Officer")?"selected":""}>${r}</option>`).join("")}</select></label>
+        <label class="field"><span>Division</span><select id="regDivision">${divisions.map(d=>`<option ${d===(u.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
+      </div>
+      <div id="regError" class="error"></div>
+      <div class="modal-actions">
+        <button class="btn" type="submit">Valider l'inscription</button>
+        <button class="btn secondary" type="button" id="closeModal">Annuler</button>
+      </div>
+    </form>`);
+
+  $("registrationApprovalForm").onsubmit=approveRegistration;
+}
+
+async function approveRegistration(e){
+  e.preventDefault();
+  if(!isChief()) return;
+  const uid=$("regUid").value;
+  const badge=$("regBadge").value.trim();
+
+  if(!badge){
+    $("regError").textContent="Le matricule est obligatoire.";
+    return;
+  }
+
+  try{
+    const before=await getUser(uid);
+    await updateDoc(doc(db,"users",uid),{
+      badge,
+      grade:$("regGrade").value,
+      role:$("regRole").value,
+      division:$("regDivision").value,
+      status:"Actif",
+      approvedById:window.LSPD.user.uid,
+      approvedByName:window.LSPD.profile.name,
+      approvedAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+
+    await addAudit(
+      "REGISTRATION_APPROVED",
+      uid,
+      `${before?.name||uid} — ${badge} — ${$("regGrade").value} — ${$("regRole").value}`
+    );
+
+    try{
+      await createNotification(
+        uid,
+        "Inscription LSPD approuvée",
+        `Ton accès au Command Center est validé. Matricule ${badge}, grade ${$("regGrade").value}.`,
+        "Validation",
+        "dashboard"
+      );
+    }catch{}
+
+    document.querySelector(".modal")?.remove();
+    await refreshRegistrationBadge();
+    registrations();
+  }catch(err){
+    $("regError").textContent="Erreur : "+(err.code||err.message);
+  }
+}
+
+async function rejectRegistration(uid){
+  if(!isChief()) return;
+  const u=await getUser(uid);
+  if(!u) return;
+  if(!confirm(`Refuser la demande de ${u.name} ?`)) return;
+
+  try{
+    await updateDoc(doc(db,"users",uid),{
+      status:"Refusé",
+      rejectedById:window.LSPD.user.uid,
+      rejectedByName:window.LSPD.profile.name,
+      rejectedAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+    await addAudit("REGISTRATION_REJECTED",uid,`${u.name} — demande refusée`);
+    await refreshRegistrationBadge();
+    registrations();
+  }catch(err){
+    alert("Erreur : "+(err.code||err.message));
+  }
+}
 
 async function createNotification(recipientId,title,body,type="Info",linkPage=""){
   if(!recipientId || recipientId===window.LSPD.user?.uid) return;
@@ -982,6 +1251,10 @@ function showModal(html){
 
 document.addEventListener("DOMContentLoaded",()=>{
   $("loginForm")?.addEventListener("submit",handleLogin);
+  $("signupForm")?.addEventListener("submit",handleSignup);
+  $("showLoginBtn")?.addEventListener("click",()=>toggleAuthMode("login"));
+  $("showSignupBtn")?.addEventListener("click",()=>toggleAuthMode("signup"));
+  $("approvalLogoutBtn")?.addEventListener("click",logout);
   $("logoutBtn")?.addEventListener("click",logout);
   $("nav")?.addEventListener("click",e=>{const b=e.target.closest("button[data-page]");if(b)render(b.dataset.page);});
   let timer;

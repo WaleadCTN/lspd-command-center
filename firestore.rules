@@ -4,11 +4,20 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
+
+    function hasSiteAccess() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "En attente"
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "Refusé"
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "Archivé";
+    }
+
     function myProfile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
     function myRole() { return signedIn() ? myProfile().data.role : null; }
 
     function isFTO() {
-      return signedIn() && (
+      return hasSiteAccess() && (
         myRole() == "FTO" || myRole() == "Sergeant" || myRole() == "Lieutenant" ||
         myRole() == "Captain" || myRole() == "Deputy Chief" ||
         myRole() == "Assistant Chief" || myRole() == "Chief"
@@ -16,17 +25,17 @@ service cloud.firestore {
     }
 
     function isCommand() {
-      return signedIn() && (
+      return hasSiteAccess() && (
         myRole() == "Sergeant" || myRole() == "Lieutenant" ||
         myRole() == "Captain" || myRole() == "Deputy Chief" ||
         myRole() == "Assistant Chief" || myRole() == "Chief"
       );
     }
 
-    function isChief() { return signedIn() && myRole() == "Chief"; }
+    function isChief() { return hasSiteAccess() && myRole() == "Chief"; }
 
     function isSeniorCommand() {
-      return signedIn() && (
+      return hasSiteAccess() && (
         myRole() == "Lieutenant" || myRole() == "Captain" ||
         myRole() == "Deputy Chief" || myRole() == "Assistant Chief" ||
         myRole() == "Chief"
@@ -34,21 +43,40 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Internal directory: every authenticated LSPD user may resolve names/badges for messaging.
-      allow read: if signedIn();
-      allow create, update: if isChief();
+      allow read: if signedIn() && (
+        request.auth.uid == userId ||
+        isFTO() || isCommand()
+      );
+
+      // Auto-inscription depuis le site :
+      // l'utilisateur ne peut créer QUE son propre profil,
+      // avec un rôle Officer et un statut En attente.
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.badge == "—"
+        && request.resource.data.grade == "PO1"
+        && request.resource.data.role == "Officer"
+        && request.resource.data.status == "En attente"
+        && request.resource.data.division == "Patrol"
+        && request.resource.data.selfRegistered == true
+        && request.resource.data.registeredEmail == request.auth.token.email;
+
+      allow update: if isChief();
       allow delete: if false;
     }
 
     match /announcements/{id} {
-      allow read: if signedIn();
+      allow read: if hasSiteAccess();
       allow create: if isCommand() && request.resource.data.authorId == request.auth.uid;
       allow update: if isCommand();
       allow delete: if false;
     }
 
     match /messages/{id} {
-      allow read: if signedIn() && (
+      allow read: if hasSiteAccess() && (
         resource.data.senderId == request.auth.uid ||
         resource.data.recipientId == request.auth.uid
       );
@@ -57,11 +85,11 @@ service cloud.firestore {
     }
 
     match /incident_reports/{id} {
-      allow create: if signedIn()
+      allow create: if hasSiteAccess()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.status == "En attente";
 
-      allow read: if signedIn() && (
+      allow read: if hasSiteAccess() && (
         resource.data.authorId == request.auth.uid || isCommand()
       );
 
@@ -73,7 +101,7 @@ service cloud.firestore {
     }
 
     match /evaluations/{id} {
-      allow read: if signedIn() && (
+      allow read: if hasSiteAccess() && (
         resource.data.officerId == request.auth.uid ||
         resource.data.ftoId == request.auth.uid || isCommand()
       );
@@ -93,32 +121,32 @@ service cloud.firestore {
     }
 
     match /certifications/{id} {
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isFTO() || isCommand());
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isFTO() || isCommand());
       allow create: if isChief() && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /personnel_records/{id} {
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isCommand());
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
       allow create: if isChief() && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /shifts/{id} {
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isCommand());
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
       allow create: if isChief() && request.resource.data.createdById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /leave_requests/{id} {
-      allow create: if signedIn() && request.resource.data.officerId == request.auth.uid;
-      allow read: if signedIn() && (resource.data.officerId == request.auth.uid || isCommand());
+      allow create: if hasSiteAccess() && request.resource.data.officerId == request.auth.uid;
+      allow read: if hasSiteAccess() && (resource.data.officerId == request.auth.uid || isCommand());
       allow update: if isChief();
       allow delete: if false;
     }
 
     match /training_events/{id} {
-      allow read: if signedIn();
+      allow read: if hasSiteAccess();
       allow create: if isFTO() && request.resource.data.trainerId == request.auth.uid;
       allow update, delete: if false;
     }
@@ -137,14 +165,14 @@ service cloud.firestore {
 
 
     match /notifications/{id} {
-      allow read: if signedIn() && resource.data.recipientId == request.auth.uid;
+      allow read: if hasSiteAccess() && resource.data.recipientId == request.auth.uid;
 
-      allow create: if signedIn()
+      allow create: if hasSiteAccess()
         && request.resource.data.senderId == request.auth.uid
         && request.resource.data.recipientId is string
         && request.resource.data.read == false;
 
-      allow update: if signedIn()
+      allow update: if hasSiteAccess()
         && resource.data.recipientId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "read","readAt"
@@ -154,11 +182,11 @@ service cloud.firestore {
     }
 
     match /correction_requests/{id} {
-      allow create: if signedIn()
+      allow create: if hasSiteAccess()
         && request.resource.data.requestedById == request.auth.uid
         && request.resource.data.status == "En attente";
 
-      allow read: if signedIn() && (
+      allow read: if hasSiteAccess() && (
         resource.data.requestedById == request.auth.uid ||
         isCommand()
       );
@@ -172,7 +200,7 @@ service cloud.firestore {
     }
 
     match /amendments/{id} {
-      allow read: if signedIn();
+      allow read: if hasSiteAccess();
 
       allow create: if isSeniorCommand()
         && request.resource.data.approvedById == request.auth.uid
