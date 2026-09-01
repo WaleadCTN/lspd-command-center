@@ -1,29 +1,31 @@
-LSPD COMMAND CENTER — PHASE 5.0
+LSPD COMMAND CENTER — PHASE 6.0
 
-UPLOAD / REPLACE ON GITHUB
+REPLACE ON GITHUB
 - index.html
 - app.js
 - style.css
 
 FIRESTORE
-- Firebase > Firestore Database > Règles
-- Paste firestore.rules
-- Click Publier
+Firebase > Firestore Database > Règles
+Paste firestore.rules and click Publier.
 
 NEW FEATURES
-- Official FTO ↔ trainee assignments
-- "Mes recrues" now uses actual assignments
-- Certifications
-- Units / divisions
-- Commendations
-- Sanctions
-- Personnel file now includes certifications and record entries
-- Admin page
-- Expanded command statistics
-- Audit log for all new actions
+- Roster & shifts
+- Leave requests
+- Chief approval/refusal of leave
+- Training calendar
+- FTO can schedule training events
+- Promotion Advisor
+- Command overview on dashboard
+- Expanded operations/RH statistics
+- Everything from Phase 5 retained
 
-IMPORTANT
-Firebase Authentication accounts are still created in Firebase Console.
+PROMOTION ADVISOR
+This is only a decision-support indicator:
+- training completion
+- average FTO score
+- sanctions
+It does NOT automatically promote anyone.
 
-TEST URL
-https://waleadctn.github.io/lspd-command-center/?v=50
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=60
