@@ -392,3 +392,228 @@ Firebase :
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=172
+
+
+================================================
+PHASE 17.3 — MESSAGERIE POUR TOUS + ENVOIS GROUPÉS
+================================================
+
+CORRECTION D'ACCÈS
+- La page Messages est explicitement accessible à tous les membres internes :
+  Officer, FTO, Sergeant, Lieutenant, Captain, Deputy Chief,
+  Assistant Chief et Chief.
+- Le rôle Visiteur reste exclu de la messagerie interne.
+- Correction importante Firestore : le répertoire mail utilise désormais
+  une requête qui exclut explicitement les profils Visiteur.
+  Cela évite le "permission-denied" qui touchait les comptes non-admin.
+
+NOUVEAU COMPOSITEUR
+Il est maintenant possible de sélectionner simultanément :
+
+1. PLUSIEURS PERSONNES
+   - recherche par nom / matricule / grade / division / certification
+   - cases à cocher individuelles
+
+2. UN OU PLUSIEURS GRADES
+   Exemples :
+   - tous les PO1
+   - tous les Sergents
+   - PO1 + PO2 + PO3
+   - Captain + Deputy Chief + Assistant Chief
+
+3. UNE OU PLUSIEURS CERTIFICATIONS
+   Exemples :
+   - tous les FTO certifiés
+   - tous les membres Traffic
+   - SWAT + Pursuit
+   - Air Support + Supervisor
+
+COMBINAISON
+Les sélections sont en UNION.
+Exemple :
+- John Smith sélectionné individuellement
+- tous les PO3
+- tous les certifiés FTO
+
+=> tous ces membres reçoivent le message.
+Si une personne appartient à plusieurs sélections, elle ne reçoit
+qu'UNE SEULE copie grâce à la déduplication automatique.
+
+CONFIDENTIALITÉ
+Pour un envoi à 20 personnes, le système crée 20 messages personnels.
+Chaque destinataire ne voit que sa propre copie et ne voit pas
+les conversations privées des autres destinataires.
+
+RÉPONSES
+- "Répondre" reste une réponse directe à l'expéditeur.
+- "Transférer" permet à nouveau de choisir plusieurs personnes,
+  grades ou certifications.
+
+FIRESTORE
+⚠️ OBLIGATOIRE :
+Publier le nouveau firestore.rules.
+
+Modification nécessaire :
+- les membres internes peuvent lire le répertoire des certifications
+  pour résoudre les groupes de destinataires
+- les Visiteurs restent exclus
+
+INSTALLATION
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules → Firestore Database → Règles → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=173
+
+
+================================================
+PHASE 17.4 — REFONTE COMPLÈTE FTO & FORMATION
+================================================
+
+OBJECTIF
+La partie FTO était devenue très riche mais trop fragmentée.
+Cette phase ne supprime pas les fonctionnalités précédentes :
+elle les reconnecte autour d'un parcours unique et plus simple.
+
+NOUVELLE NAVIGATION FTO
+Le menu gauche passe d'environ 16 entrées à 8 entrées principales :
+- Centre FTO & Formation
+- Mon parcours formation
+- Quiz & connaissances
+- Calendrier & inscriptions
+- Mes recrues
+- Évaluations
+- Sessions & objectifs
+- Administration formation
+
+Les anciennes fonctions restent accessibles depuis le Centre ou
+la barre de navigation FTO contextuelle :
+- Manuel FTO
+- FTO Academy
+- Évaluation finale
+- Dossier complet recrue
+- Stats formation
+- Affectations FTO
+- Planning des formations
+- Scénarios
+- Feedback recrue
+
+CENTRE FTO & FORMATION
+Accessible à tous les membres internes.
+
+POUR UNE RECRUE / OFFICER
+- affiche son FTO actif
+- progression M01-M16
+- moyenne
+- prochain module recommandé
+- objectifs ouverts
+- prochaine formation inscrite
+- accès direct aux quiz, planning, évaluations et feedback
+- chaque module ouvre une fiche contextuelle
+
+POUR UN FTO
+- liste des recrues accessibles
+- progression de chaque recrue
+- FTO actif
+- module recommandé
+- objectifs ouverts
+- accès direct "Espace recrue"
+- démarrage rapide d'une session
+- nouvelle évaluation
+- Journal FTO
+- Academy
+
+ESPACE RECRUE
+Nouvelle page centrale pour le FTO :
+- profil recrue
+- affectation FTO active
+- progression M01-M16
+- moyenne
+- sessions terminées
+- module recommandé
+- objectifs ouverts
+- sessions récentes
+- évaluations récentes
+- feedback recrue
+- passation FTO
+- statut validation finale
+
+Actions directes :
+- Démarrer une session sur le module recommandé
+- Nouvelle évaluation préremplie
+- Ajouter un objectif prérempli
+- Générer un scénario du module recommandé
+- Ouvrir le dossier complet
+- Ajouter une passation FTO
+
+LIENS ENTRE MODULES ET FTO
+Chaque module ouvre maintenant une fiche qui montre :
+- statut dans le parcours
+- FTO actif de la recrue
+- dernière évaluation
+- nombre de sessions
+- dernier quiz
+- objectif et déroulé pédagogique
+- erreurs critiques
+- action corrective
+
+Depuis cette fiche :
+FTO :
+- guide complet
+- scénario du module
+- démarrer une session
+- évaluer le module
+
+Recrue :
+- lancer le quiz
+- ouvrir le planning
+
+PARCOURS FORMATION
+La page Formations devient un vrai parcours :
+- Validé
+- Prêt à commencer
+- En progression
+- À retravailler
+- Verrouillé par prérequis
+
+COMMAND
+Le Centre affiche des raccourcis vers :
+- Affectations FTO
+- Validations finales
+- Stats formation
+- Planification formations
+- Gestion Academy
+- Manuel FTO
+
+BARRE CONTEXTUELLE
+Toutes les pages de formation affichent une petite barre commune :
+Centre / Mon parcours / Planning / Mes recrues / Sessions /
+Évaluations / Gestion selon les permissions.
+
+FIRESTORE
+⚠️ OBLIGATOIRE : publier le nouveau firestore.rules.
+
+Modification :
+Une recrue peut maintenant lire uniquement sa propre affectation FTO.
+Cela permet d'afficher "Mon FTO" dans le Centre.
+La recrue ne peut ni créer ni modifier une affectation.
+
+AUCUNE NOUVELLE COLLECTION FIRESTORE.
+Les données existantes sont réutilisées.
+
+INSTALLATION
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules → Firestore Database → Règles → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=174

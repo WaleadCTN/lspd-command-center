@@ -167,14 +167,23 @@ service cloud.firestore {
     }
 
     match /fto_assignments/{id} {
-      allow read: if hasPerm("fto_tools") || hasPerm("fto_assignments_view");
+      // A trainee may read only their own assignment so the Training Center
+      // can show who their active FTO is. FTO/Command keep their existing access.
+      allow read: if isInternal() && (
+        resource.data.traineeId == request.auth.uid ||
+        hasPerm("fto_tools") ||
+        hasPerm("fto_assignments_view")
+      );
       allow create: if hasPerm("fto_assignments_manage") && request.resource.data.createdById == request.auth.uid;
       allow update: if hasPerm("fto_assignments_manage");
       allow delete: if false;
     }
 
     match /certifications/{id} {
-      allow read: if isInternal() && (resource.data.officerId == request.auth.uid || hasPerm("certifications_view"));
+      // Internal certification directory is readable by all department members
+      // so mail recipients can be resolved by certification.
+      // Visitors remain excluded because isInternal() is false for them.
+      allow read: if isInternal();
       allow create: if hasPerm("certifications_manage") && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }

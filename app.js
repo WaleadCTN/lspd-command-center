@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.2 NOTIFICATIONS + OUTLOOK MESSAGING ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
+// LSPD Command Center — Phase 17.4 FTO & TRAINING REDESIGN ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -56,6 +56,10 @@ Object.assign(I18N_EN,{"Stats formation":"Training analytics","Alertes pédagogi
 Object.assign(I18N_EN,{"Accueil & personnel":"Home & personal","Communication & rapports":"Communication & reports","FTO & formation":"FTO & training","Personnel & carrière":"Personnel & career","Opérations & MDT":"Operations & MDT","Commandement & administration":"Command & administration"});
 
 Object.assign(I18N_EN,{"Tout marquer comme lu":"Mark all as read","Marquer comme lu":"Mark as read","Marquer comme non lu":"Mark as unread","Aucune notification.":"No notifications.","Chargement...":"Loading...","Boîte de réception":"Inbox","Envoyés":"Sent","Tous les messages":"All mail","Nouveau message":"New message","Rechercher dans les messages...":"Search mail...","Répondre":"Reply","Transférer":"Forward","Fermer":"Close","Envoyer":"Send","À":"To","De":"From","Sujet":"Subject","Conversation":"Conversation","Message transféré":"Forwarded message","Message d'origine":"Original message","Aucun message.":"No messages.","message non lu":"unread message","messages non lus":"unread messages","Tout est à jour":"You're all caught up","Actualiser":"Refresh","Boîte LSPD":"LSPD Mail"});
+
+Object.assign(I18N_EN,{"Destinataires":"Recipients","Personnes":"People","Grades":"Ranks","Certifications":"Certifications","Rechercher un membre...":"Search a member...","Sélection directe":"Direct selection","Sélection par grade":"Select by rank","Sélection par certification":"Select by certification","Effacer la sélection":"Clear selection","destinataire sélectionné":"recipient selected","destinataires sélectionnés":"recipients selected","Les sélections se cumulent. Les doublons sont supprimés automatiquement.":"Selections are combined. Duplicates are automatically removed.","Aucun destinataire sélectionné.":"No recipient selected.","Envoi groupé":"Group email","Message envoyé à":"Message sent to","messages envoyés":"messages sent","Tous les membres de ce grade":"All members of this rank","Tous les membres certifiés":"All certified members","Réponse directe":"Direct reply","Le destinataire de la réponse est verrouillé sur l'expéditeur du message.":"The reply recipient is locked to the message sender.","Membre":"Member","Certification":"Certification","Sélection":"Selection"});
+
+Object.assign(I18N_EN,{"Centre FTO & Formation":"FTO & Training Center","Mon parcours formation":"My training path","Quiz & connaissances":"Quizzes & knowledge","Calendrier & inscriptions":"Calendar & enrollment","Sessions & objectifs":"Sessions & objectives","Administration formation":"Training administration","Mon FTO":"My FTO","Prochaine étape":"Next step","Parcours pédagogique":"Training journey","Affectation FTO":"FTO assignment","Session pratique":"Practical session","Évaluation module":"Module evaluation","Objectifs & correction":"Objectives & remediation","Validation finale":"Final validation","Espace recrue":"Trainee workspace","Ouvrir l'espace recrue":"Open trainee workspace","Démarrer une session":"Start a session","Nouvelle évaluation":"New evaluation","Ajouter un objectif":"Add objective","Voir le module":"View module","Module recommandé":"Recommended module","Prêt à commencer":"Ready to start","En progression":"In progress","À retravailler":"Needs work","Verrouillé":"Locked","Validé":"Validated","Aucun FTO actif":"No active FTO","Aucune affectation active":"No active assignment","Activité récente":"Recent activity","Outils FTO":"FTO tools","Outils Commandement":"Command tools","Retour au centre":"Back to center","Progression de la recrue":"Trainee progress","Suivi pédagogique":"Training follow-up","Historique récent":"Recent history","Planning formation":"Training schedule","Raccourcis":"Shortcuts","Programme & guide":"Program & guide","Dossier complet":"Full record"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -779,7 +783,7 @@ const pages = {
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
  promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
- scenarios:"Scénarios",visitorPortal:"Portail visiteur",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
+ scenarios:"Scénarios",visitorPortal:"Portail visiteur",trainingCenter:"Centre FTO & Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
 };
 
 function role(){ return window.LSPD.profile?.role; }
@@ -802,6 +806,8 @@ function hasPerm(permission){
 }
 function canAccessPage(page){
   if(isVisitor()) return ["visitorPortal","profile","announcements"].includes(page);
+  if(page==="messages" || page==="trainingCenter") return isInternal();
+  if(page==="trainingWorkspace") return hasPerm("academy_manage") || hasPerm("fto_tools");
   if(page==="visitorPortal") return false;
   if(page==="permissionsAdmin" || page==="admin") return isChief();
   const needed=PAGE_PERMISSIONS[page];
@@ -1086,11 +1092,12 @@ function render(page){
   $("pageTitle").textContent=pages[page]||"LSPD";
   const content=$("content");
   content?.classList.remove("page-enter");
-  ({
-    dashboard,visitorPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
+  const pageResult=({
+    dashboard,visitorPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,trainingCenter,trainingWorkspace,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
     stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,history
   }[page]||dashboard)();
+  Promise.resolve(pageResult).finally(()=>injectTrainingContextBar(page));
   requestAnimationFrame(()=>content?.classList.add("page-enter"));
 }
 
@@ -2179,6 +2186,399 @@ function openCloseWatch(id){
 }
 
 
+
+const TRAINING_CONTEXT_PAGES=new Set([
+  "trainingCenter","trainingWorkspace","modules","trainingQuiz","trainingHub","calendar",
+  "manual","ftoAcademy","ftoJournal","ftoFinal","ftoDossier","trainingAnalytics",
+  "academyManager","myTrainingFeedback","evaluations","trainees","assignments","scenarios"
+]);
+
+function injectTrainingContextBar(page){
+  if(!TRAINING_CONTEXT_PAGES.has(page) || isVisitor())return;
+  const content=$("content");
+  if(!content || content.querySelector(".training-context-bar"))return;
+
+  const links=[
+    ["trainingCenter","🧭","Centre",true],
+    ["modules","🛣️","Mon parcours",true],
+    ["trainingHub","🗓️","Planning",true],
+    ["trainees","👥","Mes recrues",hasPerm("fto_tools")],
+    ["ftoJournal","📝","Sessions",hasPerm("academy_manage")],
+    ["evaluations","✅","Évaluations",true],
+    ["academyManager","⚙️","Gestion",hasPerm("academy_content_manage")]
+  ].filter(x=>x[3] && canAccessPage(x[0]));
+
+  const bar=document.createElement("div");
+  bar.className="training-context-bar";
+  bar.innerHTML=`<span class="training-context-label">FTO</span>${links.map(([p,icon,label])=>`<button type="button" class="${page===p?"active":""}" data-training-page="${p}">${icon} ${label}</button>`).join("")}`;
+  content.prepend(bar);
+  bar.querySelectorAll("[data-training-page]").forEach(b=>b.onclick=()=>render(b.dataset.trainingPage));
+}
+
+function latestTrainingEvaluations(evals){
+  const latest={};
+  for(const e of evals){
+    if(!e.moduleCode)continue;
+    if(!latest[e.moduleCode] || (e.createdAt?.seconds||0)>(latest[e.moduleCode].createdAt?.seconds||0)){
+      latest[e.moduleCode]=e;
+    }
+  }
+  return latest;
+}
+
+function trainingModuleState(code,latest,sessions=[]){
+  const evaluation=latest[code];
+  if(evaluation?.result==="Validé")return {key:"validated",label:"Validé",score:Number(evaluation.score)||0};
+  if(evaluation?.result==="Échec")return {key:"failed",label:"À retravailler",score:Number(evaluation.score)||0};
+  if(evaluation?.result==="À revoir")return {key:"review",label:"À retravailler",score:Number(evaluation.score)||0};
+
+  const validated=new Set(Object.entries(latest).filter(([,e])=>e.result==="Validé").map(([c])=>c));
+  const data=getAcademyData(code);
+  const prereq=(data?.prereq||[]).filter(x=>/^M\d\d$/.test(x));
+  if(prereq.some(x=>!validated.has(x)))return {key:"locked",label:"Verrouillé",score:null};
+
+  if(sessions.some(s=>s.moduleCode===code))return {key:"progress",label:"En progression",score:null};
+  return {key:"ready",label:"Prêt à commencer",score:null};
+}
+
+function recommendTrainingModule(evals,sessions=[]){
+  const latest=latestTrainingEvaluations(evals);
+  for(const m of modules){
+    const e=latest[m[0]];
+    if(e && (e.result==="Échec"||e.result==="À revoir"))return m[0];
+  }
+  for(const m of modules){
+    const state=trainingModuleState(m[0],latest,sessions);
+    if(state.key==="ready"||state.key==="progress")return m[0];
+  }
+  return modules.find(m=>latest[m[0]]?.result!=="Validé")?.[0]||"M16";
+}
+
+function trainingProgressStats(evals,sessions=[]){
+  const latest=latestTrainingEvaluations(evals);
+  const scored=Object.values(latest).filter(e=>Number.isFinite(Number(e.score)));
+  return {
+    latest,
+    validated:Object.values(latest).filter(e=>e.result==="Validé").length,
+    avg:scored.length?Math.round(scored.reduce((a,e)=>a+Number(e.score),0)/scored.length):0,
+    next:recommendTrainingModule(evals,sessions)
+  };
+}
+
+function trainingStageStrip(active=0){
+  const stages=[
+    ["1","Affectation FTO"],
+    ["2","Session pratique"],
+    ["3","Évaluation module"],
+    ["4","Objectifs & correction"],
+    ["5","Validation finale"]
+  ];
+  return `<div class="training-stage-strip">${stages.map((s,i)=>`<div class="training-stage ${i<active?"done":i===active?"active":""}"><i>${i<active?"✓":s[0]}</i><span>${esc(B(s[1],s[1]))}</span></div>`).join("")}</div>`;
+}
+
+function openTrainingWorkspace(uid){
+  if(!uid)return;
+  window.LSPD.selectedTraineeId=uid;
+  render("trainingWorkspace");
+}
+
+async function trainingCenter(){
+  if(!isInternal())return;
+  await loadAcademyOverrides();
+
+  const uid=window.LSPD.user.uid;
+  let ownEvals=[],ownSessions=[],ownObjectives=[],ownQuiz=[],ownAssignments=[],events=[],regs=[];
+  try{
+    const results=await Promise.all([
+      getDocs(query(collection(db,"evaluations"),where("officerId","==",uid))),
+      getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",uid))),
+      getDocs(query(collection(db,"training_objectives"),where("traineeId","==",uid))),
+      getDocs(query(collection(db,"academy_quiz_attempts"),where("officerId","==",uid))),
+      getDocs(query(collection(db,"fto_assignments"),where("traineeId","==",uid))),
+      getDocs(collection(db,"training_events")),
+      getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid)))
+    ]);
+    ownEvals=results[0].docs.map(d=>d.data());
+    ownSessions=results[1].docs.map(d=>d.data());
+    ownObjectives=results[2].docs.map(d=>d.data());
+    ownQuiz=results[3].docs.map(d=>d.data());
+    ownAssignments=results[4].docs.map(d=>({id:d.id,...d.data()}));
+    events=results[5].docs.map(d=>({id:d.id,...d.data()}));
+    regs=results[6].docs.map(d=>({id:d.id,...d.data()}));
+  }catch(err){
+    console.warn("Training center self data",err);
+  }
+
+  const myStats=trainingProgressStats(ownEvals,ownSessions);
+  const activeAssignment=ownAssignments.filter(a=>a.status==="Active").sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];
+  const nextModule=modules.find(m=>m[0]===myStats.next);
+  const activeRegs=regs.filter(r=>r.status!=="Annulée");
+  const upcoming=events
+    .filter(e=>activeRegs.some(r=>r.eventId===e.id) && e.date>=todayISO())
+    .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+
+  let html=`<div class="training-center-hero card">
+    <div>
+      <span class="eyebrow">FIELD TRAINING PROGRAM</span>
+      <h2>Centre FTO & Formation</h2>
+      <p class="muted">Un seul point d'entrée pour relier ton FTO, les modules M01–M16, les sessions, les évaluations, les objectifs et la validation finale.</p>
+    </div>
+    <div class="training-role-badge">${esc(window.LSPD.profile.role)}<small>${esc(window.LSPD.profile.grade)}</small></div>
+  </div>
+  ${trainingStageStrip(Math.min(4,Math.floor(myStats.validated/4)))}
+  <div class="grid training-overview-grid">
+    <div class="card training-kpi-card"><span>Mon FTO</span><b>${esc(activeAssignment?.ftoName||"Aucun FTO actif")}</b><small>${activeAssignment?`Affectation active • ${formatDate(activeAssignment.createdAt)}`:"Le Commandement peut créer une affectation FTO."}</small></div>
+    <div class="card training-kpi-card"><span>Progression</span><b>${myStats.validated}/${modules.length}</b><small>${myStats.avg?`Moyenne ${myStats.avg}/100`:"Aucune évaluation enregistrée"}</small></div>
+    <div class="card training-kpi-card"><span>Prochaine étape</span><b>${esc(myStats.next)} — ${esc(nextModule?.[1]||"Formation")}</b><small>${ownObjectives.filter(o=>o.status==="Ouvert").length} objectif(s) ouvert(s)</small></div>
+    <div class="card training-kpi-card"><span>Planning formation</span><b>${upcoming?esc(upcoming.title):"Aucune session inscrite"}</b><small>${upcoming?`${esc(upcoming.date)} • ${esc(upcoming.time)}`:"Consulte le calendrier des formations"}</small></div>
+  </div>
+  <div class="training-center-section-head"><div><span class="eyebrow">MON PARCOURS</span><h2>Progression M01–M16</h2></div><button class="btn secondary training-go" data-page="modules">Voir le parcours détaillé</button></div>
+  <div class="training-path-line">${modules.map(m=>{const st=trainingModuleState(m[0],myStats.latest,ownSessions);return `<button type="button" class="training-path-node ${st.key}" data-module="${m[0]}" title="${esc(m[1])}"><b>${m[0]}</b><small>${st.score!==null?st.score:st.key==="validated"?"✓":""}</small></button>`}).join("")}</div>
+  <div class="training-quick-actions">
+    <button class="training-action-card" data-page="trainingQuiz"><span>🧠</span><b>Quiz & connaissances</b><small>${ownQuiz.length} tentative(s)</small></button>
+    <button class="training-action-card" data-page="trainingHub"><span>🗓️</span><b>Calendrier & inscriptions</b><small>Planifier ma formation</small></button>
+    <button class="training-action-card" data-page="evaluations"><span>✅</span><b>Mes évaluations</b><small>${ownEvals.length} évaluation(s)</small></button>
+    <button class="training-action-card" data-page="myTrainingFeedback"><span>💬</span><b>Feedback formation</b><small>Retour après une session FTO</small></button>
+  </div>`;
+
+  if(hasPerm("academy_manage")){
+    let traineesData=[],allEvals=[],allSessions=[],allObjectives=[],assignments=[];
+    try{
+      const trainees=await accessibleTrainees();
+      const [es,ss,os,as]=await Promise.all([
+        getDocs(collection(db,"evaluations")),
+        getDocs(collection(db,"fto_sessions")),
+        getDocs(collection(db,"training_objectives")),
+        getDocs(collection(db,"fto_assignments"))
+      ]);
+      traineesData=trainees;
+      allEvals=es.docs.map(d=>d.data());
+      allSessions=ss.docs.map(d=>d.data());
+      allObjectives=os.docs.map(d=>d.data());
+      assignments=as.docs.map(d=>d.data());
+    }catch(err){console.warn("FTO center data",err);}
+
+    html+=`<div class="training-center-section-head"><div><span class="eyebrow">OUTILS FTO</span><h2>Mes recrues & prochaines actions</h2></div><button class="btn secondary training-go" data-page="trainees">Toutes mes recrues</button></div>
+    <div class="training-trainee-grid">${traineesData.length?traineesData.slice(0,8).map(t=>{
+      const te=allEvals.filter(e=>e.officerId===t.uid),ts=allSessions.filter(s=>s.traineeId===t.uid),to=allObjectives.filter(o=>o.traineeId===t.uid&&o.status==="Ouvert"),st=trainingProgressStats(te,ts),next=modules.find(m=>m[0]===st.next),assignment=assignments.find(a=>a.traineeId===t.uid&&a.status==="Active");
+      return `<div class="card training-trainee-card">
+        <div class="training-trainee-head"><div><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><p>${esc(t.grade)} • ${esc(t.division||"Patrol")}</p></div><span class="training-progress-ring">${st.validated}<small>/16</small></span></div>
+        <div class="row"><span>FTO actif</span><b>${esc(assignment?.ftoName||"—")}</b></div>
+        <div class="row"><span>Module recommandé</span><b>${esc(st.next)} ${esc(next?.[1]||"")}</b></div>
+        <div class="row"><span>Objectifs ouverts</span><b>${to.length}</b></div>
+        <button class="btn training-open-trainee" data-id="${t.uid}">Ouvrir l'espace recrue</button>
+      </div>`;
+    }).join(""):'<div class="card"><p class="muted">Aucune recrue accessible.</p></div>'}</div>
+    <div class="training-quick-actions fto">
+      <button class="training-action-card" data-action="new-session"><span>▶️</span><b>Démarrer une session</b><small>Choisir recrue + module</small></button>
+      <button class="training-action-card" data-action="new-eval"><span>✅</span><b>Nouvelle évaluation</b><small>Évaluer un module</small></button>
+      <button class="training-action-card" data-page="ftoJournal"><span>📝</span><b>Sessions & objectifs</b><small>Journal pédagogique</small></button>
+      <button class="training-action-card" data-page="ftoAcademy"><span>📚</span><b>Programme & guide</b><small>Academy M01–M16</small></button>
+    </div>`;
+  }
+
+  if(isCommand() || hasPerm("fto_assignments_view") || hasPerm("academy_final_review") || hasPerm("academy_content_manage")){
+    let pendingFinal=0,activeAssignments=0;
+    try{
+      if(hasPerm("academy_manage")){
+        const fs=await getDocs(collection(db,"final_fto_reviews"));
+        pendingFinal=fs.docs.filter(d=>(d.data().status||"En attente Commandement")==="En attente Commandement").length;
+      }
+      if(hasPerm("fto_assignments_view")||hasPerm("fto_tools")){
+        const as=await getDocs(collection(db,"fto_assignments"));
+        activeAssignments=as.docs.filter(d=>d.data().status==="Active").length;
+      }
+    }catch{}
+    html+=`<div class="training-center-section-head"><div><span class="eyebrow">OUTILS COMMANDEMENT</span><h2>Pilotage du programme FTO</h2></div></div>
+    <div class="training-command-grid">
+      ${canAccessPage("assignments")?`<button class="training-command-card" data-page="assignments"><span>🔗</span><b>Affectations FTO</b><strong>${activeAssignments}</strong><small>affectation(s) active(s)</small></button>`:""}
+      ${canAccessPage("ftoFinal")?`<button class="training-command-card" data-page="ftoFinal"><span>🏁</span><b>Validations finales</b><strong>${pendingFinal}</strong><small>en attente Commandement</small></button>`:""}
+      ${canAccessPage("trainingAnalytics")?`<button class="training-command-card" data-page="trainingAnalytics"><span>📊</span><b>Stats formation</b><small>Modules, FTO, alertes</small></button>`:""}
+      ${canAccessPage("calendar")?`<button class="training-command-card" data-page="calendar"><span>🗓️</span><b>Planifier une formation</b><small>Événements & capacité</small></button>`:""}
+      ${canAccessPage("academyManager")?`<button class="training-command-card" data-page="academyManager"><span>⚙️</span><b>Gestion Academy</b><small>Modules & scénarios</small></button>`:""}
+      ${canAccessPage("manual")?`<button class="training-command-card" data-page="manual"><span>📖</span><b>Manuel FTO</b><small>Standards du programme</small></button>`:""}
+    </div>`;
+  }
+
+  $("content").innerHTML=html;
+  document.querySelectorAll(".training-go,.training-action-card[data-page],.training-command-card[data-page]").forEach(b=>b.onclick=()=>render(b.dataset.page));
+  document.querySelectorAll(".training-path-node").forEach(b=>b.onclick=()=>openTrainingModuleContext(b.dataset.module,uid));
+  document.querySelectorAll(".training-open-trainee").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));
+  document.querySelector('[data-action="new-session"]')?.addEventListener("click",()=>openAcademySessionForm());
+  document.querySelector('[data-action="new-eval"]')?.addEventListener("click",()=>openEvaluationForm());
+}
+
+async function trainingWorkspace(){
+  if(!(hasPerm("academy_manage")||hasPerm("fto_tools")))return;
+  await loadAcademyOverrides();
+
+  const uid=window.LSPD.selectedTraineeId;
+  if(!uid){showToast("Sélectionne une recrue depuis le Centre FTO.","warning");return render("trainingCenter");}
+
+  const trainees=await accessibleTrainees();
+  const trainee=trainees.find(t=>t.uid===uid);
+  if(!trainee){showToast("Cette recrue n'est pas accessible.","error");window.LSPD.selectedTraineeId=null;return render("trainingCenter");}
+
+  const [es,ss,os,qs,fs,hs,fbs,as]=await Promise.all([
+    getDocs(collection(db,"evaluations")),
+    getDocs(collection(db,"fto_sessions")),
+    getDocs(collection(db,"training_objectives")),
+    getDocs(collection(db,"academy_quiz_attempts")),
+    getDocs(collection(db,"final_fto_reviews")),
+    getDocs(collection(db,"fto_handoffs")),
+    getDocs(collection(db,"fto_feedback")),
+    getDocs(collection(db,"fto_assignments"))
+  ]);
+
+  const evals=es.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.officerId===uid);
+  const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const objectives=os.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const quizzes=qs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.officerId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const finals=fs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const handoffs=hs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const feedback=fbs.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const assignment=as.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.traineeId===uid&&x.status==="Active").sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];
+
+  const stats=trainingProgressStats(evals,sessions);
+  const next=modules.find(m=>m[0]===stats.next);
+  const openObjectives=objectives.filter(o=>o.status==="Ouvert");
+  const completedSessions=sessions.filter(s=>s.status==="Terminée");
+  const lastFinal=finals[0];
+
+  $("content").innerHTML=`<div class="training-workspace-head card">
+    <button class="training-back-btn" id="trainingBackBtn">← Retour au centre</button>
+    <div class="training-workspace-person">
+      <div class="training-workspace-avatar">${esc((trainee.name||"?").slice(0,1).toUpperCase())}</div>
+      <div><span class="number">${esc(trainee.badge)}</span><h2>${esc(trainee.name)}</h2><p>${esc(trainee.grade)} • ${esc(trainee.division||"Patrol")} • ${esc(trainee.status)}</p></div>
+    </div>
+    <div class="training-workspace-assignment"><span>FTO actif</span><b>${esc(assignment?.ftoName||"Aucune affectation active")}</b><small>${assignment?formatDate(assignment.createdAt):""}</small></div>
+  </div>
+
+  ${trainingStageStrip(Math.min(4,Math.floor(stats.validated/4)))}
+
+  <div class="grid training-overview-grid">
+    <div class="card training-kpi-card"><span>Modules validés</span><b>${stats.validated}/16</b><small>${Math.round(stats.validated/16*100)}% du parcours</small></div>
+    <div class="card training-kpi-card"><span>Moyenne</span><b>${stats.avg}/100</b><small>${evals.length} évaluation(s)</small></div>
+    <div class="card training-kpi-card"><span>Sessions terminées</span><b>${completedSessions.length}</b><small>${sessions.filter(s=>s.status==="En cours").length} en cours</small></div>
+    <div class="card training-kpi-card"><span>Module recommandé</span><b>${esc(stats.next)} — ${esc(next?.[1]||"")}</b><small>${openObjectives.length} objectif(s) ouvert(s)</small></div>
+  </div>
+
+  <div class="training-workspace-actions">
+    <button class="btn" id="workspaceSessionBtn">▶️ Démarrer une session</button>
+    <button class="btn secondary" id="workspaceEvalBtn">✅ Nouvelle évaluation</button>
+    <button class="btn secondary" id="workspaceObjectiveBtn">🎯 Ajouter un objectif</button>
+    <button class="btn secondary" id="workspaceScenarioBtn">🎲 Scénario ${esc(stats.next)}</button>
+    <button class="btn secondary" id="workspaceDossierBtn">🗂️ Dossier complet</button>
+    <button class="btn secondary" id="workspaceHandoffBtn">🔄 Passation FTO</button>
+  </div>
+
+  <div class="training-center-section-head"><div><span class="eyebrow">PROGRESSION DE LA RECRUE</span><h2>M01–M16</h2></div></div>
+  <div class="training-module-board">${modules.map(m=>{
+    const state=trainingModuleState(m[0],stats.latest,sessions),ev=stats.latest[m[0]],sessionCount=sessions.filter(s=>s.moduleCode===m[0]).length,quiz=quizzes.find(q=>q.moduleCode===m[0]);
+    return `<button class="training-module-tile ${state.key}" data-module="${m[0]}" type="button">
+      <div><span>${m[0]}</span><strong>${esc(m[1])}</strong></div>
+      <small>${state.label}${ev?` • ${ev.score}/100`:""}${quiz?` • Quiz ${quiz.percentage}%`:""}${sessionCount?` • ${sessionCount} session(s)`:""}</small>
+    </button>`;
+  }).join("")}</div>
+
+  <div class="grid2 training-workspace-columns">
+    <div class="card">
+      <div class="training-card-title"><h3>🎯 Objectifs & correction</h3><button class="link-btn" id="workspaceObjectiveSmall">+ Ajouter</button></div>
+      ${openObjectives.length?openObjectives.slice(0,8).map(o=>`<div class="objective-item compact"><div><span class="tag ${o.priority==="Critique"?"red":o.priority==="Haute"?"orange":""}">${esc(o.priority)}</span><p>${esc(o.text)}</p></div><span class="tag orange">${esc(o.status)}</span></div>`).join(""):'<p class="muted">Aucun objectif ouvert.</p>'}
+    </div>
+    <div class="card">
+      <h3>📝 Sessions récentes</h3>
+      ${sessions.length?sessions.slice(0,7).map(s=>`<button class="training-history-row session-open" data-id="${s.id}"><span><b>${esc(s.moduleCode)} • ${esc(s.phase)}</b><small>${esc(s.ftoName)} • ${formatDate(s.createdAt)}</small></span><span class="tag ${s.status==="Terminée"?"green":"orange"}">${esc(s.status)}</span></button>`).join(""):'<p class="muted">Aucune session.</p>'}
+    </div>
+    <div class="card">
+      <h3>✅ Évaluations récentes</h3>
+      ${evals.length?evals.slice().sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)).slice(0,7).map(e=>`<div class="training-history-row"><span><b>${esc(e.moduleCode)} • ${esc(e.moduleTitle)}</b><small>${esc(e.ftoName)} • ${formatDate(e.createdAt)}</small></span><span class="tag ${e.result==="Validé"?"green":e.result==="Échec"?"red":"orange"}">${e.score}/100</span></div>`).join(""):'<p class="muted">Aucune évaluation.</p>'}
+    </div>
+    <div class="card">
+      <h3>💬 Feedback & passation</h3>
+      ${feedback.length?`<div class="training-note"><b>Dernier feedback recrue • ${feedback[0].understanding}/5</b><p>${esc(feedback[0].difficulty||"—")}</p><small>${esc(feedback[0].question||"")}</small></div>`:'<p class="muted">Aucun feedback recrue.</p>'}
+      ${handoffs.length?`<div class="training-note"><b>Dernière passation • ${esc(handoffs[0].authorName)}</b><p>${esc(handoffs[0].note)}</p></div>`:""}
+    </div>
+  </div>
+
+  ${lastFinal?`<div class="card training-final-status"><div><span class="eyebrow">VALIDATION FINALE</span><h3>${esc(lastFinal.decision)}</h3><p>${esc(lastFinal.comment||"")}</p></div><span class="tag ${lastFinal.status==="Validée"?"green":lastFinal.status==="Refusée"?"red":"orange"}">${esc(lastFinal.status||"En attente Commandement")}</span></div>`:""}`;
+
+  $("trainingBackBtn").onclick=()=>render("trainingCenter");
+  $("workspaceSessionBtn").onclick=()=>openAcademySessionForm(uid,stats.next);
+  $("workspaceEvalBtn").onclick=()=>openEvaluationForm(uid,stats.next);
+  $("workspaceObjectiveBtn").onclick=()=>openObjectiveForm(uid);
+  $("workspaceObjectiveSmall").onclick=()=>openObjectiveForm(uid);
+  $("workspaceScenarioBtn").onclick=()=>openRandomScenario(stats.next);
+  $("workspaceDossierBtn").onclick=()=>{window.LSPD.selectedTraineeId=uid;render("ftoDossier");};
+  $("workspaceHandoffBtn").onclick=()=>openHandoffForm(uid,trainees);
+  document.querySelectorAll(".training-module-tile").forEach(b=>b.onclick=()=>openTrainingModuleContext(b.dataset.module,uid));
+  document.querySelectorAll(".session-open").forEach(b=>b.onclick=()=>openGuidedSession(b.dataset.id));
+}
+
+async function openTrainingModuleContext(code,traineeId=null){
+  await loadAcademyOverrides();
+  const m=modules.find(x=>x[0]===code),data=getAcademyData(code);
+  if(!m||!data)return;
+
+  const targetId=traineeId||window.LSPD.user.uid;
+  let evals=[],sessions=[],quizzes=[],assignment=null,targetName=window.LSPD.profile.name;
+  try{
+    const [es,ss,qs]=await Promise.all([
+      getDocs(query(collection(db,"evaluations"),where("officerId","==",targetId))),
+      getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",targetId))),
+      getDocs(query(collection(db,"academy_quiz_attempts"),where("officerId","==",targetId)))
+    ]);
+    evals=es.docs.map(d=>d.data());
+    sessions=ss.docs.map(d=>d.data());
+    quizzes=qs.docs.map(d=>d.data());
+    if(targetId===window.LSPD.user.uid){
+      const as=await getDocs(query(collection(db,"fto_assignments"),where("traineeId","==",targetId)));
+      assignment=as.docs.map(d=>d.data()).find(a=>a.status==="Active")||null;
+    }else{
+      const trainees=await accessibleTrainees();
+      targetName=trainees.find(t=>t.uid===targetId)?.name||"Recrue";
+    }
+  }catch{}
+
+  const stats=trainingProgressStats(evals,sessions);
+  const state=trainingModuleState(code,stats.latest,sessions);
+  const ev=stats.latest[code];
+  const moduleSessions=sessions.filter(s=>s.moduleCode===code).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const moduleQuizzes=quizzes.filter(q=>q.moduleCode===code).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+
+  showModal(`<div class="training-module-modal">
+    <div class="academy-guide-head">
+      <div><span class="module-code large">${esc(code)}</span><h2>${esc(m[1])}</h2><p>${esc(data.objective())}</p></div>
+      <span class="tag ${state.key==="validated"?"green":state.key==="failed"?"red":state.key==="review"?"orange":""}">${esc(state.label)}</span>
+    </div>
+    ${targetId!==window.LSPD.user.uid?`<div class="training-target-banner">👤 ${esc(targetName)}</div>`:assignment?`<div class="training-target-banner">👮 Mon FTO : ${esc(assignment.ftoName)}</div>`:""}
+    <div class="training-module-summary">
+      <div><span>Durée</span><b>${esc(data.duration||"—")}</b></div>
+      <div><span>Dernière évaluation</span><b>${ev?`${ev.score}/100 • ${esc(ev.result)}`:"—"}</b></div>
+      <div><span>Sessions</span><b>${moduleSessions.length}</b></div>
+      <div><span>Quiz</span><b>${moduleQuizzes[0]?`${moduleQuizzes[0].percentage}%`:"—"}</b></div>
+    </div>
+    <div class="grid2">
+      <div class="guide-section"><h3>Objectif & déroulé</h3>${data.steps().map((x,i)=>`<div class="training-step-line"><i>${i+1}</i><span>${esc(x)}</span></div>`).join("")}</div>
+      <div class="guide-section"><h3>Erreurs critiques</h3>${data.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}<h3>Action corrective</h3><p>${esc(data.corrective())}</p></div>
+    </div>
+    <div class="modal-actions training-module-actions">
+      ${hasPerm("academy_manage")?`<button class="btn secondary" id="moduleGuideBtn">📚 Guide FTO complet</button><button class="btn secondary" id="moduleScenarioBtn">🎲 Générer scénario</button>`:""}
+      ${hasPerm("academy_manage")&&targetId!==window.LSPD.user.uid?`<button class="btn" id="moduleSessionBtn">▶️ Démarrer session</button>`:""}
+      ${hasPerm("fto_tools")&&targetId!==window.LSPD.user.uid?`<button class="btn secondary" id="moduleEvalBtn">✅ Évaluer</button>`:""}
+      ${targetId===window.LSPD.user.uid?`<button class="btn" id="moduleQuizBtn">🧠 Faire le quiz</button><button class="btn secondary" id="modulePlanningBtn">🗓️ Planning</button>`:""}
+      <button class="btn secondary" id="closeModal">Fermer</button>
+    </div>
+  </div>`);
+
+  $("moduleGuideBtn")?.addEventListener("click",()=>openAcademyGuide(code));
+  $("moduleScenarioBtn")?.addEventListener("click",()=>openRandomScenario(code));
+  $("moduleSessionBtn")?.addEventListener("click",()=>openAcademySessionForm(targetId,code));
+  $("moduleEvalBtn")?.addEventListener("click",()=>openEvaluationForm(targetId,code));
+  $("moduleQuizBtn")?.addEventListener("click",()=>startTrainingQuiz(code));
+  $("modulePlanningBtn")?.addEventListener("click",()=>{document.querySelector(".modal")?.remove();render("trainingHub");});
+}
+
 async function accessibleTrainees(){
   const users=await getUsers();
   if(hasPerm("personnel_view")) return users.filter(u=>u.role!=="Visiteur" && !["Archivé","Refusé","En attente"].includes(u.status));
@@ -2202,7 +2602,7 @@ async function ftoAcademy(){
       const te=evals.filter(e=>e.officerId===t.uid),avg=te.length?Math.round(te.reduce((a,e)=>a+(Number(e.score)||0),0)/te.length):0;
       const by={};te.forEach(e=>(by[e.moduleCode]??=[]).push(Number(e.score)||0));
       const weak=Object.entries(by).map(([m,a])=>[m,Math.round(a.reduce((x,y)=>x+y,0)/a.length)]).sort((a,b)=>a[1]-b[1])[0];
-      return `<div class="academy-rec card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Score moyen</span><b>${avg}/100</b></div><div class="row"><span>Module faible</span><b>${weak?`${esc(weak[0])} • ${weak[1]}/100`:"—"}</b></div><div class="row"><span>Prochaine priorité</span><b>${weak?esc(academyModuleTitle(weak[0])):esc(B("Commencer M01","Start M01"))}</b></div></div>`;
+      return `<div class="academy-rec card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Score moyen</span><b>${avg}/100</b></div><div class="row"><span>Module faible</span><b>${weak?`${esc(weak[0])} • ${weak[1]}/100`:"—"}</b></div><div class="row"><span>Prochaine priorité</span><b>${weak?esc(academyModuleTitle(weak[0])):esc(B("Commencer M01","Start M01"))}</b></div><button class="btn secondary academy-open-trainee" data-id="${t.uid}">Ouvrir l'espace recrue</button></div>`;
     }).join("");
   }catch{}
   $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FIELD TRAINING PROGRAM</span><h2>FTO Academy</h2><p class="muted">${esc(B("Un guide opérationnel pour savoir quoi expliquer, démontrer, faire pratiquer et évaluer.","An operational guide showing what to explain, demonstrate, practice, and evaluate."))}</p></div><div class="academy-hero-actions">
@@ -2217,7 +2617,8 @@ async function ftoAcademy(){
   <div class="section-title">Programme guidé</div><div class="academy-module-grid">${modules.map(m=>`<div class="academy-module card"><div class="academy-module-top"><span class="module-code">${m[0]}</span><span class="tag">${esc(translateSystemText(m[3],currentLang))}</span></div><h3>${esc(translateSystemText(m[1],currentLang))}</h3><p class="muted">${esc(translateSystemText(m[2],currentLang))}</p><div class="row"><span>Durée conseillée</span><b>${esc(getAcademyData(m[0])?.duration||"—")}</b></div><button class="btn secondary academy-guide-btn" data-module="${m[0]}">Voir le guide</button></div>`).join("")}</div>
   <div class="section-title">Bibliothèque pédagogique</div><div class="grid2"><div class="card"><h3>Exemples radio</h3>${RADIO_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div><div class="card"><h3>Exemples de rapports</h3>${REPORT_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div></div>`;
   document.querySelectorAll(".academy-guide-btn").forEach(b=>b.onclick=()=>openAcademyGuide(b.dataset.module));
-  $("academyNewSessionBtn").onclick=openAcademySessionForm;
+  document.querySelectorAll(".academy-open-trainee").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));
+  $("academyNewSessionBtn").onclick=()=>openAcademySessionForm();
   $("academyManageBtn")?.addEventListener("click",()=>render("academyManager"));
   $("academyRandomScenarioBtn").onclick=()=>openRandomScenario($("academyScenarioModule").value);
 }
@@ -2273,9 +2674,9 @@ async function openRandomScenario(moduleCode="M01"){
   $("regenScenarioBtn").onclick=()=>openRandomScenario(code);
 }
 
-async function openAcademySessionForm(){
+async function openAcademySessionForm(prefillTraineeId=null,prefillModuleCode=null){
   const trainees=await accessibleTrainees();if(!trainees.length){showToast("Aucune recrue assignée.","warning");return;}
-  showModal(`<h2>Créer une session</h2><form id="academySessionForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="academyTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}">${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Module</span><select id="academyModule">${modules.map(m=>`<option value="${m[0]}">${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select></label><label class="field"><span>Phase FTO</span><select id="academyPhase"><option value="P1">Phase 1 — Observation</option><option value="P2">Phase 2 — Assistance</option><option value="P3">Phase 3 — Autonomie supervisée</option><option value="P4">Phase 4 — Évaluation finale</option></select></label></div><div id="academySessionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Commencer une session</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  showModal(`<h2>Créer une session</h2><form id="academySessionForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="academyTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}" ${t.uid===prefillTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Module</span><select id="academyModule">${modules.map(m=>`<option value="${m[0]}" ${m[0]===prefillModuleCode?"selected":""}>${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select></label><label class="field"><span>Phase FTO</span><select id="academyPhase"><option value="P1">Phase 1 — Observation</option><option value="P2">Phase 2 — Assistance</option><option value="P3">Phase 3 — Autonomie supervisée</option><option value="P4">Phase 4 — Évaluation finale</option></select></label></div><div id="academySessionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Commencer une session</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("academySessionForm").onsubmit=createAcademySession;
 }
 async function createAcademySession(e){
@@ -2318,9 +2719,9 @@ async function ftoJournal(){
   document.querySelectorAll(".journal-open").forEach(b=>b.onclick=()=>openGuidedSession(b.dataset.id));
   document.querySelectorAll(".objective-done").forEach(b=>b.onclick=()=>markObjectiveDone(b.dataset.id));
 }
-async function openObjectiveForm(){
+async function openObjectiveForm(prefillTraineeId=null){
   const trainees=await accessibleTrainees();if(!trainees.length){showToast("Aucune recrue assignée.","warning");return;}
-  showModal(`<h2>Ajouter un objectif</h2><form id="objectiveForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="objTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}">${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Priorité</span><select id="objPriority"><option>Faible</option><option selected>Moyenne</option><option>Haute</option><option>Critique</option></select></label></div><label class="field full"><span>Objectif pédagogique</span><textarea id="objText" rows="5" required></textarea></label><div id="objError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter un objectif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  showModal(`<h2>Ajouter un objectif</h2><form id="objectiveForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="objTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}" ${t.uid===prefillTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Priorité</span><select id="objPriority"><option>Faible</option><option selected>Moyenne</option><option>Haute</option><option>Critique</option></select></label></div><label class="field full"><span>Objectif pédagogique</span><textarea id="objText" rows="5" required></textarea></label><div id="objError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter un objectif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("objectiveForm").onsubmit=saveObjective;
 }
 async function saveObjective(e){
@@ -2473,7 +2874,7 @@ async function submitTrainingQuiz(e){
 
 async function ftoDossier(){
   if(!hasPerm("academy_manage"))return;const trainees=await accessibleTrainees();
-  $("content").innerHTML=`<div class="toolbar"><label class="field dossier-select"><span>Recrue</span><select id="dossierTrainee">${trainees.map(t=>`<option value="${t.uid}">${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><button class="btn secondary" id="printDossierBtn">Imprimer le rapport final</button><button class="btn" id="addHandoffBtn">Ajouter une note de passation</button></div><div id="dossierBody">${trainees.length?'<div class="card skeleton-card"></div>':'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>`;
+  $("content").innerHTML=`<div class="toolbar"><label class="field dossier-select"><span>Recrue</span><select id="dossierTrainee">${trainees.map(t=>`<option value="${t.uid}" ${t.uid===window.LSPD.selectedTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><button class="btn secondary" id="printDossierBtn">Imprimer le rapport final</button><button class="btn" id="addHandoffBtn">Ajouter une note de passation</button></div><div id="dossierBody">${trainees.length?'<div class="card skeleton-card"></div>':'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>`;
   if(!trainees.length)return;const refresh=()=>loadTraineeDossier($("dossierTrainee").value,trainees);$("dossierTrainee").onchange=refresh;$("printDossierBtn").onclick=()=>printTrainingReport($("dossierTrainee").value,trainees);$("addHandoffBtn").onclick=()=>openHandoffForm($("dossierTrainee").value,trainees);refresh();
 }
 async function loadTraineeDossier(uid,trainees){
@@ -2776,6 +3177,7 @@ async function openMailMessage(id){
           ${message.recipientId===window.LSPD.user.uid?`<button class="mail-action" id="unreadMailBtn" type="button">◉ Marquer comme non lu</button>`:""}
         </div>
         <div class="mail-reader-scroll">
+          ${message.broadcastSize>1?`<div class="mail-broadcast-banner">📨 Envoi groupé • ${message.broadcastSize} destinataires</div>`:""}
           <div class="mail-message-envelope">
             <div class="mail-avatar">${esc((message.senderName||"?").slice(0,1).toUpperCase())}</div>
             <div class="mail-envelope-info">
@@ -2805,18 +3207,120 @@ async function openMailMessage(id){
 }
 
 async function mailDirectory(){
-  const users=await getUsers();
-  return users.filter(u=>
-    u.uid!==window.LSPD.user.uid &&
-    u.role!=="Visiteur" &&
-    !["Archivé","Refusé","En attente"].includes(u.status)
-  ).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  // IMPORTANT: Firestore rules are not filters. The query explicitly excludes
+  // Visitor profiles so every internal user can safely use the mail directory.
+  const snap=await getDocs(query(collection(db,"users"),where("role","!=","Visiteur")));
+  return snap.docs
+    .map(d=>({uid:d.id,...d.data()}))
+    .filter(u=>
+      u.uid!==window.LSPD.user.uid &&
+      u.role!=="Visiteur" &&
+      !["Archivé","Refusé","En attente"].includes(u.status)
+    )
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+}
+
+async function loadMailAudienceDirectory(){
+  const users=await mailDirectory();
+  let certDocs=[];
+  try{
+    const certSnap=await getDocs(collection(db,"certifications"));
+    certDocs=certSnap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(err){
+    console.warn("Certification directory unavailable",err);
+  }
+
+  const byOfficer=new Map();
+  certDocs.forEach(c=>{
+    if(!c.officerId||!c.certification)return;
+    if(!byOfficer.has(c.officerId))byOfficer.set(c.officerId,new Set());
+    byOfficer.get(c.officerId).add(c.certification);
+  });
+
+  return users.map(u=>({
+    ...u,
+    mailCertifications:[...(byOfficer.get(u.uid)||new Set())].sort()
+  }));
+}
+
+function getSelectedMailRecipients(){
+  const directory=window.LSPD.mailAudienceDirectory||[];
+  const selectedIds=new Set(
+    [...document.querySelectorAll(".mail-person-check:checked")].map(x=>x.value)
+  );
+  const selectedGrades=new Set(
+    [...document.querySelectorAll(".mail-grade-check:checked")].map(x=>x.value)
+  );
+  const selectedCerts=new Set(
+    [...document.querySelectorAll(".mail-cert-check:checked")].map(x=>x.value)
+  );
+
+  directory.forEach(u=>{
+    if(selectedGrades.has(u.grade))selectedIds.add(u.uid);
+    if((u.mailCertifications||[]).some(c=>selectedCerts.has(c)))selectedIds.add(u.uid);
+  });
+
+  return directory.filter(u=>selectedIds.has(u.uid));
+}
+
+function renderMailPeopleFilter(){
+  const host=$("mailPeopleList"),search=$("mailPeopleSearch");
+  if(!host)return;
+
+  const q=(search?.value||"").trim().toLowerCase();
+  const directory=(window.LSPD.mailAudienceDirectory||[]).filter(u=>
+    !q || [u.name,u.badge,u.grade,u.division,...(u.mailCertifications||[])]
+      .some(v=>String(v||"").toLowerCase().includes(q))
+  );
+
+  host.innerHTML=directory.length?directory.map(u=>`
+    <label class="mail-recipient-row">
+      <input class="mail-person-check" type="checkbox" value="${u.uid}" ${window.LSPD.mailManualRecipientIds?.has(u.uid)?"checked":""}>
+      <span class="mail-recipient-avatar">${esc((u.name||"?").slice(0,1).toUpperCase())}</span>
+      <span class="mail-recipient-info">
+        <b>${esc(u.badge||"—")} — ${esc(u.name||"—")}</b>
+        <small>${esc(u.grade||"—")} • ${esc(u.division||"—")}${u.mailCertifications?.length?` • ${esc(u.mailCertifications.join(", "))}`:""}</small>
+      </span>
+    </label>`).join(""):`<div class="mail-audience-empty">Aucun membre trouvé.</div>`;
+
+  document.querySelectorAll(".mail-person-check").forEach(cb=>cb.onchange=()=>{
+    window.LSPD.mailManualRecipientIds??=new Set();
+    cb.checked?window.LSPD.mailManualRecipientIds.add(cb.value):window.LSPD.mailManualRecipientIds.delete(cb.value);
+    updateMailAudiencePreview();
+  });
+}
+
+function updateMailAudiencePreview(){
+  const recipients=getSelectedMailRecipients();
+  const summary=$("mailAudienceSummary"),chips=$("mailAudienceChips");
+  if(summary){
+    summary.textContent=recipients.length
+      ? `${recipients.length} ${recipients.length===1?"destinataire sélectionné":"destinataires sélectionnés"}`
+      : "Aucun destinataire sélectionné.";
+  }
+  if(chips){
+    const shown=recipients.slice(0,14);
+    chips.innerHTML=shown.map(u=>`<span class="mail-audience-chip">${esc(u.name)} <small>${esc(u.grade||"")}</small></span>`).join("")
+      +(recipients.length>shown.length?`<span class="mail-audience-chip more">+${recipients.length-shown.length}</span>`:"");
+  }
+}
+
+function clearMailAudience(){
+  window.LSPD.mailManualRecipientIds=new Set();
+  document.querySelectorAll(".mail-person-check,.mail-grade-check,.mail-cert-check").forEach(x=>x.checked=false);
+  renderMailPeopleFilter();
+  updateMailAudiencePreview();
 }
 
 async function openMailComposer(mode="new",source=null){
   try{
-    const users=await mailDirectory();
-    const counterpart=source?(source.senderId===window.LSPD.user.uid?source.recipientId:source.senderId):"";
+    const isReply=mode==="reply";
+    const directory=isReply?[]:await loadMailAudienceDirectory();
+    window.LSPD.mailAudienceDirectory=directory;
+    window.LSPD.mailManualRecipientIds=new Set();
+
+    const counterpartId=source?(source.senderId===window.LSPD.user.uid?source.recipientId:source.senderId):"";
+    const counterpartName=source?(source.senderId===window.LSPD.user.uid?source.recipientName:source.senderName):"";
     const baseSubject=source?.subject||"";
     const subject=mode==="reply"
       ? (/^RE:/i.test(baseSubject)?baseSubject:`RE: ${baseSubject}`)
@@ -2825,79 +3329,221 @@ async function openMailComposer(mode="new",source=null){
         : "";
     const quote=source?`\n\n------------------------------\n${mode==="forward"?"Message transféré":"Message d'origine"}\nDe: ${source.senderName}\nÀ: ${source.recipientName}\nSujet: ${source.subject}\n\n${source.body}`:"";
 
+    const gradeOptions=gradeList
+      .filter(g=>g[0]!=="Visiteur")
+      .map(g=>{
+        const count=directory.filter(u=>u.grade===g[0]).length;
+        return `<label class="mail-group-option ${count?"":"disabled"}">
+          <input class="mail-grade-check" type="checkbox" value="${esc(g[0])}" ${count?"":"disabled"}>
+          <span><b>${esc(g[0])}</b><small>${count} membre${count===1?"":"s"}</small></span>
+        </label>`;
+      }).join("");
+
+    const certValues=[...new Set([
+      ...certificationsCatalog,
+      ...directory.flatMap(u=>u.mailCertifications||[])
+    ])].sort();
+
+    const certOptions=certValues.map(cert=>{
+      const count=directory.filter(u=>(u.mailCertifications||[]).includes(cert)).length;
+      return `<label class="mail-group-option ${count?"":"disabled"}">
+        <input class="mail-cert-check" type="checkbox" value="${esc(cert)}" ${count?"":"disabled"}>
+        <span><b>${esc(cert)}</b><small>${count} membre${count===1?"":"s"}</small></span>
+      </label>`;
+    }).join("");
+
+    const recipientBlock=isReply
+      ? `<div class="mail-direct-reply">
+          <span>Réponse directe</span>
+          <b>${esc(counterpartName||"—")}</b>
+          <small>Le destinataire de la réponse est verrouillé sur l'expéditeur du message.</small>
+          <input id="mFixedRecipientId" type="hidden" value="${esc(counterpartId)}">
+          <input id="mFixedRecipientName" type="hidden" value="${esc(counterpartName)}">
+        </div>`
+      : `<section class="mail-audience-builder">
+          <div class="mail-audience-top">
+            <div>
+              <span class="eyebrow">DESTINATAIRES</span>
+              <h3>Choisir une ou plusieurs personnes</h3>
+            </div>
+            <button class="mail-clear-audience" id="clearMailAudienceBtn" type="button">Effacer la sélection</button>
+          </div>
+          <p class="mail-audience-help">Les sélections se cumulent. Les doublons sont supprimés automatiquement.</p>
+
+          <div class="mail-audience-grid">
+            <div class="mail-audience-panel people">
+              <div class="mail-audience-panel-head"><b>👤 Personnes</b><span>Sélection directe</span></div>
+              <div class="mail-people-search">🔎 <input id="mailPeopleSearch" placeholder="Rechercher un membre..."></div>
+              <div id="mailPeopleList" class="mail-people-list"></div>
+            </div>
+
+            <div class="mail-audience-groups">
+              <div class="mail-audience-panel">
+                <div class="mail-audience-panel-head"><b>⭐ Grades</b><span>Sélection par grade</span></div>
+                <div class="mail-group-grid">${gradeOptions}</div>
+              </div>
+
+              <div class="mail-audience-panel">
+                <div class="mail-audience-panel-head"><b>🏅 Certifications</b><span>Sélection par certification</span></div>
+                <div class="mail-group-grid">${certOptions||'<div class="mail-audience-empty">Aucune certification disponible.</div>'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mail-audience-selection">
+            <b id="mailAudienceSummary">Aucun destinataire sélectionné.</b>
+            <div id="mailAudienceChips" class="mail-audience-chips"></div>
+          </div>
+        </section>`;
+
     const root=$("mailOverlayRoot");
     root.innerHTML=`<div class="mail-window-backdrop" data-mail-close="1"></div>
-      <section class="mail-compose-window" role="dialog" aria-label="Nouveau message">
+      <section class="mail-compose-window group-mail-compose" role="dialog" aria-label="Nouveau message">
         <header class="mail-window-header">
           <div class="mail-window-title"><span>✉️</span><div><small>LSPD INTERNAL MAIL</small><h2>${mode==="reply"?"Répondre":mode==="forward"?"Transférer":"Nouveau message"}</h2></div></div>
           <button class="mail-window-close" id="closeMailWindowBtn" type="button">✕</button>
         </header>
-        <form id="messageForm" class="mail-compose-form">
+        <form id="messageForm" class="mail-compose-form group-mail-form">
           <input id="mMode" type="hidden" value="${esc(mode)}">
           <input id="mSourceId" type="hidden" value="${esc(source?.id||"")}">
           <input id="mThreadId" type="hidden" value="${esc(source?.threadId||source?.id||"")}">
-          <label class="mail-compose-line"><span>À</span><select id="mRecipient" required>
-            <option value="">— Sélectionner —</option>
-            ${users.map(u=>`<option value="${u.uid}" data-name="${esc(u.name)}" ${u.uid===counterpart&&mode==="reply"?"selected":""}>${esc(u.badge||"—")} — ${esc(u.name)}</option>`).join("")}
-          </select></label>
+          ${recipientBlock}
           <label class="mail-compose-line"><span>Sujet</span><input id="mSubject" value="${esc(subject)}" required></label>
           <textarea id="mBody" class="mail-compose-body" placeholder="Écrire votre message..." required>${esc(quote)}</textarea>
           <div id="mError" class="error mail-compose-error"></div>
-          <footer class="mail-compose-footer"><button class="btn" type="submit">Envoyer</button><button class="btn secondary" id="cancelMailCompose" type="button">Annuler</button></footer>
+          <footer class="mail-compose-footer">
+            <button class="btn" id="sendMailBtn" type="submit">Envoyer</button>
+            <button class="btn secondary" id="cancelMailCompose" type="button">Annuler</button>
+          </footer>
         </form>
       </section>`;
+
     document.body.classList.add("mail-window-open");
     $("messageForm").onsubmit=saveMessage;
     $("closeMailWindowBtn").onclick=closeMailWindow;
     $("cancelMailCompose").onclick=closeMailWindow;
     root.querySelector(".mail-window-backdrop").onclick=closeMailWindow;
-    if(mode==="reply") setTimeout(()=>$("mBody")?.focus(),40);
-  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
-}
 
+    if(!isReply){
+      renderMailPeopleFilter();
+      $("mailPeopleSearch").oninput=renderMailPeopleFilter;
+      document.querySelectorAll(".mail-grade-check,.mail-cert-check").forEach(cb=>cb.onchange=updateMailAudiencePreview);
+      $("clearMailAudienceBtn").onclick=clearMailAudience;
+      updateMailAudiencePreview();
+    }
+
+    setTimeout(()=>$("mBody")?.focus(),40);
+  }catch(err){
+    showToast("Erreur : "+(err.code||err.message),"error");
+  }
+}
 function openMessageForm(){
   return openMailComposer("new",null);
 }
 
 async function saveMessage(e){
   e.preventDefault();
-  const sel=$("mRecipient");
-  if(!sel?.value){$("mError").textContent="Aucun destinataire disponible.";return;}
+
+  const mode=$("mMode")?.value||"new";
+  const sourceId=$("mSourceId")?.value||"";
+  const inheritedThread=$("mThreadId")?.value||"";
+
+  let recipients=[];
+  if(mode==="reply"){
+    const uid=$("mFixedRecipientId")?.value||"";
+    const name=$("mFixedRecipientName")?.value||"";
+    if(uid)recipients=[{uid,name}];
+  }else{
+    recipients=getSelectedMailRecipients();
+  }
+
+  if(!recipients.length){
+    $("mError").textContent="Aucun destinataire sélectionné.";
+    return;
+  }
+
+  const subject=$("mSubject").value.trim();
+  const body=$("mBody").value.trim();
+  if(!subject||!body){
+    $("mError").textContent="Le sujet et le message sont obligatoires.";
+    return;
+  }
+
+  const sendBtn=$("sendMailBtn");
+  if(sendBtn){
+    sendBtn.disabled=true;
+    sendBtn.textContent=recipients.length>1?`Envoi à ${recipients.length} destinataires...`:"Envoi...";
+  }
+  $("mError").textContent="";
+
   try{
-    const ref=doc(collection(db,"messages"));
-    const mode=$("mMode")?.value||"new";
-    const sourceId=$("mSourceId")?.value||"";
-    const inheritedThread=$("mThreadId")?.value||"";
-    const payload={
-      senderId:window.LSPD.user.uid,
-      senderName:window.LSPD.profile.name,
-      recipientId:sel.value,
-      recipientName:sel.selectedOptions[0].dataset.name,
-      subject:$("mSubject").value.trim(),
-      body:$("mBody").value.trim(),
-      read:false,
-      threadId:inheritedThread||ref.id,
-      messageType:mode==="reply"?"Reply":mode==="forward"?"Forward":"Message",
-      createdAt:serverTimestamp()
-    };
-    if(mode==="reply"&&sourceId)payload.replyToId=sourceId;
-    if(mode==="forward"&&sourceId)payload.forwardedFromId=sourceId;
+    const broadcastId=recipients.length>1?doc(collection(db,"messages")).id:"";
+    let sent=0;
+    const failures=[];
 
-    await setDoc(ref,payload);
-    await createNotification(
-      sel.value,
-      `Nouveau message : ${payload.subject}`,
-      `Message de ${window.LSPD.profile.name}`,
-      "Message",
-      "messages",
-      ref.id
-    );
+    for(const recipient of recipients){
+      try{
+        const ref=doc(collection(db,"messages"));
+        const payload={
+          senderId:window.LSPD.user.uid,
+          senderName:window.LSPD.profile.name,
+          recipientId:recipient.uid,
+          recipientName:recipient.name,
+          subject,
+          body,
+          read:false,
+          // Reply keeps the existing one-to-one thread.
+          // New/forward messages get an independent thread for each recipient,
+          // so a group email never leaks other recipients' conversations.
+          threadId:mode==="reply"?(inheritedThread||ref.id):ref.id,
+          messageType:mode==="reply"?"Reply":mode==="forward"?"Forward":"Message",
+          createdAt:serverTimestamp()
+        };
+
+        if(mode==="reply"&&sourceId)payload.replyToId=sourceId;
+        if(mode==="forward"&&sourceId)payload.forwardedFromId=sourceId;
+        if(broadcastId){
+          payload.broadcastId=broadcastId;
+          payload.broadcastSize=recipients.length;
+        }
+
+        await setDoc(ref,payload);
+        await createNotification(
+          recipient.uid,
+          `Nouveau message : ${subject}`,
+          `Message de ${window.LSPD.profile.name}`,
+          "Message",
+          "messages",
+          ref.id
+        );
+        sent++;
+      }catch(err){
+        failures.push({recipient,error:err});
+      }
+    }
+
+    if(!sent){
+      const first=failures[0]?.error;
+      throw first||new Error("Aucun message n'a pu être envoyé.");
+    }
+
     closeMailWindow();
-    showToast("Message envoyé.","success");
-    if(window.LSPD.currentPage==="messages")await messages();
-  }catch(err){$("mError").textContent="Erreur : "+(err.code||err.message);}
-}
+    showToast(
+      recipients.length===1
+        ? "Message envoyé."
+        : `${sent} messages envoyés${failures.length?` • ${failures.length} échec(s)`:""}.`,
+      failures.length?"warning":"success"
+    );
 
+    if(window.LSPD.currentPage==="messages")await messages();
+  }catch(err){
+    $("mError").textContent="Erreur : "+(err.code||err.message);
+    if(sendBtn){
+      sendBtn.disabled=false;
+      sendBtn.textContent="Envoyer";
+    }
+  }
+}
 async function incidents(){
   try{
     const snap=isCommand()
@@ -3061,17 +3707,36 @@ function manual(){
 }
 
 async function modulesPage(){
-  let evals=[];try{evals=await getMyEvaluations();}catch{}
-  $("content").innerHTML=`<div class="grid module-grid">${modules.map(m=>{
-    const list=evals.filter(e=>e.moduleCode===m[0]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    const latest=list[0];
-    return `<div class="card module" data-module="${m[0]}"><span class="number">${m[0]} • ${m[3]}</span><h3>${m[1]}</h3><p class="muted">${m[2]}</p><span class="tag ${latest?.result==="Validé"?"green":latest?.result==="Échec"?"red":latest?"orange":""}">${latest?.result||"À faire"}</span></div>`;
+  await loadAcademyOverrides();
+  let evals=[],sessions=[];
+  try{
+    const [es,ss]=await Promise.all([
+      getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid))),
+      getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",window.LSPD.user.uid)))
+    ]);
+    evals=es.docs.map(d=>d.data());
+    sessions=ss.docs.map(d=>d.data());
+  }catch{}
+
+  const stats=trainingProgressStats(evals,sessions);
+  $("content").innerHTML=`<div class="training-path-hero card">
+    <div><span class="eyebrow">MON PARCOURS</span><h2>Formation M01–M16</h2><p class="muted">Chaque module relie maintenant le guide, les sessions FTO, l'évaluation et le quiz. Commence par les modules prêts, retravaille les modules orange/rouge et suis la progression jusqu'à la validation finale.</p></div>
+    <div class="training-path-total"><b>${stats.validated}</b><span>/16 validés</span></div>
+  </div>
+  <div class="training-path-legend"><span class="validated">● Validé</span><span class="ready">● Prêt</span><span class="progress">● En progression</span><span class="review">● À retravailler</span><span class="locked">● Verrouillé</span></div>
+  <div class="training-path-cards">${modules.map((m,i)=>{
+    const state=trainingModuleState(m[0],stats.latest,sessions),e=stats.latest[m[0]],sessionCount=sessions.filter(s=>s.moduleCode===m[0]).length;
+    return `<button class="training-path-card ${state.key}" data-module="${m[0]}" type="button">
+      <div class="training-path-index">${i+1}</div>
+      <div class="training-path-content"><div><span class="module-code">${m[0]}</span><span class="tag">${esc(m[3])}</span></div><h3>${esc(m[1])}</h3><p>${esc(m[2])}</p><small>${sessionCount} session(s) • ${e?`Dernier score ${e.score}/100`:"Pas encore évalué"}</small></div>
+      <div class="training-path-state"><span>${state.key==="locked"?"🔒":state.key==="validated"?"✓":state.key==="review"||state.key==="failed"?"↻":"→"}</span><b>${esc(state.label)}</b></div>
+    </button>`;
   }).join("")}</div>`;
-  document.querySelectorAll(".module").forEach(c=>c.onclick=()=>openModule(c.dataset.module));
+
+  document.querySelectorAll(".training-path-card").forEach(c=>c.onclick=()=>openTrainingModuleContext(c.dataset.module,window.LSPD.user.uid));
 }
 function openModule(id){
-  const m=modules.find(x=>x[0]===id);
-  showModal(`<h2>${m[0]} — ${m[1]}</h2><p>${m[2]}</p><h3>Déroulé FTO</h3>${["Briefing et objectifs","Démonstration FTO","Mise en pratique","Questions/correction","Observation en situation"].map(x=>`<label class="check"><input type="checkbox">${x}</label>`).join("")}<button class="btn" id="closeModal">Fermer</button>`);
+  return openTrainingModuleContext(id,window.LSPD.user.uid);
 }
 
 async function evaluations(){
@@ -3095,12 +3760,12 @@ async function evaluations(){
   document.querySelectorAll(".print-eval").forEach(b=>b.onclick=()=>openEvaluationDetail(data.find(x=>x.id===b.dataset.id)));
 }
 
-async function openEvaluationForm(){
+async function openEvaluationForm(prefillOfficerId=null,prefillModuleCode=null){
   if(!hasPerm("fto_tools"))return;
   const officers=(await getUsers()).filter(o=>o.role!=="Visiteur" && !["Inactif","Archivé"].includes(o.status));
   showModal(`<h2>Nouvelle évaluation FTO</h2><form id="evalForm"><div class="formgrid">
-  <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
-  <label class="field"><span>Module</span><select id="eModule">${modules.map(m=>`<option value="${m[0]}">${m[0]} — ${m[1]}</option>`).join("")}</select></label></div>
+  <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" ${o.uid===prefillOfficerId?"selected":""}>${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
+  <label class="field"><span>Module</span><select id="eModule">${modules.map(m=>`<option value="${m[0]}" ${m[0]===prefillModuleCode?"selected":""}>${m[0]} — ${m[1]}</option>`).join("")}</select></label></div>
   <h3>Critères</h3><div class="criteria-grid">${criteria.map(c=>`<label class="criterion"><span><b>${c[1]}</b><small>${c[2]}</small></span><select class="criterion-score" data-key="${c[0]}"><option value="5">5 — Excellent</option><option value="4">4 — Très bien</option><option value="3" selected>3 — Conforme</option><option value="2">2 — À améliorer</option><option value="1">1 — Insuffisant</option></select></label>`).join("")}</div>
   <label class="field full"><span>Commentaires FTO</span><textarea id="eComments" rows="5"></textarea></label>
   <div class="score-preview">Score : <b id="scorePreview">60/100</b> — <span id="resultPreview">À revoir</span></div>
@@ -3135,13 +3800,35 @@ function openEvaluationDetail(e){
 
 async function trainees(){
   if(!hasPerm("fto_tools"))return;
-  const a=await getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid)));
+  await loadAcademyOverrides();
+
+  const [a,es,ss,os]=await Promise.all([
+    getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid))),
+    getDocs(collection(db,"evaluations")),
+    getDocs(collection(db,"fto_sessions")),
+    getDocs(collection(db,"training_objectives"))
+  ]);
   const assignments=a.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==="Active");
   const users=await getUsers();
-  $("content").innerHTML=`<div class="grid2">${assignments.length?assignments.map(x=>{
-    const o=users.find(u=>u.uid===x.traineeId);return o?`<div class="card"><span class="number">${esc(o.badge)}</span><h3>${esc(o.name)}</h3><p class="muted">${esc(o.grade)} • ${esc(o.status)}</p><button class="btn secondary trainee-file" data-id="${o.uid}">Ouvrir le dossier</button></div>`:"";
-  }).join(""):'<div class="card">Aucune recrue assignée.</div>'}</div>`;
-  document.querySelectorAll(".trainee-file").forEach(b=>b.onclick=()=>officerFile(b.dataset.id));
+  const evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),objectives=os.docs.map(d=>d.data());
+
+  $("content").innerHTML=`<div class="training-center-section-head"><div><span class="eyebrow">MES RECRUES</span><h2>Suivi FTO</h2><p class="muted">Clique sur une recrue pour retrouver au même endroit ses modules, sessions, évaluations, objectifs, feedback et validation finale.</p></div><button class="btn" id="traineeNewSessionBtn">+ Démarrer une session</button></div>
+  <div class="training-trainee-grid">${assignments.length?assignments.map(x=>{
+    const o=users.find(u=>u.uid===x.traineeId);if(!o)return "";
+    const te=evals.filter(e=>e.officerId===o.uid),ts=sessions.filter(s=>s.traineeId===o.uid),to=objectives.filter(v=>v.traineeId===o.uid&&v.status==="Ouvert"),stats=trainingProgressStats(te,ts),next=modules.find(m=>m[0]===stats.next);
+    return `<div class="card training-trainee-card">
+      <div class="training-trainee-head"><div><span class="number">${esc(o.badge)}</span><h3>${esc(o.name)}</h3><p>${esc(o.grade)} • ${esc(o.status)}</p></div><span class="training-progress-ring">${stats.validated}<small>/16</small></span></div>
+      <div class="training-mini-progress"><i style="width:${Math.round(stats.validated/16*100)}%"></i></div>
+      <div class="row"><span>Moyenne</span><b>${stats.avg}/100</b></div>
+      <div class="row"><span>Module recommandé</span><b>${esc(stats.next)} — ${esc(next?.[1]||"")}</b></div>
+      <div class="row"><span>Objectifs ouverts</span><b>${to.length}</b></div>
+      <div class="training-card-actions"><button class="btn trainee-workspace" data-id="${o.uid}">Ouvrir l'espace recrue</button><button class="btn secondary trainee-session" data-id="${o.uid}" data-module="${stats.next}">Session ${stats.next}</button></div>
+    </div>`;
+  }).join(""):'<div class="card"><p class="muted">Aucune recrue assignée. Le Commandement doit créer une affectation FTO.</p></div>'}</div>`;
+
+  document.querySelectorAll(".trainee-workspace").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));
+  document.querySelectorAll(".trainee-session").forEach(b=>b.onclick=()=>openAcademySessionForm(b.dataset.id,b.dataset.module));
+  $("traineeNewSessionBtn").onclick=()=>openAcademySessionForm();
 }
 
 async function officers(){
