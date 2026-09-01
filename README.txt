@@ -617,3 +617,156 @@ Firebase :
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=174
+
+
+================================================
+PHASE 17.5 — TRAINING HUB PRO
+================================================
+
+POURQUOI CETTE REFONTE ?
+La Phase 17.4 reliait mieux les outils, mais restait encore trop dense.
+La Phase 17.5 adopte une logique plus proche d'une application moderne :
+1 centre unique, 5 onglets maximum, actions immédiates.
+
+MENU GAUCHE
+La section Formation & FTO ne contient plus que :
+- Centre Formation
+- Évaluations
+- Configuration formation
+
+Toutes les autres fonctions avancées restent conservées et sont accessibles
+depuis le Centre Formation lorsque le rôle en a besoin.
+
+CENTRE FORMATION
+5 onglets maximum :
+1. Vue d'ensemble
+2. Mes formations
+3. Mon parcours
+4. Mes recrues (FTO seulement)
+5. Pilotage (Command/FTO autorisé)
+
+VUE D'ENSEMBLE
+Affiche seulement les informations utiles :
+- invitations en attente
+- prochaine formation
+- FTO actif
+- prochain module
+- progression M01-M16
+- bouton Créer une formation pour le FTO
+- raccourcis vers quiz / feedback / évaluation / Academy
+
+CRÉER UNE FORMATION — ASSISTANT 3 ÉTAPES
+Le FTO clique "Créer une formation".
+
+Étape 1 : Informations
+- module M01-M16
+- titre
+- date
+- heure
+- lieu
+- capacité
+- notes / objectif
+
+Étape 2 : Invitations
+Le FTO peut inviter :
+- plusieurs personnes individuellement
+- un ou plusieurs grades
+- une ou plusieurs certifications
+
+Les sélections peuvent être mélangées.
+Les doublons sont supprimés automatiquement.
+
+Étape 3 : Confirmation
+Le FTO vérifie :
+- module
+- titre
+- date / heure
+- lieu
+- nombre d'invités
+- capacité
+Puis clique :
+"Créer et envoyer les invitations"
+
+AUTOMATISATION
+La création :
+- crée training_events
+- crée une invitation training_registrations pour chaque invité
+- envoie une notification à chaque invité
+- conserve le formateur
+- crée un audit
+
+INVITÉ
+L'utilisateur voit l'invitation dans :
+Centre Formation → Mes formations
+
+Il peut :
+- Accepter
+- Refuser
+
+Accepter :
+status = Inscrit
+attendanceStatus = Inscrit
+
+Refuser :
+status = Refusé
+attendanceStatus = Invitation refusée
+
+FTO — GÉRER UNE FORMATION
+Mes formations → Mes formations créées → Gérer la formation
+
+Le FTO voit :
+- confirmés
+- invitations sans réponse
+- refus
+- capacité
+- participants
+
+Actions :
+- inviter des membres supplémentaires
+- gérer les présences
+- lancer un scénario du module
+
+MES RECRUES
+Interface volontairement simple :
+- Ouvrir le dossier
+- Démarrer une session
+- Évaluer
+
+PILOTAGE
+Les fonctions avancées sont regroupées ici :
+- Affectations FTO
+- Validations finales
+- Stats formation
+- Sessions & objectifs
+- Academy / Guide FTO
+- Configuration Academy
+- Calendrier détaillé
+- Manuel FTO
+
+ANCIENNES FONCTIONS
+Toutes les fonctions Phase 17.4 sont conservées.
+Le changement concerne surtout la navigation et le workflow.
+
+FIRESTORE
+⚠️ Nouveau firestore.rules OBLIGATOIRE.
+
+training_registrations permet maintenant :
+- auto-inscription classique
+- invitation créée par un utilisateur training_manage
+- acceptation/refus par l'invité
+- gestion présence par le FTO
+
+VISITEURS
+Toujours aucun accès aux formations internes.
+
+INSTALLATION
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules → Firestore Database → Règles → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=175

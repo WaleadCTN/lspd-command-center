@@ -289,15 +289,25 @@ service cloud.firestore {
         hasPerm("training_manage")
       );
 
-      allow create: if isInternal()
-        && request.resource.data.officerId == request.auth.uid
-        && request.resource.data.status == "Inscrit";
+      // Self-registration OR a training manager inviting another internal member.
+      allow create: if isInternal() && (
+        (
+          request.resource.data.officerId == request.auth.uid
+          && request.resource.data.status == "Inscrit"
+        ) || (
+          hasPerm("training_manage")
+          && request.resource.data.invitedById == request.auth.uid
+          && request.resource.data.status == "Invité"
+          && request.resource.data.attendanceStatus == "Invité"
+        )
+      );
 
+      // The invitee can accept/decline/cancel only their own registration.
       allow update: if (
         isInternal()
         && resource.data.officerId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          "status","attendanceStatus","cancelledAt"
+          "status","attendanceStatus","cancelledAt","respondedAt"
         ])
       ) || (
         hasPerm("training_manage")
