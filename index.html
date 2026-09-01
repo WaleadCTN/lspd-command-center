@@ -4,8 +4,10 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LSPD Command Center</title>
 <link rel="stylesheet" href="style.css">
+<style>.login-screen{position:fixed;inset:0;background:#0b111b;display:grid;place-items:center;z-index:9999}.login-card{width:min(420px,92vw);background:#111c2b;border:1px solid #2a3c55;border-radius:14px;padding:32px;text-align:center}.login-card input{width:100%;box-sizing:border-box;background:#0b1421;border:1px solid #2a3b52;color:white;border-radius:7px;padding:11px;margin:7px 0 12px}.login-card button{width:100%;background:#5d7fa8;border:0;border-radius:7px;color:white;padding:11px;cursor:pointer}.login-error{color:#ef9a9a;font-size:12px;min-height:18px}.hidden{display:none!important}</style>
 </head>
-<body>
+<body><div id="loginScreen" class="login-screen"><div class="login-card"><div class="badge">LSPD</div><p>LOS SANTOS POLICE DEPARTMENT</p><h1>Command Center</h1><form id="loginForm"><input id="loginEmail" type="email" placeholder="Email" required><input id="loginPassword" type="password" placeholder="Mot de passe" required><button>Se connecter</button><p id="loginError" class="login-error"></p></form></div></div>
+
 <div id="app">
 <aside class="sidebar">
   <div class="brand"><div class="badge">LSPD</div><div><b>Command Center</b><small>Training & Personnel</small></div></div>
@@ -27,5 +29,6 @@
 <section id="content"></section>
 </main>
 </div>
+<script type="module">import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";import {getFirestore,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";const firebaseConfig={apiKey:"AIzaSyBuYoRqUmCfGZwb8P106k9vJZhkZkPtjxk",authDomain:"lspd-command-center.firebaseapp.com",projectId:"lspd-command-center",storageBucket:"lspd-command-center.firebasestorage.app",messagingSenderId:"834995310565",appId:"1:834995310565:web:114873d54be7987cb9290c",measurementId:"G-FT5133P8GN"};const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);window.LSPDFirebase={auth,db,profile:null};loginForm.addEventListener("submit",async e=>{e.preventDefault();loginError.textContent="";try{await signInWithEmailAndPassword(auth,loginEmail.value,loginPassword.value)}catch(e){loginError.textContent="Email ou mot de passe incorrect."}});onAuthStateChanged(auth,async u=>{if(!u){loginScreen.classList.remove("hidden");return}loginScreen.classList.add("hidden");try{const s=await getDoc(doc(db,"users",u.uid));window.LSPDFirebase.profile=s.exists()?s.data():null}catch(e){window.LSPDFirebase.profile=null}});</script>
 <script src="app.js"></script>
 </body></html>
