@@ -1,3 +1,82 @@
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBuYoRqUmCfGZwb8P106k9vJZhkZkPtjxk",
+  authDomain: "lspd-command-center.firebaseapp.com",
+  projectId: "lspd-command-center",
+  storageBucket: "lspd-command-center.firebasestorage.app",
+  messagingSenderId: "834995310565",
+  appId: "1:834995310565:web:114873d54be7987cb9290c",
+  measurementId: "G-FT5133P8GN"
+};
+
+const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+
+window.LSPD = window.LSPD || {};
+window.LSPD.auth = auth;
+window.LSPD.db = db;
+
+async function loadOfficerProfile(user) {
+  window.LSPD.user = user;
+  window.LSPD.profile = null;
+
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+
+    if (snap.exists()) {
+      window.LSPD.profile = snap.data();
+    } else {
+      console.warn("Aucun profil Firestore trouvé pour l'UID :", user.uid);
+      window.LSPD.profile = {
+        name: "Profil non configuré",
+        badge: "—",
+        grade: "—",
+        role: "—",
+        status: "Profil Firestore manquant"
+      };
+    }
+  } catch (error) {
+    console.error("Erreur Firestore :", error);
+    window.LSPD.profile = {
+      name: "Erreur de profil",
+      badge: "—",
+      grade: "—",
+      role: "—",
+      status: "Vérifier les règles Firestore"
+    };
+  }
+
+  if (typeof window.initLSPD === "function") {
+    window.initLSPD();
+  }
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loadOfficerProfile(user);
+  } else {
+    window.LSPD.user = null;
+    window.LSPD.profile = null;
+    // index.html handles the login screen when no user is connected.
+  }
+});
+
+window.logoutLSPD = async () => {
+  await signOut(auth);
+};
+
 // LSPD Command Center — Firebase version
 // Firebase is initialized in index.html.
 // This file handles the LSPD interface. Firestore CRUD/permissions will be added next.
