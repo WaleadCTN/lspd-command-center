@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 16.2 SCENARIOS PAR FORMATION — Phase 16.1 fully preserved
+// LSPD Command Center — Phase 17 ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -23,7 +23,7 @@ const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-window.LSPD = { auth, db, storage, user:null, profile:null, permissionConfig:null, pageCleanup:null, currentPage:"dashboard" };
+window.LSPD = { auth, db, storage, user:null, profile:null, permissionConfig:null, pageCleanup:null, currentPage:"dashboard", academyOverrides:{}, customAcademyScenarios:[] };
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "")
@@ -48,6 +48,10 @@ Object.assign(I18N_EN,{
 });
 
 Object.assign(I18N_EN,{"Choisir la formation":"Choose training module","Scénario de formation":"Training scenario","Scénario du module":"Module scenario","Générer un scénario pour ce module":"Generate a scenario for this module","Formation sélectionnée":"Selected training","Le générateur reste limité à la formation sélectionnée.":"The generator stays limited to the selected training module.","Variante pédagogique":"Training variant"});
+
+Object.assign(I18N_EN,{"Visiteur":"Visitor","Portail visiteur":"Visitor Portal","Accès externe limité":"Limited external access","Gestion Academy":"Academy Management","Dossier FTO recrue":"Trainee FTO File","Quiz formations":"Training Quizzes","Feedback formation":"Training Feedback","Gestion contenu Academy":"Academy Content Management","Modifier le module":"Edit module","Nouveau scénario personnalisé":"New custom scenario","Scénarios personnalisés":"Custom scenarios","Archiver":"Archive","Personnalisé":"Customized","Contenu d’origine":"Original content","Enregistrer le contenu":"Save content","Accès public":"Public access","Interne":"Internal","Public":"Public","Visibilité":"Visibility","Réservé au département":"Department only","Accessible aux visiteurs":"Visible to visitors","Parcours de formation":"Training pathway","Prérequis non validés":"Prerequisites not validated","Quiz réussi":"Quiz passed","Quiz à refaire":"Quiz to retry","Commencer le quiz":"Start quiz","Soumettre le quiz":"Submit quiz","Dossier pédagogique":"Training file","Plan de rattrapage":"Remedial plan","Passation FTO":"FTO handoff","Ajouter une note de passation":"Add handoff note","Imprimer le rapport final":"Print final report","Feedback de la recrue":"Trainee feedback","Compréhension":"Understanding","Difficulté rencontrée":"Difficulty encountered","Question au FTO":"Question for FTO","Envoyer le feedback":"Send feedback","Validation commandement":"Command approval","En attente Commandement":"Pending Command approval","Validée":"Approved","Refusée":"Rejected","Valider définitivement":"Final approval","Refuser la validation":"Reject approval","academy_content_manage":"academy_content_manage","academy_final_review":"academy_final_review","Gérer le contenu FTO Academy":"Manage FTO Academy content","Valider les fins de parcours FTO":"Approve final FTO reviews","Accès visiteur sécurisé":"Secure visitor access","Informations publiques du département":"Public department information","Aucune donnée opérationnelle ou personnelle n’est accessible avec ce compte.":"No operational or personal data is accessible with this account.","Annonces publiques":"Public announcements","Structure du département":"Department structure","Catalogue de formation":"Training catalog","Compte externe":"External account","Feedback envoyé.":"Feedback sent.","Contenu Academy enregistré.":"Academy content saved.","Scénario enregistré.":"Scenario saved.","Note de passation enregistrée.":"Handoff note saved.","Validation finale mise à jour.":"Final approval updated."});
+
+Object.assign(I18N_EN,{"Stats formation":"Training analytics","Alertes pédagogiques":"Training alerts","Recrues sans évaluation":"Trainees without evaluation","Taux de validation finale":"Final approval rate","Performance FTO":"FTO performance","Performance par module":"Performance by module"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -226,6 +230,7 @@ const modules = [
 ];
 
 const gradeList = [
+["Visiteur","Visiteur","Accès externe limité aux informations publiques du département."],
 ["PO1","Police Officer I","Applique les procédures sous supervision."],
 ["PO2","Police Officer II","Officier autonome sur les missions courantes."],
 ["PO3","Police Officer III","Officier expérimenté, senior et mentor."],
@@ -237,9 +242,9 @@ const gradeList = [
 ["Chief of Police","Chief of Police","Autorité finale du département."]
 ];
 
-const roles = ["Officer","FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"];
+const roles = ["Visiteur","Officer","FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"];
 const statuses = ["Actif","En formation","Suspendu","Inactif","Archivé","En attente","Refusé"];
-const divisions = ["Patrol","Traffic","Detective","SWAT","Air Support","Training","Command"];
+const divisions = ["External","Patrol","Traffic","Detective","SWAT","Air Support","Training","Command"];
 const certificationsCatalog = ["FTO","Pursuit","Traffic","Detective","SWAT","Air Support","Supervisor"];
 const incidentTypes = ["Use of Force","Vehicle Pursuit","Arrestation sensible","Accident service","Plainte citoyen","Incident interne","Autre"];
 
@@ -270,17 +275,20 @@ const PERMISSION_CATALOG = [
   ["cad_manage","Gérer toutes les unités CAD"],
   ["bolo_manage","Gérer les BOLO"],
   ["watch_manage","Gérer Watch Commander"],
-  ["academy_manage","FTO Academy"]
+  ["academy_manage","FTO Academy"],
+  ["academy_content_manage","Gérer le contenu FTO Academy"],
+  ["academy_final_review","Valider les fins de parcours FTO"]
 ];
 
 const DEFAULT_PERMISSIONS = {
+  Visiteur: [],
   Officer: [],
-  FTO: ["fto_tools","training_manage","academy_manage"],
-  Sergeant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
-  Lieutenant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
-  Captain: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
-  "Deputy Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
-  "Assistant Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage"],
+  FTO: ["fto_tools","training_manage","academy_manage","academy_content_manage"],
+  Sergeant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"],
+  Lieutenant: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"],
+  Captain: ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"],
+  "Deputy Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"],
+  "Assistant Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"],
   Chief: PERMISSION_CATALOG.map(x=>x[0])
 };
 
@@ -301,7 +309,10 @@ const PAGE_PERMISSIONS = {
   history:"audit",
   ftoAcademy:"academy_manage",
   ftoJournal:"academy_manage",
-  ftoFinal:"academy_manage"
+  ftoFinal:"academy_manage",
+  ftoDossier:"academy_manage",
+  academyManager:"academy_content_manage",
+  trainingAnalytics:"academy_manage"
 };
 
 
@@ -580,6 +591,49 @@ M16:{
 }
 };
 
+
+function linesFrom(value){return String(value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);}
+function questionsFromLines(value){return linesFrom(value).map(line=>{const p=line.split("||");return [String(p[0]||"").trim(),String(p.slice(1).join("||")||"").trim()];}).filter(x=>x[0]&&x[1]);}
+async function loadAcademyOverrides(force=false){
+  if(isVisitor())return;
+  if(!force && window.LSPD.academyOverridesLoaded)return;
+  try{
+    const snap=await getDocs(collection(db,"academy_content"));
+    window.LSPD.academyOverrides={};
+    snap.docs.forEach(d=>window.LSPD.academyOverrides[d.id]={id:d.id,...d.data()});
+    window.LSPD.academyOverridesLoaded=true;
+  }catch(err){console.warn("Academy overrides",err);}
+}
+async function loadCustomAcademyScenarios(force=false){
+  if(isVisitor())return;
+  if(!force && window.LSPD.customScenariosLoaded)return;
+  try{
+    const snap=await getDocs(collection(db,"academy_scenarios"));
+    window.LSPD.customAcademyScenarios=snap.docs.map(d=>({id:d.id,...d.data()}));
+    window.LSPD.customScenariosLoaded=true;
+  }catch(err){console.warn("Academy scenarios",err);}
+}
+function getAcademyData(code){
+  const base=ACADEMY_MODULES[code]; if(!base)return null;
+  const o=window.LSPD.academyOverrides?.[code];
+  if(!o || o.enabled===false)return base;
+  const pick=(fr,en,fallback)=> currentLang==="en" ? (en||fallback()) : (fr||fallback());
+  const arr=(fr,en,fallback)=> currentLang==="en" ? ((en&&en.length)?en:fallback()) : ((fr&&fr.length)?fr:fallback());
+  const qs=()=> currentLang==="en" ? ((o.questionsEn&&o.questionsEn.length)?o.questionsEn:base.questions()) : ((o.questionsFr&&o.questionsFr.length)?o.questionsFr:base.questions());
+  return {
+    duration:o.duration||base.duration,
+    prereq:(o.prereq&&o.prereq.length)?o.prereq:base.prereq,
+    objective:()=>pick(o.objectiveFr,o.objectiveEn,base.objective),
+    steps:()=>arr(o.stepsFr,o.stepsEn,base.steps),
+    example:()=>pick(o.exampleFr,o.exampleEn,base.example),
+    variants:()=>arr(o.variantsFr,o.variantsEn,base.variants),
+    mistakes:()=>arr(o.mistakesFr,o.mistakesEn,base.mistakes),
+    critical:()=>arr(o.criticalFr,o.criticalEn,base.critical),
+    questions:qs,
+    corrective:()=>pick(o.correctiveFr,o.correctiveEn,base.corrective)
+  };
+}
+
 const RADIO_EXAMPLES=[
  {bad:()=>B("« Euh dispatch je poursuis une voiture là, elle va vite, je sais pas trop où on est... »","“Uh dispatch I'm chasing a car, it's going fast, not really sure where we are...”"),good:()=>B("« Adam-12, poursuite active, nord Alta St, Sultan rouge, vitesse élevée, trafic modéré. »","“Adam-12, active pursuit, north Alta St, red Sultan, high speed, moderate traffic.”"),why:()=>B("Le bon message donne indicatif, action, direction, rue, véhicule et niveau de risque sans saturer la radio.","The good message gives call sign, action, direction, street, vehicle, and risk level without clogging radio.")},
  {bad:()=>B("« J'ai besoin de quelqu'un ici. »","“I need someone here.”"),good:()=>B("« Adam-12, renfort demandé Mission Row parking nord, individu agressif, mains visibles. »","“Adam-12, backup requested Mission Row north lot, aggressive subject, hands visible.”"),why:()=>B("Le renfort sait où aller et à quoi s'attendre.","Backup knows where to go and what to expect.")}
@@ -602,8 +656,14 @@ const SCENARIO_BANK=[
 
 function buildModuleScenarioPool(moduleCode){
   const code=modules.some(m=>m[0]===moduleCode)?moduleCode:"M01";
-  const d=ACADEMY_MODULES[code];
+  const d=getAcademyData(code);
   const explicit=SCENARIO_BANK.filter(s=>s.module===code);
+  const custom=(window.LSPD.customAcademyScenarios||[]).filter(s=>s.moduleCode===code && s.status!=="Archivé").map(s=>({
+    module:code,difficulty:s.difficulty||"Normal",
+    situation:()=>currentLang==="en"?(s.situationEn||s.situationFr):(s.situationFr||s.situationEn),
+    constraints:()=>currentLang==="en"?(s.constraintsEn||s.constraintsFr):(s.constraintsFr||s.constraintsEn),
+    success:()=>currentLang==="en"?(s.successEn||s.successFr):(s.successFr||s.successEn)
+  }));
   const generated=[];
 
   if(d){
@@ -668,7 +728,7 @@ function buildModuleScenarioPool(moduleCode){
   }
 
   // Strict isolation: no scenario from another module can enter this pool.
-  return [...explicit,...generated].filter(s=>s.module===code);
+  return [...explicit,...custom,...generated].filter(s=>s.module===code);
 }
 
 const CAD_STATUSES = ["Disponible","En intervention","Transport","Pause","Hors service"];
@@ -715,11 +775,13 @@ const pages = {
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
  promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
- scenarios:"Scénarios",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
+ scenarios:"Scénarios",visitorPortal:"Portail visiteur",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
 };
 
 function role(){ return window.LSPD.profile?.role; }
 function isChief(){ return role()==="Chief"; }
+function isVisitor(){ return role()==="Visiteur"; }
+function isInternal(){ return !!window.LSPD.profile && !isVisitor(); }
 function isFTO(){ return ["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function canApproveIncidents(){ return isCommand(); }
@@ -729,30 +791,60 @@ function permissionRoles(){
   return window.LSPD.permissionConfig?.roles || DEFAULT_PERMISSIONS;
 }
 function hasPerm(permission){
+  if(isVisitor()) return false;
   if(isChief()) return true;
   const list=permissionRoles()[role()] || DEFAULT_PERMISSIONS[role()] || [];
   return Array.isArray(list) && list.includes(permission);
 }
 function canAccessPage(page){
+  if(isVisitor()) return ["visitorPortal","profile","announcements"].includes(page);
+  if(page==="visitorPortal") return false;
   if(page==="permissionsAdmin" || page==="admin") return isChief();
   const needed=PAGE_PERMISSIONS[page];
   return needed ? hasPerm(needed) : true;
 }
+const PHASE17_PERMISSION_DEFAULTS={
+  Visiteur:[],
+  FTO:["academy_content_manage"],
+  Sergeant:["academy_content_manage","academy_final_review"],
+  Lieutenant:["academy_content_manage","academy_final_review"],
+  Captain:["academy_content_manage","academy_final_review"],
+  "Deputy Chief":["academy_content_manage","academy_final_review"],
+  "Assistant Chief":["academy_content_manage","academy_final_review"]
+};
 async function loadPermissionsConfig(){
+  if(isVisitor()){
+    window.LSPD.permissionConfig={roles:{Visiteur:[]},catalogVersion:17};
+    return;
+  }
   try{
     const ref=doc(db,"settings","permissions");
     const snap=await getDoc(ref);
     if(snap.exists() && snap.data()?.roles){
-      window.LSPD.permissionConfig=snap.data();
+      const cfg=snap.data();
+      const rolesMap=JSON.parse(JSON.stringify(cfg.roles||{}));
+      let changed=false;
+      if(!Array.isArray(rolesMap.Visiteur)){rolesMap.Visiteur=[];changed=true;}
+      if((cfg.catalogVersion||0)<17){
+        for(const [r,perms] of Object.entries(PHASE17_PERMISSION_DEFAULTS)){
+          rolesMap[r]=Array.isArray(rolesMap[r])?rolesMap[r]:[];
+          for(const permission of perms){if(!rolesMap[r].includes(permission)){rolesMap[r].push(permission);changed=true;}}
+        }
+      }
+      window.LSPD.permissionConfig={...cfg,roles:rolesMap,catalogVersion:17};
+      if(changed && isChief()){
+        await setDoc(ref,{...window.LSPD.permissionConfig,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
+      }
       return;
     }
-    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS))};
+    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),catalogVersion:17};
     if(isChief()){
       await setDoc(ref,{
         roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),
         updatedById:window.LSPD.user.uid,
         updatedByName:window.LSPD.profile.name,
-        updatedAt:serverTimestamp()
+        updatedAt:serverTimestamp(),
+        catalogVersion:17
       });
     }
   }catch(err){
@@ -804,10 +896,16 @@ async function loadProfile(user){
   await loadPermissionsConfig();
   showApp();
   applyRoleVisibility();
-  refreshNotificationBadge().catch(()=>{});
-  refreshRegistrationBadge().catch(()=>{});
-  generateUpcomingReminders().catch(()=>{});
-  render("dashboard");
+  if(!isVisitor()){
+    refreshNotificationBadge().catch(()=>{});
+    refreshRegistrationBadge().catch(()=>{});
+    generateUpcomingReminders().catch(()=>{});
+    if(hasPerm("academy_manage")) generateTrainingAlerts().catch(()=>{});
+  }else{
+    $("notificationCount")?.classList.add("hidden");
+    $("registrationCount")?.classList.add("hidden");
+  }
+  render(isVisitor()?"visitorPortal":"dashboard");
 }
 function showApp(){
   $("loginScreen")?.classList.add("hidden");
@@ -815,6 +913,7 @@ function showApp(){
   $("appShell")?.classList.remove("hidden");
   if($("currentUser")) $("currentUser").textContent=window.LSPD.user?.email||"Connecté";
   if($("userPill")) $("userPill").textContent=`${window.LSPD.profile?.grade||"Officer"} • ${window.LSPD.profile?.role||"Officer"}`;
+  $("globalSearch")?.classList.toggle("hidden",isVisitor());
 }
 function showLogin(){
   $("approvalScreen")?.classList.add("hidden");
@@ -916,7 +1015,7 @@ function applyRoleVisibility(){
 function render(page){
   if(!canAccessPage(page)){
     showToast("Cette fonction n'est pas autorisée pour ton rôle.","error");
-    page="dashboard";
+    page=isVisitor()?"visitorPortal":"dashboard";
   }
   if(window.LSPD.pageCleanup){
     try{window.LSPD.pageCleanup();}catch{}
@@ -930,7 +1029,7 @@ function render(page){
   const content=$("content");
   content?.classList.remove("page-enter");
   ({
-    dashboard,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,ftoAcademy,ftoJournal,ftoFinal,modules:modulesPage,evaluations,trainees,officers,assignments,
+    dashboard,visitorPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
     stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,history
   }[page]||dashboard)();
@@ -1041,6 +1140,14 @@ async function openRegistrationApproval(uid){
       </div>
     </form>`);
 
+  const syncVisitor=()=>{
+    const visitor=$("regRole").value==="Visiteur" || $("regGrade").value==="Visiteur";
+    if(visitor){
+      $("regRole").value="Visiteur";$("regGrade").value="Visiteur";$("regDivision").value="External";
+      if(!$("regBadge").value.trim()) $("regBadge").value=`VIS-${uid.slice(-4).toUpperCase()}`;
+    }
+  };
+  $("regRole").onchange=syncVisitor;$("regGrade").onchange=syncVisitor;syncVisitor();
   $("registrationApprovalForm").onsubmit=approveRegistration;
 }
 
@@ -1048,6 +1155,8 @@ async function approveRegistration(e){
   e.preventDefault();
   if(!hasPerm("registrations_manage")) return;
   const uid=$("regUid").value;
+  const visitor=$("regRole").value==="Visiteur" || $("regGrade").value==="Visiteur";
+  if(visitor){$("regRole").value="Visiteur";$("regGrade").value="Visiteur";$("regDivision").value="External";}
   const badge=$("regBadge").value.trim();
 
   if(!badge){
@@ -1699,8 +1808,9 @@ async function permissionsAdmin(){
   </div>
   <div class="card table-card permission-table-card"><table class="table permission-table"><thead><tr><th>Permission</th>${roles.map(r=>`<th>${esc(r)}</th>`).join("")}</tr></thead><tbody>
   ${PERMISSION_CATALOG.map(([key,label])=>`<tr><td><b>${esc(label)}</b><small>${esc(key)}</small></td>${roles.map(r=>{
-    const checked=r==="Chief" || (rolesMap[r]||[]).includes(key);
-    return `<td><label class="permission-check"><input type="checkbox" data-role="${esc(r)}" data-permission="${esc(key)}" ${checked?"checked":""} ${r==="Chief"?"disabled":""}><span></span></label></td>`;
+    const locked=r==="Chief" || r==="Visiteur";
+    const checked=r==="Chief" || (!locked && (rolesMap[r]||[]).includes(key));
+    return `<td><label class="permission-check"><input type="checkbox" data-role="${esc(r)}" data-permission="${esc(key)}" ${checked?"checked":""} ${locked?"disabled":""}><span></span></label></td>`;
   }).join("")}</tr>`).join("")}
   </tbody></table></div>`;
   $("savePermissionsBtn").onclick=savePermissions;
@@ -1710,14 +1820,14 @@ async function savePermissions(){
   if(!isChief()) return;
   const rolesMap={};
   for(const r of roles){
-    rolesMap[r]=r==="Chief"?PERMISSION_CATALOG.map(x=>x[0]):
+    rolesMap[r]=r==="Chief"?PERMISSION_CATALOG.map(x=>x[0]):r==="Visiteur"?[]:
       [...document.querySelectorAll(`input[data-role="${CSS.escape(r)}"][data-permission]:checked`)].map(x=>x.dataset.permission);
   }
   try{
     await setDoc(doc(db,"settings","permissions"),{
-      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()
+      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:17
     });
-    window.LSPD.permissionConfig={roles:rolesMap};
+    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:17};
     await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions & rôles");
     applyRoleVisibility();
     showToast("Permissions enregistrées.","success");
@@ -1729,9 +1839,9 @@ async function resetPermissionsDefaults(){
   try{
     const rolesMap=JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
     await setDoc(doc(db,"settings","permissions"),{
-      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()
+      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:17
     });
-    window.LSPD.permissionConfig={roles:rolesMap};
+    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:17};
     showToast("Valeurs par défaut restaurées.","success");
     permissionsAdmin();
   }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
@@ -1871,7 +1981,7 @@ async function openStartWatch(){
   if(!hasPerm("watch_manage")) return;
   let users=[{uid:window.LSPD.user.uid,...window.LSPD.profile}];
   if(hasPerm("personnel_view")){
-    try{users=(await getUsers()).filter(u=>!["Archivé","Refusé","En attente"].includes(u.status));}catch{}
+    try{users=(await getUsers()).filter(u=>u.role!=="Visiteur" && !["Archivé","Refusé","En attente"].includes(u.status));}catch{}
   }
   showModal(`<h2>Démarrer un watch</h2><form id="watchStartForm"><label class="field"><span>Commander</span><select id="watchCommander">${users.map(u=>`<option value="${u.uid}" data-name="${esc(u.name)}">${esc(u.badge||"—")} — ${esc(u.name)}</option>`).join("")}</select></label><label class="field full"><span>Briefing</span><textarea id="watchBriefing" rows="7" required></textarea></label><div id="watchError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Démarrer le service</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("watchStartForm").onsubmit=saveWatch;
@@ -1905,7 +2015,7 @@ function openCloseWatch(id){
 
 async function accessibleTrainees(){
   const users=await getUsers();
-  if(hasPerm("personnel_view")) return users.filter(u=>!["Archivé","Refusé","En attente"].includes(u.status));
+  if(hasPerm("personnel_view")) return users.filter(u=>u.role!=="Visiteur" && !["Archivé","Refusé","En attente"].includes(u.status));
   const snap=await getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid)));
   const ids=new Set(snap.docs.map(d=>d.data()).filter(x=>x.status==="Active").map(x=>x.traineeId));
   return users.filter(u=>ids.has(u.uid));
@@ -1917,6 +2027,7 @@ function academyModuleTitle(code){
 
 async function ftoAcademy(){
   if(!hasPerm("academy_manage"))return;
+  await Promise.all([loadAcademyOverrides(),loadCustomAcademyScenarios()]);
   const trainees=await accessibleTrainees();
   let rec="";
   try{
@@ -1929,7 +2040,7 @@ async function ftoAcademy(){
     }).join("");
   }catch{}
   $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FIELD TRAINING PROGRAM</span><h2>FTO Academy</h2><p class="muted">${esc(B("Un guide opérationnel pour savoir quoi expliquer, démontrer, faire pratiquer et évaluer.","An operational guide showing what to explain, demonstrate, practice, and evaluate."))}</p></div><div class="academy-hero-actions">
-    <button class="btn" id="academyNewSessionBtn">Créer une session</button>
+    <button class="btn" id="academyNewSessionBtn">Créer une session</button>${hasPerm("academy_content_manage")?'<button class="btn secondary" id="academyManageBtn">🧰 Gestion Academy</button>':""}
     <div class="scenario-module-picker">
       <label for="academyScenarioModule">Choisir la formation</label>
       <select id="academyScenarioModule">${modules.map(m=>`<option value="${m[0]}">${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select>
@@ -1937,15 +2048,17 @@ async function ftoAcademy(){
     <button class="btn secondary" id="academyRandomScenarioBtn">Générer un scénario</button>
   </div></div>
   <div class="section-title">Recommandations FTO</div><div class="academy-recommendations">${rec||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>
-  <div class="section-title">Programme guidé</div><div class="academy-module-grid">${modules.map(m=>`<div class="academy-module card"><div class="academy-module-top"><span class="module-code">${m[0]}</span><span class="tag">${esc(translateSystemText(m[3],currentLang))}</span></div><h3>${esc(translateSystemText(m[1],currentLang))}</h3><p class="muted">${esc(translateSystemText(m[2],currentLang))}</p><div class="row"><span>Durée conseillée</span><b>${esc(ACADEMY_MODULES[m[0]]?.duration||"—")}</b></div><button class="btn secondary academy-guide-btn" data-module="${m[0]}">Voir le guide</button></div>`).join("")}</div>
+  <div class="section-title">Programme guidé</div><div class="academy-module-grid">${modules.map(m=>`<div class="academy-module card"><div class="academy-module-top"><span class="module-code">${m[0]}</span><span class="tag">${esc(translateSystemText(m[3],currentLang))}</span></div><h3>${esc(translateSystemText(m[1],currentLang))}</h3><p class="muted">${esc(translateSystemText(m[2],currentLang))}</p><div class="row"><span>Durée conseillée</span><b>${esc(getAcademyData(m[0])?.duration||"—")}</b></div><button class="btn secondary academy-guide-btn" data-module="${m[0]}">Voir le guide</button></div>`).join("")}</div>
   <div class="section-title">Bibliothèque pédagogique</div><div class="grid2"><div class="card"><h3>Exemples radio</h3>${RADIO_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div><div class="card"><h3>Exemples de rapports</h3>${REPORT_EXAMPLES.map(x=>`<div class="training-example"><span class="tag red">Mauvais exemple</span><p>${esc(x.bad())}</p><span class="tag green">Bon exemple</span><p>${esc(x.good())}</p><small>${esc(x.why())}</small></div>`).join("")}</div></div>`;
   document.querySelectorAll(".academy-guide-btn").forEach(b=>b.onclick=()=>openAcademyGuide(b.dataset.module));
   $("academyNewSessionBtn").onclick=openAcademySessionForm;
+  $("academyManageBtn")?.addEventListener("click",()=>render("academyManager"));
   $("academyRandomScenarioBtn").onclick=()=>openRandomScenario($("academyScenarioModule").value);
 }
 
-function openAcademyGuide(code){
-  const d=ACADEMY_MODULES[code],m=modules.find(x=>x[0]===code);if(!d||!m)return;
+async function openAcademyGuide(code){
+  await loadAcademyOverrides();
+  const d=getAcademyData(code),m=modules.find(x=>x[0]===code);if(!d||!m)return;
   showModal(`<div class="academy-guide"><div class="academy-guide-head"><div><span class="module-code large">${code}</span><h2>${esc(translateSystemText(m[1],currentLang))}</h2><p>${esc(d.objective())}</p></div><span class="tag">${esc(d.duration)}</span></div>
   <div class="guide-section"><h3>Prérequis</h3><div class="chip-row">${d.prereq.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div></div>
   <div class="guide-section"><h3>Ce que le FTO doit faire</h3><ol class="academy-steps">${d.steps().map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>
@@ -1958,7 +2071,8 @@ function openAcademyGuide(code){
   $("guideScenarioBtn").onclick=()=>openRandomScenario(code);
 }
 
-function openRandomScenario(moduleCode="M01"){
+async function openRandomScenario(moduleCode="M01"){
+  await Promise.all([loadAcademyOverrides(),loadCustomAcademyScenarios()]);
   const code=modules.some(m=>m[0]===moduleCode)?moduleCode:"M01";
   const choices=buildModuleScenarioPool(code);
   if(!choices.length){
@@ -2010,7 +2124,8 @@ async function createAcademySession(e){
 
 async function openGuidedSession(id){
   const s=await getDoc(doc(db,"fto_sessions",id));if(!s.exists())return;
-  const v={id,...s.data()},d=ACADEMY_MODULES[v.moduleCode];if(!d)return;const c=v.checklist||{};
+  await loadAcademyOverrides();
+  const v={id,...s.data()},d=getAcademyData(v.moduleCode);if(!d)return;const c=v.checklist||{};
   const pct=Math.round(["briefing","demonstration","practice","observation","debrief"].filter(k=>c[k]).length/5*100);
   const steps=d.steps();
   showModal(`<div class="guided-session"><div class="academy-guide-head"><div><span class="module-code large">${esc(v.moduleCode)}</span><h2>Session guidée — ${esc(v.traineeName)}</h2><p>${esc(d.objective())}</p></div><span class="tag">${esc(v.phase)}</span></div><div class="guided-progress"><i style="width:${pct}%"></i></div><div class="guided-checks">${[["briefing","Briefing",steps[0]||""],["demonstration","Démonstration",steps[1]||""],["practice","Pratique",steps[2]||""],["observation","Observation",steps[3]||""],["debrief","Débrief",steps[4]||d.corrective()]].map(([key,label,desc])=>`<label class="guided-step ${c[key]?"done":""}"><input type="checkbox" class="session-check" data-key="${key}" ${c[key]?"checked":""}><span><b>${esc(label)}</b><small>${esc(desc)}</small></span></label>`).join("")}</div><div class="grid2"><div class="guide-section"><h3>Erreurs critiques</h3>${d.critical().map(x=>`<div class="warning-line">🚨 ${esc(x)}</div>`).join("")}</div><div class="guide-section"><h3>Questions à poser</h3>${d.questions().map(([q,a])=>`<details class="qa-item"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div></div><label class="field full"><span>Résumé de session</span><textarea id="sessionSummary" rows="4">${esc(v.summary||"")}</textarea></label><label class="field full"><span>Points forts</span><textarea id="sessionStrengths" rows="3">${esc(v.strengths||"")}</textarea></label><label class="field full"><span>Points à améliorer</span><textarea id="sessionImprove" rows="3">${esc(v.improvements||"")}</textarea></label><label class="field full"><span>Objectifs prochaine session</span><textarea id="sessionNext" rows="3">${esc(v.nextGoals||"")}</textarea></label><div class="modal-actions"><button class="btn secondary" id="sessionScenarioBtn">Générer un scénario pour ce module</button><button class="btn secondary" id="sessionSaveBtn">Enregistrer le journal</button><button class="btn" id="sessionFinishBtn">Terminer la session</button><button class="btn secondary" id="closeModal">Fermer</button></div></div>`);
@@ -2054,8 +2169,8 @@ async function ftoFinal(){
   if(!hasPerm("academy_manage"))return;
   const trainees=await accessibleTrainees(),[es,fs,ss]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"fto_sessions"))]);
   const evals=es.docs.map(d=>d.data()),finals=fs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),sessions=ss.docs.map(d=>d.data());
-  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FINAL REVIEW</span><h2>Évaluation finale FTO</h2><p class="muted">${esc(B("Décision finale basée sur modules, scores et historique pédagogique.","Final decision based on modules, scores, and training history."))}</p></div><button class="btn" id="newFinalReviewBtn">Créer l'évaluation finale</button></div><div class="section-title">Recrues</div><div class="academy-module-grid">${trainees.map(t=>{const te=evals.filter(e=>e.officerId===t.uid),valid=[...new Set(te.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=te.length?Math.round(te.reduce((s,e)=>s+(Number(e.score)||0),0)/te.length):0,ts=sessions.filter(s=>s.traineeId===t.uid&&s.status==="Terminée").length;return `<div class="card final-card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Modules validés</span><b>${valid.length}/${modules.length}</b></div><div class="row"><span>Moyenne globale</span><b>${avg}/100</b></div><div class="row"><span>Sessions terminées</span><b>${ts}</b></div><button class="btn secondary final-review-person" data-id="${t.uid}">Évaluation finale</button></div>`;}).join("")||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div><div class="section-title">Historique</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Décision</th><th>Modules validés</th><th>Moyenne globale</th><th>FTO</th></tr></thead><tbody>${finals.length?finals.map(f=>`<tr><td>${formatDate(f.createdAt)}</td><td>${esc(f.traineeName)}</td><td><span class="tag ${f.decision==="Validation FTO"?"green":f.decision==="Échec FTO"?"red":"orange"}">${esc(f.decision)}</span></td><td>${esc(f.validatedModules)}/${modules.length}</td><td>${esc(f.averageScore)}/100</td><td>${esc(f.ftoName)}</td></tr>`).join(""):'<tr><td colspan="6">Aucune entrée.</td></tr>'}</tbody></table></div>`;
-  $("newFinalReviewBtn").onclick=()=>openFinalReviewForm();document.querySelectorAll(".final-review-person").forEach(b=>b.onclick=()=>openFinalReviewForm(b.dataset.id));
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FINAL REVIEW</span><h2>Évaluation finale FTO</h2><p class="muted">${esc(B("Le FTO recommande, puis le commandement valide définitivement.","The FTO recommends, then command gives final approval."))}</p></div><button class="btn" id="newFinalReviewBtn">Créer l'évaluation finale</button></div><div class="section-title">Recrues</div><div class="academy-module-grid">${trainees.map(t=>{const te=evals.filter(e=>e.officerId===t.uid),valid=[...new Set(te.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=te.length?Math.round(te.reduce((s,e)=>s+(Number(e.score)||0),0)/te.length):0,ts=sessions.filter(s=>s.traineeId===t.uid&&s.status==="Terminée").length;return `<div class="card final-card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Modules validés</span><b>${valid.length}/${modules.length}</b></div><div class="row"><span>Moyenne globale</span><b>${avg}/100</b></div><div class="row"><span>Sessions terminées</span><b>${ts}</b></div><button class="btn secondary final-review-person" data-id="${t.uid}">Évaluation finale</button></div>`;}).join("")||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div><div class="section-title">Validation commandement</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Décision FTO</th><th>Statut</th><th>Moyenne</th><th>FTO</th><th>Action</th></tr></thead><tbody>${finals.length?finals.map(f=>`<tr><td>${formatDate(f.createdAt)}</td><td>${esc(f.traineeName)}</td><td><span class="tag ${f.decision==="Validation FTO"?"green":f.decision==="Échec FTO"?"red":"orange"}">${esc(f.decision)}</span></td><td><span class="tag ${f.status==="Validée"?"green":f.status==="Refusée"?"red":"orange"}">${esc(f.status||"En attente Commandement")}</span></td><td>${esc(f.averageScore)}/100</td><td>${esc(f.ftoName)}</td><td>${hasPerm("academy_final_review")&&(f.status||"En attente Commandement")==="En attente Commandement"?`<button class="btn final-approve" data-id="${f.id}">Valider définitivement</button> <button class="btn secondary final-reject" data-id="${f.id}">Refuser la validation</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="7">Aucune entrée.</td></tr>'}</tbody></table></div>`;
+  $("newFinalReviewBtn").onclick=()=>openFinalReviewForm();document.querySelectorAll(".final-review-person").forEach(b=>b.onclick=()=>openFinalReviewForm(b.dataset.id));document.querySelectorAll(".final-approve").forEach(b=>b.onclick=()=>reviewFinalFto(b.dataset.id,"Validée"));document.querySelectorAll(".final-reject").forEach(b=>b.onclick=()=>reviewFinalFto(b.dataset.id,"Refusée"));
 }
 async function openFinalReviewForm(prefillId=null){
   const trainees=await accessibleTrainees();if(!trainees.length)return;
@@ -2066,10 +2181,160 @@ async function openFinalReviewForm(prefillId=null){
 }
 async function saveFinalReview(e){
   e.preventDefault();const t=$("finalTrainee");
-  try{await addDoc(collection(db,"final_fto_reviews"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,validatedModules:Number($("finalStats").dataset.valid)||0,averageScore:Number($("finalStats").dataset.avg)||0,completedSessions:Number($("finalStats").dataset.sessions)||0,decision:$("finalDecision").value,comment:$("finalComment").value.trim(),ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_FINAL_REVIEW",t.value,$("finalDecision").value);document.querySelector(".modal")?.remove();showToast("Évaluation finale enregistrée.","success");ftoFinal();}catch(err){$("finalError").textContent="Erreur : "+(err.code||err.message);}
+  try{await addDoc(collection(db,"final_fto_reviews"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,validatedModules:Number($("finalStats").dataset.valid)||0,averageScore:Number($("finalStats").dataset.avg)||0,completedSessions:Number($("finalStats").dataset.sessions)||0,decision:$("finalDecision").value,comment:$("finalComment").value.trim(),status:"En attente Commandement",ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_FINAL_REVIEW",t.value,$("finalDecision").value);document.querySelector(".modal")?.remove();showToast("Évaluation finale enregistrée.","success");ftoFinal();}catch(err){$("finalError").textContent="Erreur : "+(err.code||err.message);}
+}
+
+
+
+function weekKey(date=new Date()){
+  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));const week=Math.ceil((((d-yearStart)/86400000)+1)/7);return `${d.getUTCFullYear()}-W${String(week).padStart(2,"0")}`;
+}
+async function generateTrainingAlerts(){
+  if(!hasPerm("academy_manage"))return;
+  try{
+    const [as,es,os,ns]=await Promise.all([getDocs(collection(db,"fto_assignments")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"training_objectives")),getDocs(query(collection(db,"notifications"),where("recipientId","==",window.LSPD.user.uid)))]);
+    const assignments=as.docs.map(d=>d.data()).filter(a=>a.status==="Active" && (hasPerm("personnel_view")||a.ftoId===window.LSPD.user.uid));
+    const evals=es.docs.map(d=>d.data()),objectives=os.docs.map(d=>({id:d.id,...d.data()})),existing=new Set(ns.docs.map(d=>d.data().reminderKey).filter(Boolean));
+    const now=Date.now(),wk=weekKey();
+    for(const a of assignments){
+      const own=evals.filter(e=>e.officerId===a.traineeId).sort((x,y)=>(y.createdAt?.seconds||0)-(x.createdAt?.seconds||0));
+      const last=own[0]?.createdAt?.seconds?own[0].createdAt.seconds*1000:0;
+      if(!last || now-last>7*86400000){const key=`fto-stale:${a.traineeId}:${wk}`;if(!existing.has(key)){await addDoc(collection(db,"notifications"),{recipientId:window.LSPD.user.uid,senderId:window.LSPD.user.uid,senderName:"Système LSPD",title:"Rappel FTO",body:`${a.traineeName} n'a pas été évalué récemment.`,type:"Formation",linkPage:"ftoDossier",read:false,reminderKey:key,createdAt:serverTimestamp()});existing.add(key);}}
+    }
+    for(const o of objectives.filter(o=>o.status==="Ouvert"&&o.priority==="Critique")){const key=`fto-critical:${o.id}`;if(!existing.has(key)){await addDoc(collection(db,"notifications"),{recipientId:window.LSPD.user.uid,senderId:window.LSPD.user.uid,senderName:"Système LSPD",title:"Objectif critique FTO",body:`${o.traineeName} : ${o.text}`,type:"Formation",linkPage:"ftoDossier",read:false,reminderKey:key,createdAt:serverTimestamp()});existing.add(key);}}
+  }catch(err){console.warn("Training alerts skipped",err);}
+}
+async function trainingAnalytics(){
+  if(!hasPerm("academy_manage"))return;
+  const [us,es,ss,fs,qs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"academy_quiz_attempts"))]);
+  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.role!=="Visiteur"),evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),finals=fs.docs.map(d=>d.data()),quizzes=qs.docs.map(d=>d.data());
+  const moduleRows=modules.map(m=>{const e=evals.filter(x=>x.moduleCode===m[0]),avg=e.length?Math.round(e.reduce((a,x)=>a+(Number(x.score)||0),0)/e.length):0,fail=e.filter(x=>x.result==="Échec").length,review=e.filter(x=>x.result==="À revoir").length;return {code:m[0],title:m[1],count:e.length,avg,fail,review};});
+  const byFto={};for(const e of evals){const k=e.ftoId||e.ftoName||"—";byFto[k]??={name:e.ftoName||"—",count:0,total:0,trainees:new Set()};byFto[k].count++;byFto[k].total+=Number(e.score)||0;byFto[k].trainees.add(e.officerId);}const ftoRows=Object.values(byFto).map(x=>({...x,avg:x.count?Math.round(x.total/x.count):0})).sort((a,b)=>b.count-a.count);
+  const validFinals=finals.filter(f=>f.status==="Validée").length,finalRate=finals.length?Math.round(validFinals/finals.length*100):0;
+  const stale=[];for(const u of users){const ue=evals.filter(e=>e.officerId===u.uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));if(ue.length){const days=Math.floor((Date.now()-(ue[0].createdAt?.seconds||0)*1000)/86400000);if(days>=7)stale.push({u,days});}}
+  $("content").innerHTML=`<div class="grid stats-grid"><div class="card accent-card"><div class="muted">Évaluations</div><div class="stat">${evals.length}</div></div><div class="card accent-card"><div class="muted">Sessions terminées</div><div class="stat">${sessions.filter(s=>s.status==="Terminée").length}</div></div><div class="card accent-card"><div class="muted">Quiz réalisés</div><div class="stat">${quizzes.length}</div></div><div class="card accent-card"><div class="muted">Taux de validation finale</div><div class="stat">${finalRate}%</div></div></div><div class="section-title">Performance par module</div><div class="card table-card"><table class="table"><thead><tr><th>Module</th><th>Évaluations</th><th>Moyenne</th><th>À revoir</th><th>Échecs</th></tr></thead><tbody>${moduleRows.map(x=>`<tr><td><b>${x.code}</b> — ${esc(x.title)}</td><td>${x.count}</td><td>${x.avg}/100</td><td>${x.review}</td><td>${x.fail}</td></tr>`).join("")}</tbody></table></div><div class="grid2"><div class="card"><h3>Performance FTO</h3>${ftoRows.length?ftoRows.slice(0,10).map(x=>`<div class="row"><span>${esc(x.name)} <small>${x.trainees.size} recrue(s)</small></span><b>${x.count} eval • ${x.avg}/100</b></div>`).join(""):'<p class="muted">Aucune donnée.</p>'}</div><div class="card"><h3>Alertes pédagogiques</h3>${stale.length?stale.slice(0,10).map(x=>`<div class="row"><span>${esc(x.u.badge)} — ${esc(x.u.name)}</span><span class="tag orange">${x.days} jours</span></div>`).join(""):'<p class="muted">Aucune recrue sans évaluation récente.</p>'}</div></div>`;
+}
+
+async function visitorPortal(){
+  if(!isVisitor())return render("dashboard");
+  let anns=[];
+  try{const s=await getDocs(query(collection(db,"announcements"),where("visibility","==","Public")));anns=s.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));}catch{}
+  const publicDivisions=[
+    ["Patrol",B("Patrouille générale et réponse aux appels.","General patrol and calls for service.")],
+    ["Traffic",B("Circulation et sécurité routière.","Traffic and road safety.")],
+    ["Detective",B("Enquêtes et suivi des dossiers.","Investigations and case follow-up.")],
+    ["Training",B("Formation et développement des officiers.","Officer training and development.")]
+  ];
+  $("content").innerHTML=`<div class="visitor-hero card"><div><span class="eyebrow">EXTERNAL ACCESS</span><h2>Accès visiteur sécurisé</h2><p>${esc(B("Bienvenue sur l'espace public du LSPD Command Center.","Welcome to the public area of the LSPD Command Center."))}</p><p class="muted">Aucune donnée opérationnelle ou personnelle n’est accessible avec ce compte.</p></div><div class="visitor-seal">🏛️</div></div>
+  <div class="grid stats-grid"><div class="card"><div class="muted">Compte externe</div><div class="stat">${esc(window.LSPD.profile.name)}</div><div class="muted">${esc(window.LSPD.profile.grade)} • ${esc(window.LSPD.profile.role)}</div></div><div class="card"><div class="muted">Accès</div><div class="stat">PUBLIC</div><div class="muted">Lecture limitée</div></div></div>
+  <div class="section-title">Annonces publiques</div><div class="grid2">${anns.length?anns.slice(0,8).map(a=>`<div class="card notice"><span class="tag green">Public</span><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p><p class="muted">${esc(a.authorName)} • ${formatDate(a.createdAt)}</p></div>`).join(""):'<div class="card"><p class="muted">Aucune annonce publique.</p></div>'}</div>
+  <div class="section-title">Structure du département</div><div class="visitor-public-grid">${publicDivisions.map(([n,d])=>`<div class="card"><h3>${esc(n)}</h3><p class="muted">${esc(d)}</p></div>`).join("")}</div>
+  <div class="section-title">Catalogue de formation</div><div class="visitor-training-list">${modules.map(m=>`<div><span class="module-code">${m[0]}</span><b>${esc(translateSystemText(m[1],currentLang))}</b><small>${esc(translateSystemText(m[3],currentLang))}</small></div>`).join("")}</div>`;
+}
+
+async function academyManager(){
+  if(!hasPerm("academy_content_manage"))return;
+  await Promise.all([loadAcademyOverrides(true),loadCustomAcademyScenarios(true)]);
+  const customCount=Object.values(window.LSPD.academyOverrides||{}).filter(x=>x.enabled!==false).length;
+  const scenarios=(window.LSPD.customAcademyScenarios||[]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">TRAINING CMS</span><h2>Gestion contenu Academy</h2><p class="muted">${esc(B("Modifie les modules et ajoute des scénarios sans changer app.js.","Edit modules and add scenarios without changing app.js."))}</p></div><div class="academy-cms-stat"><b>${customCount}</b><span>modules personnalisés</span></div></div>
+  <div class="section-title">Modules M01–M16</div><div class="academy-manager-grid">${modules.map(m=>{const o=window.LSPD.academyOverrides?.[m[0]];return `<div class="card academy-manager-module"><div><span class="module-code">${m[0]}</span> ${o&&o.enabled!==false?'<span class="tag green">Personnalisé</span>':'<span class="tag">Contenu d’origine</span>'}</div><h3>${esc(m[1])}</h3><button class="btn secondary academy-edit-content" data-code="${m[0]}">Modifier le module</button></div>`}).join("")}</div>
+  <div class="toolbar academy-scenario-toolbar"><div><h2>Scénarios personnalisés</h2><p class="muted">${scenarios.filter(s=>s.status!=="Archivé").length} actifs</p></div><button class="btn" id="newCustomScenarioBtn">+ Nouveau scénario personnalisé</button></div>
+  <div class="card table-card"><table class="table"><thead><tr><th>Module</th><th>Difficulté</th><th>Situation</th><th>Statut</th><th></th></tr></thead><tbody>${scenarios.length?scenarios.map(s=>`<tr><td>${esc(s.moduleCode)}</td><td>${esc(s.difficulty)}</td><td>${esc(s.situationFr||s.situationEn||"—")}</td><td><span class="tag ${s.status==="Archivé"?"":"green"}">${esc(s.status||"Actif")}</span></td><td>${s.status!=="Archivé"?`<button class="btn secondary archive-custom-scenario" data-id="${s.id}">Archiver</button>`:""}</td></tr>`).join(""):'<tr><td colspan="5">Aucun scénario personnalisé.</td></tr>'}</tbody></table></div>`;
+  document.querySelectorAll(".academy-edit-content").forEach(b=>b.onclick=()=>openAcademyContentEditor(b.dataset.code));
+  $("newCustomScenarioBtn").onclick=openCustomScenarioForm;
+  document.querySelectorAll(".archive-custom-scenario").forEach(b=>b.onclick=()=>archiveCustomScenario(b.dataset.id));
+}
+function fieldList(arr){return (arr||[]).join("\n");}
+function questionLines(arr){return (arr||[]).map(x=>`${x[0]} || ${x[1]}`).join("\n");}
+async function openAcademyContentEditor(code){
+  if(!hasPerm("academy_content_manage"))return;
+  await loadAcademyOverrides();
+  const o=window.LSPD.academyOverrides?.[code]||{},m=modules.find(x=>x[0]===code),base=ACADEMY_MODULES[code];if(!m||!base)return;
+  showModal(`<div class="academy-content-editor"><h2>${esc(code)} — ${esc(m[1])}</h2><p class="muted">${esc(B("Laisse un champ vide pour conserver le contenu d'origine.","Leave a field empty to keep the original content."))}</p><form id="academyContentForm"><input id="acCode" type="hidden" value="${code}"><div class="formgrid"><label class="field"><span>Durée conseillée</span><input id="acDuration" value="${esc(o.duration||"")}" placeholder="${esc(base.duration)}"></label><label class="field"><span>Prérequis</span><input id="acPrereq" value="${esc((o.prereq||[]).join(", "))}" placeholder="M01, M02"></label></div>
+  ${academyLangEditor("FR",o,"Fr")}${academyLangEditor("EN",o,"En")}
+  <div id="acError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer le contenu</button>${o.id?'<button class="btn secondary" type="button" id="restoreAcademyContentBtn">Contenu d’origine</button>':""}<button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("academyContentForm").onsubmit=saveAcademyContent;
+  $("restoreAcademyContentBtn")?.addEventListener("click",()=>restoreAcademyContent(code));
+}
+function academyLangEditor(label,o,suffix){
+  const lower=suffix.toLowerCase();
+  return `<div class="academy-language-editor"><h3>${label}</h3><label class="field full"><span>Objectif pédagogique</span><textarea id="acObjective${suffix}" rows="3">${esc(o[`objective${suffix}`]||"")}</textarea></label><label class="field full"><span>Étapes FTO — une par ligne</span><textarea id="acSteps${suffix}" rows="6">${esc(fieldList(o[`steps${suffix}`]))}</textarea></label><label class="field full"><span>Exemple RP</span><textarea id="acExample${suffix}" rows="3">${esc(o[`example${suffix}`]||"")}</textarea></label><label class="field full"><span>Variantes — une par ligne</span><textarea id="acVariants${suffix}" rows="4">${esc(fieldList(o[`variants${suffix}`]))}</textarea></label><label class="field full"><span>Erreurs fréquentes — une par ligne</span><textarea id="acMistakes${suffix}" rows="4">${esc(fieldList(o[`mistakes${suffix}`]))}</textarea></label><label class="field full"><span>Erreurs critiques — une par ligne</span><textarea id="acCritical${suffix}" rows="4">${esc(fieldList(o[`critical${suffix}`]))}</textarea></label><label class="field full"><span>Questions — Question || Réponse</span><textarea id="acQuestions${suffix}" rows="5">${esc(questionLines(o[`questions${suffix}`]))}</textarea></label><label class="field full"><span>Action corrective</span><textarea id="acCorrective${suffix}" rows="3">${esc(o[`corrective${suffix}`]||"")}</textarea></label></div>`;
+}
+async function saveAcademyContent(e){
+  e.preventDefault();if(!hasPerm("academy_content_manage"))return;const code=$("acCode").value;
+  const payload={moduleCode:code,enabled:true,duration:$("acDuration").value.trim(),prereq:$("acPrereq").value.split(",").map(x=>x.trim()).filter(Boolean),objectiveFr:$("acObjectiveFr").value.trim(),objectiveEn:$("acObjectiveEn").value.trim(),stepsFr:linesFrom($("acStepsFr").value),stepsEn:linesFrom($("acStepsEn").value),exampleFr:$("acExampleFr").value.trim(),exampleEn:$("acExampleEn").value.trim(),variantsFr:linesFrom($("acVariantsFr").value),variantsEn:linesFrom($("acVariantsEn").value),mistakesFr:linesFrom($("acMistakesFr").value),mistakesEn:linesFrom($("acMistakesEn").value),criticalFr:linesFrom($("acCriticalFr").value),criticalEn:linesFrom($("acCriticalEn").value),questionsFr:questionsFromLines($("acQuestionsFr").value),questionsEn:questionsFromLines($("acQuestionsEn").value),correctiveFr:$("acCorrectiveFr").value.trim(),correctiveEn:$("acCorrectiveEn").value.trim(),updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()};
+  try{await setDoc(doc(db,"academy_content",code),payload,{merge:true});await addAudit("ACADEMY_CONTENT_UPDATE",code,academyModuleTitle(code));window.LSPD.academyOverridesLoaded=false;document.querySelector(".modal")?.remove();showToast("Contenu Academy enregistré.","success");academyManager();}catch(err){$("acError").textContent="Erreur : "+(err.code||err.message);}
+}
+async function restoreAcademyContent(code){
+  if(!hasPerm("academy_content_manage")||!confirm("Revenir au contenu d'origine pour ce module ?"))return;
+  try{await setDoc(doc(db,"academy_content",code),{enabled:false,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()},{merge:true});window.LSPD.academyOverridesLoaded=false;document.querySelector(".modal")?.remove();academyManager();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+function openCustomScenarioForm(){
+  if(!hasPerm("academy_content_manage"))return;
+  showModal(`<h2>Nouveau scénario personnalisé</h2><form id="customScenarioForm"><div class="formgrid"><label class="field"><span>Module</span><select id="csModule">${modules.map(m=>`<option value="${m[0]}">${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select></label><label class="field"><span>Difficulté</span><select id="csDifficulty"><option>Facile</option><option selected>Normal</option><option>Difficile</option><option>Stress test</option></select></label></div><div class="grid2"><div><h3>FR</h3><label class="field full"><span>Situation</span><textarea id="csSituationFr" rows="4" required></textarea></label><label class="field full"><span>Contraintes</span><textarea id="csConstraintsFr" rows="4" required></textarea></label><label class="field full"><span>Réussite attendue</span><textarea id="csSuccessFr" rows="4" required></textarea></label></div><div><h3>EN (optionnel)</h3><label class="field full"><span>Situation</span><textarea id="csSituationEn" rows="4"></textarea></label><label class="field full"><span>Contraintes</span><textarea id="csConstraintsEn" rows="4"></textarea></label><label class="field full"><span>Réussite attendue</span><textarea id="csSuccessEn" rows="4"></textarea></label></div></div><div id="csError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);$("customScenarioForm").onsubmit=saveCustomScenario;
+}
+async function saveCustomScenario(e){
+  e.preventDefault();if(!hasPerm("academy_content_manage"))return;
+  try{const ref=await addDoc(collection(db,"academy_scenarios"),{moduleCode:$("csModule").value,difficulty:$("csDifficulty").value,situationFr:$("csSituationFr").value.trim(),situationEn:$("csSituationEn").value.trim(),constraintsFr:$("csConstraintsFr").value.trim(),constraintsEn:$("csConstraintsEn").value.trim(),successFr:$("csSuccessFr").value.trim(),successEn:$("csSuccessEn").value.trim(),status:"Actif",createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("ACADEMY_SCENARIO_CREATE",ref.id,$("csModule").value);window.LSPD.customScenariosLoaded=false;document.querySelector(".modal")?.remove();showToast("Scénario enregistré.","success");academyManager();}catch(err){$("csError").textContent="Erreur : "+(err.code||err.message);}
+}
+async function archiveCustomScenario(id){
+  if(!hasPerm("academy_content_manage"))return;try{await updateDoc(doc(db,"academy_scenarios",id),{status:"Archivé",archivedById:window.LSPD.user.uid,archivedByName:window.LSPD.profile.name,archivedAt:serverTimestamp()});window.LSPD.customScenariosLoaded=false;academyManager();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function quizQuestionPool(code){
+  const d=getAcademyData(code);if(!d)return[];const allAnswers=[];for(const m of modules){const md=getAcademyData(m[0]);if(md)md.questions().forEach(q=>allAnswers.push(q[1]));}
+  return d.questions().map(([q,a],idx)=>{const distract=shuffleArray([...new Set(allAnswers.filter(x=>x!==a))]).slice(0,3);const choices=shuffleArray([a,...distract]).slice(0,4);return {id:`${code}-${idx}`,question:q,answer:a,choices,correctIndex:choices.indexOf(a)};});
+}
+async function trainingQuiz(){
+  if(isVisitor())return;
+  await loadAcademyOverrides();
+  const [es,as]=await Promise.all([getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid))),getDocs(query(collection(db,"academy_quiz_attempts"),where("officerId","==",window.LSPD.user.uid)))]);
+  const evals=es.docs.map(d=>d.data()),attempts=as.docs.map(d=>d.data());const validated=new Set(evals.filter(e=>e.result==="Validé").map(e=>e.moduleCode));
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">KNOWLEDGE CHECK</span><h2>Parcours de formation</h2><p class="muted">${esc(B("Les prérequis suivent la logique des modules. Les quiz sont enregistrés dans ton historique.","Prerequisites follow module logic. Quiz attempts are saved in your history."))}</p></div></div><div class="quiz-module-grid">${modules.map(m=>{const d=getAcademyData(m[0]),req=(d?.prereq||[]).filter(x=>/^M\d\d$/.test(x)),locked=req.some(r=>!validated.has(r)),last=attempts.filter(a=>a.moduleCode===m[0]).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))[0];return `<div class="card quiz-module ${locked?"quiz-locked":""}"><div class="academy-module-top"><span class="module-code">${m[0]}</span>${last?`<span class="tag ${last.passed?"green":"orange"}">${last.percentage}%</span>`:""}</div><h3>${esc(m[1])}</h3><p class="muted">${req.length?`Prérequis : ${req.join(", ")}`:"Aucun prérequis"}</p>${locked?'<div class="quiz-lock">🔒 Prérequis non validés</div>':`<button class="btn secondary start-training-quiz" data-code="${m[0]}">Commencer le quiz</button>`}</div>`}).join("")}</div>`;
+  document.querySelectorAll(".start-training-quiz").forEach(b=>b.onclick=()=>startTrainingQuiz(b.dataset.code));
+}
+async function startTrainingQuiz(code){
+  await loadAcademyOverrides();const questions=quizQuestionPool(code);if(!questions.length){showToast("Aucune question disponible.","warning");return;}
+  window.LSPD.activeQuiz={code,questions};showModal(`<div class="training-quiz"><h2>${esc(academyModuleTitle(code))}</h2><form id="trainingQuizForm">${questions.map((q,qi)=>`<div class="quiz-question"><b>${qi+1}. ${esc(q.question)}</b>${q.choices.map((c,ci)=>`<label><input type="radio" name="quiz${qi}" value="${ci}" required> ${esc(c)}</label>`).join("")}</div>`).join("")}<div id="quizError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Soumettre le quiz</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);$("trainingQuizForm").onsubmit=submitTrainingQuiz;
+}
+async function submitTrainingQuiz(e){
+  e.preventDefault();const qz=window.LSPD.activeQuiz;if(!qz)return;let score=0;const results=qz.questions.map((q,i)=>{const v=Number(document.querySelector(`input[name="quiz${i}"]:checked`)?.value);const ok=v===q.correctIndex;if(ok)score++;return {...q,selected:v,ok};});const pct=Math.round(score/results.length*100),passed=pct>=75;
+  try{await addDoc(collection(db,"academy_quiz_attempts"),{officerId:window.LSPD.user.uid,officerName:window.LSPD.profile.name,moduleCode:qz.code,score,total:results.length,percentage:pct,passed,createdAt:serverTimestamp()});showModal(`<h2>${passed?"✅ Quiz réussi":"🟠 Quiz à refaire"}</h2><div class="final-summary"><div><span>Score</span><b>${score}/${results.length}</b></div><div><span>Résultat</span><b>${pct}%</b></div></div>${results.map(r=>`<div class="quiz-result ${r.ok?"ok":"bad"}"><b>${esc(r.question)}</b><p>${r.ok?"✓":"✕"} ${esc(r.answer)}</p></div>`).join("")}<div class="modal-actions"><button class="btn" id="quizDoneBtn">Fermer</button></div>`);$("quizDoneBtn").onclick=()=>{document.querySelector(".modal")?.remove();trainingQuiz();};}catch(err){$("quizError").textContent="Erreur : "+(err.code||err.message);}
+}
+
+async function ftoDossier(){
+  if(!hasPerm("academy_manage"))return;const trainees=await accessibleTrainees();
+  $("content").innerHTML=`<div class="toolbar"><label class="field dossier-select"><span>Recrue</span><select id="dossierTrainee">${trainees.map(t=>`<option value="${t.uid}">${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><button class="btn secondary" id="printDossierBtn">Imprimer le rapport final</button><button class="btn" id="addHandoffBtn">Ajouter une note de passation</button></div><div id="dossierBody">${trainees.length?'<div class="card skeleton-card"></div>':'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>`;
+  if(!trainees.length)return;const refresh=()=>loadTraineeDossier($("dossierTrainee").value,trainees);$("dossierTrainee").onchange=refresh;$("printDossierBtn").onclick=()=>printTrainingReport($("dossierTrainee").value,trainees);$("addHandoffBtn").onclick=()=>openHandoffForm($("dossierTrainee").value,trainees);refresh();
+}
+async function loadTraineeDossier(uid,trainees){
+  const trainee=trainees.find(t=>t.uid===uid);if(!trainee)return;const [es,ss,os,qs,fs,hs,fbs]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives")),getDocs(collection(db,"academy_quiz_attempts")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"fto_handoffs")),getDocs(collection(db,"fto_feedback"))]);
+  const evals=es.docs.map(d=>d.data()).filter(x=>x.officerId===uid),sessions=ss.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),objectives=os.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),quizzes=qs.docs.map(d=>d.data()).filter(x=>x.officerId===uid),finals=fs.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),handoffs=hs.docs.map(d=>d.data()).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),feedback=fbs.docs.map(d=>d.data()).filter(x=>x.traineeId===uid).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const latest={};evals.forEach(e=>{if(!latest[e.moduleCode]||(e.createdAt?.seconds||0)>(latest[e.moduleCode].createdAt?.seconds||0))latest[e.moduleCode]=e;});const scored=Object.values(latest).filter(e=>Number.isFinite(Number(e.score))),avg=scored.length?Math.round(scored.reduce((a,e)=>a+Number(e.score),0)/scored.length):0;const weak=scored.filter(e=>Number(e.score)<75).sort((a,b)=>a.score-b.score).slice(0,3);
+  $("dossierBody").innerHTML=`<div class="dossier-header card"><div><span class="number">${esc(trainee.badge)}</span><h2>${esc(trainee.name)}</h2><p class="muted">${esc(trainee.grade)} • ${esc(trainee.division||"Patrol")}</p></div><div class="dossier-kpis"><div><span>Moyenne</span><b>${avg}/100</b></div><div><span>Sessions</span><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div><span>Objectifs ouverts</span><b>${objectives.filter(o=>o.status==="Ouvert").length}</b></div></div></div><div class="section-title">Progression M01–M16</div><div class="training-heatmap">${modules.map(m=>{const e=latest[m[0]],score=e?Number(e.score):null,cls=score===null?"none":score>=75?"good":score>=55?"warn":"bad";return `<div class="heat-cell ${cls}" title="${esc(m[1])}"><b>${m[0]}</b><span>${score===null?"—":score}</span></div>`}).join("")}</div><div class="grid2"><div class="card"><h3>Plan de rattrapage</h3>${weak.length?weak.map(e=>`<div class="remedial-item"><span class="tag ${e.score<55?"red":"orange"}">${e.moduleCode} • ${e.score}/100</span><p>${esc(getAcademyData(e.moduleCode)?.corrective()||"Nouvelle session recommandée.")}</p></div>`).join(""):'<p class="muted">Aucun module faible détecté.</p>'}</div><div class="card"><h3>Objectifs de la recrue</h3>${objectives.length?objectives.slice(0,8).map(o=>`<div class="row"><span>${esc(o.text)}</span><span class="tag ${o.status==="Atteint"?"green":"orange"}">${esc(o.status)}</span></div>`).join(""):'<p class="muted">Aucun objectif.</p>'}</div></div><div class="grid2"><div class="card"><h3>Passation FTO</h3>${handoffs.length?handoffs.slice(0,5).map(h=>`<div class="timeline-entry"><b>${esc(h.authorName)}</b><small>${formatDate(h.createdAt)}</small><p>${esc(h.note)}</p></div>`).join(""):'<p class="muted">Aucune note de passation.</p>'}</div><div class="card"><h3>Feedback de la recrue</h3>${feedback.length?feedback.slice(0,5).map(f=>`<div class="timeline-entry"><b>${f.understanding}/5</b><small>${formatDate(f.createdAt)}</small><p>${esc(f.difficulty||"—")}</p><p class="muted">${esc(f.question||"")}</p></div>`).join(""):'<p class="muted">Aucun feedback.</p>'}</div></div><div class="card"><h3>Historique pédagogique</h3><div class="row"><span>Évaluations</span><b>${evals.length}</b></div><div class="row"><span>Quiz</span><b>${quizzes.length}</b></div><div class="row"><span>Sessions FTO</span><b>${sessions.length}</b></div><div class="row"><span>Évaluations finales</span><b>${finals.length}</b></div></div>`;
+}
+function openHandoffForm(uid,trainees){const t=trainees.find(x=>x.uid===uid);if(!t)return;showModal(`<h2>Ajouter une note de passation</h2><p class="muted">${esc(t.name)}</p><form id="handoffForm"><label class="field full"><span>Passation FTO</span><textarea id="handoffNote" rows="7" required placeholder="Ce qui a été travaillé, difficultés, points de vigilance, priorité de la prochaine session..."></textarea></label><div id="handoffError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);$("handoffForm").onsubmit=e=>saveHandoff(e,uid,t.name);}
+async function saveHandoff(e,uid,name){e.preventDefault();try{await addDoc(collection(db,"fto_handoffs"),{traineeId:uid,traineeName:name,note:$("handoffNote").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_HANDOFF",uid,name);document.querySelector(".modal")?.remove();showToast("Note de passation enregistrée.","success");ftoDossier();}catch(err){$("handoffError").textContent="Erreur : "+(err.code||err.message);}}
+async function printTrainingReport(uid,trainees){
+  const t=trainees.find(x=>x.uid===uid);if(!t)return;const [es,ss,os,fs]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives")),getDocs(collection(db,"final_fto_reviews"))]);const evals=es.docs.map(d=>d.data()).filter(x=>x.officerId===uid),sessions=ss.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),objs=os.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),finals=fs.docs.map(d=>d.data()).filter(x=>x.traineeId===uid);const avg=evals.length?Math.round(evals.reduce((a,e)=>a+(Number(e.score)||0),0)/evals.length):0;const w=window.open("","_blank");if(!w)return;w.document.write(`<!doctype html><html><head><title>FTO ${esc(t.name)}</title><style>body{font-family:Arial;padding:32px;color:#17202a}h1{margin-bottom:0}.meta{color:#667}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{border:1px solid #ccd5df;padding:12px;border-radius:8px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccd5df;padding:8px;text-align:left}small{color:#667}</style></head><body><h1>LSPD — Rapport final FTO</h1><p class="meta">Développé par Walead</p><h2>${esc(t.badge)} — ${esc(t.name)}</h2><div class="grid"><div class="box">Moyenne<br><b>${avg}/100</b></div><div class="box">Sessions terminées<br><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div class="box">Objectifs atteints<br><b>${objs.filter(o=>o.status==="Atteint").length}/${objs.length}</b></div></div><h3>Évaluations</h3><table><tr><th>Module</th><th>Score</th><th>Résultat</th><th>FTO</th></tr>${evals.map(e=>`<tr><td>${esc(e.moduleCode)}</td><td>${e.score}/100</td><td>${esc(e.result)}</td><td>${esc(e.ftoName)}</td></tr>`).join("")}</table><h3>Décision finale</h3>${finals.length?finals.map(f=>`<p><b>${esc(f.decision)}</b> — ${esc(f.status||"En attente Commandement")}<br>${esc(f.comment||"")}</p>`).join(""):'<p>Aucune évaluation finale.</p>'}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();
+}
+
+async function myTrainingFeedback(){
+  if(isVisitor())return;const uid=window.LSPD.user.uid;const [ss,fs]=await Promise.all([getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",uid))),getDocs(query(collection(db,"fto_feedback"),where("traineeId","==",uid)))]);const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),feedback=fs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("content").innerHTML=`<div class="grid2"><div class="card"><h2>Feedback de la recrue</h2>${sessions.length?`<form id="trainingFeedbackForm"><label class="field"><span>Session</span><select id="fbSession">${sessions.map(s=>`<option value="${s.id}" data-fto="${s.ftoId}" data-ftoname="${esc(s.ftoName)}">${esc(s.moduleCode)} — ${esc(s.ftoName)} — ${formatDate(s.createdAt)}</option>`).join("")}</select></label><label class="field"><span>Compréhension</span><select id="fbUnderstanding"><option value="1">1/5</option><option value="2">2/5</option><option value="3">3/5</option><option value="4">4/5</option><option value="5" selected>5/5</option></select></label><label class="field full"><span>Difficulté rencontrée</span><textarea id="fbDifficulty" rows="4"></textarea></label><label class="field full"><span>Question au FTO</span><textarea id="fbQuestion" rows="4"></textarea></label><div id="fbError" class="error"></div><button class="btn" type="submit">Envoyer le feedback</button></form>`:'<p class="muted">Aucune session FTO disponible.</p>'}</div><div class="card"><h3>Mes feedbacks</h3>${feedback.length?feedback.slice(0,10).map(f=>`<div class="timeline-entry"><b>${esc(f.moduleCode)} • ${f.understanding}/5</b><small>${formatDate(f.createdAt)}</small><p>${esc(f.difficulty||"—")}</p></div>`).join(""):'<p class="muted">Aucun feedback.</p>'}</div></div>`;$("trainingFeedbackForm")?.addEventListener("submit",saveTrainingFeedback);
+}
+async function saveTrainingFeedback(e){e.preventDefault();const s=$("fbSession"),o=s.selectedOptions[0];try{await addDoc(collection(db,"fto_feedback"),{traineeId:window.LSPD.user.uid,traineeName:window.LSPD.profile.name,sessionId:s.value,moduleCode:sessionsafe(s.value),ftoId:o.dataset.fto,ftoName:o.dataset.ftoname,understanding:Number($("fbUnderstanding").value),difficulty:$("fbDifficulty").value.trim(),question:$("fbQuestion").value.trim(),createdAt:serverTimestamp()});showToast("Feedback envoyé.","success");myTrainingFeedback();}catch(err){$("fbError").textContent="Erreur : "+(err.code||err.message);}}
+function sessionsafe(sessionId){const option=$("fbSession")?.selectedOptions?.[0];return option?option.textContent.trim().split(" — ")[0]:"—";}
+
+async function reviewFinalFto(id,status){
+  if(!hasPerm("academy_final_review"))return;try{await updateDoc(doc(db,"final_fto_reviews",id),{status,reviewedById:window.LSPD.user.uid,reviewedByName:window.LSPD.profile.name,reviewedAt:serverTimestamp()});await addAudit("FTO_FINAL_COMMAND_REVIEW",id,status);showToast("Validation finale mise à jour.","success");ftoFinal();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 
 async function dashboard(){
+  if(isVisitor()){return visitorPortal();}
   const p=window.LSPD.profile;
   let evals=[]; try{evals=await getMyEvaluations();}catch{}
   const validated=[...new Set(evals.filter(e=>e.result==="Validé").map(e=>e.moduleCode))];
@@ -2088,7 +2353,7 @@ async function dashboard(){
       const pending=leaveSnap.docs.map(d=>d.data()).filter(x=>x.status==="En attente").length;
       const today=new Date().toISOString().slice(0,10);
       const todayShifts=shiftSnap.docs.map(d=>d.data()).filter(x=>x.date===today).length;
-      const active=users.filter(u=>u.status==="Actif").length;
+      const active=users.filter(u=>u.role!=="Visiteur"&&u.status==="Actif").length;
       const evalCount=evalSnap.size;
       extra=`<div class="section-title">Command overview</div>
       <div class="grid stats-grid">
@@ -2149,24 +2414,26 @@ function profile(){
 
 async function announcements(){
   try{
-    const snap=await getDocs(collection(db,"announcements"));
+    const snap=isVisitor()
+      ? await getDocs(query(collection(db,"announcements"),where("visibility","==","Public")))
+      : await getDocs(collection(db,"announcements"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     $("content").innerHTML=`<div class="toolbar">${hasPerm("announcements_manage")?'<button class="btn" id="newAnnouncementBtn">+ Nouvelle annonce</button>':""}</div>
-    <div class="grid2">${data.length?data.map(a=>`<div class="card notice ${a.active===false?"muted-card":""}"><span class="tag ${a.priority==="Urgent"?"red":a.priority==="Important"?"orange":""}">${esc(a.priority||"Normal")}</span><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p><p class="muted">${esc(a.authorName)} • ${formatDate(a.createdAt)}</p></div>`).join(""):'<div class="card"><p class="muted">Aucune annonce.</p></div>'}</div>`;
+    <div class="grid2">${data.length?data.map(a=>`<div class="card notice ${a.active===false?"muted-card":""}"><span class="tag ${a.priority==="Urgent"?"red":a.priority==="Important"?"orange":""}">${esc(a.priority||"Normal")}</span> ${a.visibility==="Public"?'<span class="tag green">Public</span>':''}<h3>${esc(a.title)}</h3><p>${esc(a.body)}</p><p class="muted">${esc(a.authorName)} • ${formatDate(a.createdAt)}</p></div>`).join(""):'<div class="card"><p class="muted">Aucune annonce.</p></div>'}</div>`;
     $("newAnnouncementBtn")?.addEventListener("click",openAnnouncementForm);
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
 }
 function openAnnouncementForm(){
-  showModal(`<h2>Nouvelle annonce</h2><form id="announcementForm"><label class="field"><span>Titre</span><input id="anTitle" required></label><label class="field"><span>Priorité</span><select id="anPriority"><option>Normal</option><option>Important</option><option>Urgent</option></select></label><label class="field full"><span>Message</span><textarea id="anBody" rows="6" required></textarea></label><div id="anError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Publier</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  showModal(`<h2>Nouvelle annonce</h2><form id="announcementForm"><label class="field"><span>Titre</span><input id="anTitle" required></label><label class="field"><span>Priorité</span><select id="anPriority"><option>Normal</option><option>Important</option><option>Urgent</option></select></label><label class="field"><span>Visibilité</span><select id="anVisibility"><option>Interne</option><option>Public</option></select></label><label class="field full"><span>Message</span><textarea id="anBody" rows="6" required></textarea></label><div id="anError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Publier</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("announcementForm").onsubmit=saveAnnouncement;
 }
 async function saveAnnouncement(e){
   e.preventDefault();
   try{
-    await addDoc(collection(db,"announcements"),{title:$("anTitle").value.trim(),priority:$("anPriority").value,body:$("anBody").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,active:true,createdAt:serverTimestamp()});
+    await addDoc(collection(db,"announcements"),{title:$("anTitle").value.trim(),priority:$("anPriority").value,visibility:$("anVisibility").value,body:$("anBody").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,active:true,createdAt:serverTimestamp()});
     await addAudit("ANNOUNCEMENT_CREATE","announcement",$("anTitle").value.trim());
     try{
-      const users=(await getUsers()).filter(u=>u.uid!==window.LSPD.user.uid && u.status!=="Archivé");
+      const users=(await getUsers()).filter(u=>u.uid!==window.LSPD.user.uid && u.role!=="Visiteur" && u.status!=="Archivé");
       await Promise.all(users.map(u=>createNotification(
         u.uid,
         `Annonce LSPD : ${$("anTitle").value.trim()}`,
@@ -2407,7 +2674,7 @@ async function evaluations(){
 
 async function openEvaluationForm(){
   if(!hasPerm("fto_tools"))return;
-  const officers=(await getUsers()).filter(o=>!["Inactif","Archivé"].includes(o.status));
+  const officers=(await getUsers()).filter(o=>o.role!=="Visiteur" && !["Inactif","Archivé"].includes(o.status));
   showModal(`<h2>Nouvelle évaluation FTO</h2><form id="evalForm"><div class="formgrid">
   <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
   <label class="field"><span>Module</span><select id="eModule">${modules.map(m=>`<option value="${m[0]}">${m[0]} — ${m[1]}</option>`).join("")}</select></label></div>
@@ -2514,11 +2781,19 @@ function openOfficerForm(o=null){
   <label class="field"><span>Statut</span><select id="fStatus">${statuses.map(s=>`<option ${s===o?.status?"selected":""}>${s}</option>`).join("")}</select></label>
   <label class="field"><span>Unité / Division</span><select id="fDivision">${divisions.map(d=>`<option ${d===(o?.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
   </div><div id="formError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  const syncOfficerRole=()=>{
+    if($("fRole").value==="Visiteur"){$("fGrade").value="Visiteur";$("fDivision").value="External";}
+    else if($("fGrade").value==="Visiteur"){$("fGrade").value="PO1";if($("fDivision").value==="External")$("fDivision").value="Patrol";}
+  };
+  $("fRole").onchange=syncOfficerRole;
+  $("fGrade").onchange=()=>{if($("fGrade").value==="Visiteur"){$("fRole").value="Visiteur";$("fDivision").value="External";}};
   $("officerForm").onsubmit=saveOfficerProfile;
 }
 async function saveOfficerProfile(e){
   e.preventDefault();
-  const uid=$("fUid").value.trim(),payload={badge:$("fBadge").value.trim(),name:$("fName").value.trim(),grade:$("fGrade").value,role:$("fRole").value,status:$("fStatus").value,division:$("fDivision").value,updatedAt:serverTimestamp()};
+  const uid=$("fUid").value.trim();
+  if($("fRole").value==="Visiteur"){$("fGrade").value="Visiteur";$("fDivision").value="External";}
+  const payload={badge:$("fBadge").value.trim(),name:$("fName").value.trim(),grade:$("fGrade").value,role:$("fRole").value,status:$("fStatus").value,division:$("fDivision").value,updatedAt:serverTimestamp()};
   try{
     const ref=doc(db,"users",uid),existing=await getDoc(ref);
     if(existing.exists())await updateDoc(ref,payload);else await setDoc(ref,{...payload,createdAt:serverTimestamp()});
@@ -2538,7 +2813,7 @@ async function assignments(){
 }
 async function openAssignmentForm(){
   if(!hasPerm("fto_assignments_manage")) return;
-  const users=await getUsers(),ftos=users.filter(u=>["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(u.role)),trainees=users.filter(u=>!["Inactif","Archivé"].includes(u.status));
+  const users=await getUsers(),ftos=users.filter(u=>["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(u.role)),trainees=users.filter(u=>u.role!=="Visiteur" && !["Inactif","Archivé"].includes(u.status));
   showModal(`<h2>Nouvelle affectation FTO</h2><form id="assignmentForm"><div class="formgrid"><label class="field"><span>FTO</span><select id="aFto">${ftos.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Recrue</span><select id="aTrainee">${trainees.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label></div><label class="field full"><span>Commentaire</span><textarea id="aComment" rows="4"></textarea></label><div id="assignmentError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Affecter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("assignmentForm").onsubmit=saveAssignment;
 }
@@ -2566,7 +2841,7 @@ async function certifications(){
 }
 async function openCertificationForm(){
   if(!hasPerm("certifications_manage")) return;
-  const users=await getUsers();
+  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
   showModal(`<h2>Ajouter une certification</h2><form id="certForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="cOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Certification</span><select id="cName">${certificationsCatalog.map(c=>`<option>${c}</option>`).join("")}</select></label></div><div id="certError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Attribuer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("certForm").onsubmit=saveCertification;
 }
@@ -2588,7 +2863,7 @@ async function records(){
 }
 async function openRecordForm(){
   if(!hasPerm("records_manage")) return;
-  const users=await getUsers();
+  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
   showModal(`<h2>Nouvelle entrée au dossier</h2><form id="recordForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="rOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Type</span><select id="rType"><option>Commendation</option><option>Sanction</option></select></label><label class="field full"><span>Titre</span><input id="rTitle" required></label></div><label class="field full"><span>Détails</span><textarea id="rDetails" rows="5"></textarea></label><div id="recordError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("recordForm").onsubmit=saveRecord;
 }
@@ -2611,7 +2886,7 @@ async function shifts(){
 }
 async function openShiftForm(){
   if(!hasPerm("shifts_manage")) return;
-  const users=await getUsers();
+  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
   showModal(`<h2>Ajouter un shift</h2><form id="shiftForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="sOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" data-division="${esc(o.division||"Patrol")}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Date</span><input id="sDate" type="date" required></label><label class="field"><span>Début</span><input id="sStart" type="time" required></label><label class="field"><span>Fin</span><input id="sEnd" type="time" required></label></div><div id="shiftError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("shiftForm").onsubmit=saveShift;
 }
@@ -2677,7 +2952,7 @@ async function saveTrainingEvent(e){
 async function requirements(){
   if(!hasPerm("analytics"))return;
   const [us,ev]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations"))]);
-  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>!["Inactif","Archivé"].includes(u.status));
+  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.role!=="Visiteur" && !["Inactif","Archivé"].includes(u.status));
   const evals=ev.docs.map(d=>d.data());
   const rows=users.map(o=>{
     const validated=[...new Set(evals.filter(e=>e.officerId===o.uid&&e.result==="Validé").map(e=>e.moduleCode))];
@@ -2694,7 +2969,7 @@ async function promotionAdvisor(){
   if(!hasPerm("analytics"))return;
   const [us,ev,rs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"personnel_records"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})),evals=ev.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data());
-  const rows=users.filter(o=>o.status!=="Archivé").map(o=>{
+  const rows=users.filter(o=>o.role!=="Visiteur"&&o.status!=="Archivé").map(o=>{
     const oe=evals.filter(e=>e.officerId===o.uid),valid=[...new Set(oe.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=oe.length?Math.round(oe.reduce((s,e)=>s+(Number(e.score)||0),0)/oe.length):0;
     const sanctions=recordsData.filter(r=>r.officerId===o.uid&&r.type==="Sanction").length;
     let readiness=Math.max(0,Math.min(100,Math.min(50,Math.round(valid.length/modules.length*50))+Math.min(40,Math.round(avg*0.4))-sanctions*10));
@@ -2713,7 +2988,7 @@ async function promotions(){
 }
 async function openPromotionForm(){
   if(!hasPerm("promotions_manage")) return;
-  const users=await getUsers();
+  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
   showModal(`<h2>Enregistrer une promotion</h2><form id="promotionForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="pOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" data-grade="${esc(o.grade)}">${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label><label class="field"><span>Nouveau grade</span><select id="pNewGrade">${gradeList.map(g=>`<option>${g[0]}</option>`).join("")}</select></label></div><label class="field full"><span>Motif</span><textarea id="pComment" rows="4"></textarea></label><div id="promotionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Valider</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("promotionForm").onsubmit=savePromotion;
 }
@@ -2735,7 +3010,7 @@ async function stats(){
     getDocs(collection(db,"personnel_records")),getDocs(collection(db,"leave_requests")),
     getDocs(collection(db,"shifts"))
   ]);
-  const users=us.docs.map(d=>d.data()),evals=ev.docs.map(d=>d.data()),assign=as.docs.map(d=>d.data()),certs=cs.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data()),leaves=lv.docs.map(d=>d.data()),shiftsData=sh.docs.map(d=>d.data());
+  const users=us.docs.map(d=>d.data()).filter(u=>u.role!=="Visiteur"),evals=ev.docs.map(d=>d.data()),assign=as.docs.map(d=>d.data()),certs=cs.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data()),leaves=lv.docs.map(d=>d.data()),shiftsData=sh.docs.map(d=>d.data());
   const avg=evals.length?Math.round(evals.reduce((s,e)=>s+(Number(e.score)||0),0)/evals.length):0;
 
   $("content").innerHTML=`<div class="grid stats-grid">
@@ -2786,6 +3061,12 @@ async function globalSearch(term){
   term=term.trim().toLowerCase();
   if(term.length<2) return;
   try{
+    if(isVisitor()){
+      const annSnap=await getDocs(query(collection(db,"announcements"),where("visibility","==","Public")));
+      const anns=annSnap.docs.map(d=>d.data()).filter(a=>[a.title,a.body,a.authorName].some(v=>String(v||"").toLowerCase().includes(term)));
+      showModal(`<h2>Recherche</h2><h3>Annonces publiques</h3>${anns.length?anns.slice(0,10).map(a=>`<div class="search-result"><b>${esc(a.title)}</b><span>${esc(a.authorName)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+      return;
+    }
     const usersSnap=await getDocs(collection(db,"users"));
     let evalSnap;
     if(hasPerm("personnel_view")) evalSnap=await getDocs(collection(db,"evaluations"));

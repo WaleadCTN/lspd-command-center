@@ -1,183 +1,227 @@
-LSPD COMMAND CENTER — PHASE 16 FTO ACADEMY
+LSPD COMMAND CENTER — PHASE 17
+ACADEMY PRO + TRAINING MANAGEMENT + SECURE VISITOR
 
 BASE
-Construite directement depuis Phase 14+15.
-Aucune ancienne fonction n'est supprimée.
-Bilingue FR / EN conservé.
-Permissions dynamiques conservées.
+Construite directement depuis Phase 16.2.
+Toutes les fonctions précédentes doivent rester présentes.
 
-NOUVELLE PERMISSION
-academy_manage
-Par défaut : FTO et Command.
-Le Chief peut la modifier depuis 🔐 Permissions.
+========================================
+VISITEUR — NOUVEAU GRADE ET RÔLE
+========================================
+Nouveau grade : Visiteur
+Nouveau rôle : Visiteur
+Division externe : External
 
-🎓 FTO ACADEMY
-Chaque module M01 à M16 contient :
-- objectif pédagogique
-- durée conseillée
+Le visiteur crée son compte exactement comme les autres :
+- nom
+- adresse e-mail
+- mot de passe
+- attente de validation Chief
+
+Le Chief décide ensuite, depuis Inscriptions, s'il lui attribue Visiteur.
+Quand Visiteur est choisi, le formulaire harmonise :
+- Grade Visiteur
+- Rôle Visiteur
+- Division External
+- matricule VIS-xxxx proposé si vide
+
+IMPORTANT SECURITE
+Le rôle Visiteur est bloqué au niveau Firestore, pas seulement dans l'interface.
+Il ne peut pas lire :
+- officiers / personnel
+- messages
+- incidents
+- MDT
+- BOLO
+- CAD
+- shifts / roster
+- congés
+- évaluations
+- FTO Academy interne
+- audit
+- permissions
+- dossiers RH
+- formations planifiées
+- données de recrues
+
+Le Visiteur peut voir seulement :
+- son propre profil
+- Portail visiteur
+- annonces marquées Public
+- structure générale statique du département
+- catalogue général M01-M16 sans résultats ni données personnelles
+
+Les annonces ont maintenant une Visibilité :
+- Interne
+- Public
+Les anciennes annonces sans champ visibility restent internes.
+
+========================================
+ACADEMY PRO — CONTENU MODIFIABLE
+========================================
+Nouvelle permission : academy_content_manage
+Nouvelle page : Gestion Academy
+
+Permet de modifier M01-M16 directement depuis l'application :
+- durée
 - prérequis
-- étapes exactes du FTO
-- exemple RP
-- variantes
-- erreurs fréquentes
-- erreurs critiques
-- questions à poser
-- réponses attendues
-- action corrective
+- objectif FR/EN
+- étapes FTO FR/EN
+- exemple RP FR/EN
+- variantes FR/EN
+- erreurs fréquentes FR/EN
+- erreurs critiques FR/EN
+- questions/réponses FR/EN
+- action corrective FR/EN
 
-SCÉNARIOS
-Bouton "Générer un scénario".
-Scénarios préparés Facile / Normal / Difficile / Stress test.
-Aucune API externe et aucun coût.
+Aucun changement app.js n'est nécessaire ensuite.
+Les données sont enregistrées dans academy_content.
+Le contenu d'origine reste disponible comme fallback.
 
-SESSION GUIDÉE
-Le FTO sélectionne :
-- recrue
-- module
-- phase FTO
+========================================
+SCENARIOS PERSONNALISES
+========================================
+Depuis Gestion Academy :
+- choisir M01-M16
+- difficulté
+- situation FR/EN
+- contraintes FR/EN
+- réussite attendue FR/EN
+- archiver un scénario
 
-Phases :
-1 Observation
-2 Assistance
-3 Autonomie supervisée
-4 Évaluation finale
+Collection : academy_scenarios
 
-Checklist :
-- Briefing
-- Démonstration
-- Pratique
-- Observation
-- Débrief
+Le générateur de Phase 16.2 reste strictement limité au module choisi.
+Les scénarios personnalisés sont ajoutés au pool du même module uniquement.
 
-Journal :
-- résumé
-- points forts
-- points à améliorer
-- objectifs prochaine session
+========================================
+QUIZ + PARCOURS
+========================================
+Nouvelle page : Quiz formations
 
-📝 JOURNAL FTO
-- historique des sessions
-- sessions en cours / terminées
-- objectifs personnalisés
-- priorité Faible / Moyenne / Haute / Critique
-- marquer un objectif Atteint
+- Quiz basé sur les questions/réponses du module
+- Score automatique
+- 75% pour réussir
+- Historique Firestore
+- Prérequis M01-M16 pris en compte
+- Module verrouillé si un prérequis n'est pas validé
 
-RECOMMANDATIONS
-FTO Academy analyse les évaluations existantes :
-- score moyen
-- module faible
-- prochaine priorité conseillée
+Collection : academy_quiz_attempts
 
-BIBLIOTHÈQUE
-- mauvais / bons exemples radio
-- mauvais / bons exemples de rapports
-- explication du pourquoi
+========================================
+DOSSIER FTO RECRUE
+========================================
+Nouvelle page : Dossier FTO recrue
 
-🏁 ÉVALUATION FINALE FTO
-Affiche :
-- modules validés / 16
-- moyenne globale
+Affiche sur une seule page :
+- heatmap M01-M16
+- moyenne
 - sessions terminées
+- objectifs ouverts
+- modules faibles
+- plan de rattrapage recommandé
+- passations FTO
+- feedback recrue
+- résumé historique
 
-Décisions :
+Bouton rapport final imprimable.
+
+Collection passations : fto_handoffs
+
+========================================
+FEEDBACK RECRUE
+========================================
+Nouvelle page : Feedback formation
+
+La recrue peut sélectionner une session FTO et indiquer :
+- compréhension 1 à 5
+- difficulté rencontrée
+- question au FTO
+
+Collection : fto_feedback
+Le FTO retrouve ce feedback dans le dossier de la recrue.
+
+========================================
+VALIDATION FINALE A DEUX NIVEAUX
+========================================
+Nouvelle permission : academy_final_review
+
+Le FTO crée sa recommandation :
 - Validation FTO
 - Prolongation FTO
 - Échec FTO
 
-NOUVELLES COLLECTIONS
-- fto_sessions
-- training_objectives
-- final_fto_reviews
+Elle passe ensuite en :
+En attente Commandement
 
+Le Command autorisé peut :
+- Valider définitivement
+- Refuser la validation
+
+========================================
+PERMISSIONS
+========================================
+Les deux nouvelles permissions sont ajoutées à la page Permissions :
+- academy_content_manage
+- academy_final_review
+
+Le rôle Visiteur apparaît dans Permissions mais ses permissions sensibles sont verrouillées.
+Le Chief garde tous les droits.
+
+Une migration de configuration Phase 17 est effectuée au premier chargement Chief pour ajouter les nouvelles permissions sans réactiver les anciennes permissions que tu avais désactivées.
+
+========================================
 INSTALLATION
+========================================
 GitHub : remplacer
 - index.html
 - app.js
 - style.css
 
-Firebase Firestore :
-OBLIGATOIRE de remplacer firestore.rules puis Publier.
+FIREBASE FIRESTORE : OBLIGATOIRE
+- remplacer firestore.rules
+- Publier
 
-Storage reste facultatif / ignorable.
+Le nouveau firestore.rules est indispensable pour la sécurité Visiteur et les nouvelles collections Academy.
 
-TEST
-https://waleadctn.github.io/lspd-command-center/?v=160
-
-
-================================================
-PHASE 16.1 — CRÉDIT DÉVELOPPEUR
-================================================
-Ajout de la mention :
-"Développé par Walead"
-
-Visible :
-- sur l'écran de connexion
-- en bas du menu latéral
-
-En anglais :
-"Developed by Walead"
-
-Aucun changement Firestore.
-Aucune nouvelle règle nécessaire.
-Toutes les fonctions de la Phase 16 sont conservées.
-
-INSTALLATION
-Sur GitHub, remplacer seulement :
-- index.html
-- app.js
-- style.css
-
-firestore.rules peut rester inchangé.
+Storage reste facultatif.
 
 TEST
-https://waleadctn.github.io/lspd-command-center/?v=161
+https://waleadctn.github.io/lspd-command-center/?v=170
+
+TEST PRIORITAIRE
+1. Connecte-toi Chief.
+2. Ouvre Permissions et vérifie les nouvelles permissions.
+3. Crée un second compte de test.
+4. Chief > Inscriptions > attribue Visiteur.
+5. Connecte-toi avec ce compte : seul le Portail visiteur / profil / annonces publiques doivent être accessibles.
+6. Crée une annonce Interne : le Visiteur ne doit pas la voir.
+7. Crée une annonce Public : le Visiteur doit la voir.
+8. FTO > Gestion Academy > modifie M04.
+9. Ajoute un scénario M04 et génère plusieurs scénarios M04.
+10. Teste Quiz formations, Dossier FTO et validation finale commandement.
 
 
 ================================================
-PHASE 16.2 — SCÉNARIOS PAR FORMATION
+STATS FORMATION & ALERTES INTELLIGENTES
 ================================================
-Le générateur est maintenant STRICTEMENT lié au module sélectionné.
+Nouvelle page :
+📈 Stats formation
 
-AVANT
-Si un module ne possédait pas de scénario prédéfini,
-il pouvait retomber sur un scénario d'une autre formation.
+Pour les rôles autorisés academy_manage :
+- nombre total d'évaluations
+- sessions FTO terminées
+- tentatives de quiz
+- taux de validation finale
+- moyenne et échecs par module
+- statistiques par FTO
+- recrues sans évaluation récente
 
-MAINTENANT
-- Le FTO choisit M01 à M16 avant de générer.
-- Le pool est construit uniquement pour le module choisi.
-- Aucun fallback vers un autre module.
-- Tous les modules M01 à M16 disposent de scénarios grâce
-  au contenu pédagogique, aux variantes et aux questions du module.
+Alertes FTO intelligentes :
+- recrue active sans évaluation depuis 7 jours
+- objectif pédagogique Critique encore ouvert
+- notification créée automatiquement dans le centre de notifications
 
-EXEMPLE
-Si le FTO choisit :
-M04 — Code de la route
-
-Seuls des scénarios M04 peuvent être générés :
-- contrôle routier
-- conducteur nerveux
-- passager perturbateur
-- véhicule suspect
-- variantes / niveau difficile / stress test liés à M04
-
-Il est impossible que le générateur retourne M08 ou M11.
-
-Le bouton dans le guide d'un module est également verrouillé
-sur ce module.
-
-Une session guidée M04 possède maintenant :
-"Générer un scénario pour ce module"
-et génère uniquement du M04.
-
-FIRESTORE
-Aucun changement.
-Pas besoin de republier firestore.rules.
-
-INSTALLATION
-Remplacer sur GitHub :
-- index.html
-- app.js
-- style.css
-
-TEST
-https://waleadctn.github.io/lspd-command-center/?v=162
+IMPORTANT :
+Le site reste 100% client / Firebase gratuit. Les alertes sont générées
+lorsque le FTO ouvre ou reconnecte le site, sans scheduler serveur payant.

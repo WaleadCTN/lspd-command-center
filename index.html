@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=16.2">
+  <link rel="stylesheet" href="style.css?v=17.0">
 </head>
 <body>
 
@@ -65,6 +65,7 @@
     </div>
     <nav id="nav">
       <button data-page="dashboard" class="active"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span> </button>
+      <button data-page="visitorPortal"><span class="nav-icon">🏛️</span><span class="nav-label">Portail visiteur</span> </button>
       <button data-page="profile"><span class="nav-icon">🙍</span><span class="nav-label">Mon profil</span> </button>
       <button data-page="mySpace"><span class="nav-icon">🪪</span><span class="nav-label">Mon espace opérationnel</span> </button>
       <button data-page="registrations"><span class="nav-icon">🪪</span><span class="nav-label">Inscriptions</span> <span id="registrationCount" class="nav-badge hidden"></span></button>
@@ -80,6 +81,11 @@
       <button data-page="ftoAcademy"><span class="nav-icon">🎓</span><span class="nav-label">FTO Academy</span> </button>
       <button data-page="ftoJournal"><span class="nav-icon">📝</span><span class="nav-label">Journal FTO</span> </button>
       <button data-page="ftoFinal"><span class="nav-icon">🏁</span><span class="nav-label">Évaluation finale FTO</span> </button>
+      <button data-page="ftoDossier"><span class="nav-icon">🗂️</span><span class="nav-label">Dossier FTO recrue</span> </button>
+      <button data-page="trainingAnalytics"><span class="nav-icon">📊</span><span class="nav-label">Stats formation</span> </button>
+      <button data-page="academyManager"><span class="nav-icon">🧰</span><span class="nav-label">Gestion Academy</span> </button>
+      <button data-page="trainingQuiz"><span class="nav-icon">🧠</span><span class="nav-label">Quiz formations</span> </button>
+      <button data-page="myTrainingFeedback"><span class="nav-icon">💬</span><span class="nav-label">Feedback formation</span> </button>
       <button data-page="modules"><span class="nav-icon">🎓</span><span class="nav-label">Formations</span> </button>
       <button data-page="evaluations"><span class="nav-icon">✅</span><span class="nav-label">Évaluations</span> </button>
       <button data-page="trainees"><span class="nav-icon">🧭</span><span class="nav-label">Mes recrues</span> </button>
@@ -131,6 +137,6 @@
 </div>
 
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-<script type="module" src="app.js?v=16.2"></script>
+<script type="module" src="app.js?v=17.0"></script>
 </body>
 </html>
