@@ -1492,3 +1492,16 @@ button.training-history-row{cursor:pointer}.training-history-row:last-child{bord
   .continue-training-actions{justify-content:flex-start}
   .independent-training-grid,.training-result-summary,.training-picker-grid{grid-template-columns:1fr}
 }
+
+
+/* ==========================================================
+   PHASE 17.7 — IMPORTED ACCOUNT / FIRST LOGIN
+   ========================================================== */
+.password-change-screen{z-index:250}
+.password-change-card{max-width:520px}
+.password-change-card h1{margin-bottom:7px}
+.password-change-card>p{color:#8599ad;line-height:1.5;font-size:10px}
+.password-change-card form{margin-top:13px;text-align:left}
+.password-rules{margin:-2px 0 10px;color:#6f8498;font-size:8.5px;line-height:1.45}
+.first-login-logout{display:block;margin:10px auto 0;border:0;background:transparent;color:#71879c;font-size:9px;cursor:pointer}
+.first-login-logout:hover{color:#b7cada;text-decoration:underline}

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=17.6">
+  <link rel="stylesheet" href="style.css?v=17.7">
 </head>
 <body>
 
@@ -52,6 +52,24 @@
     <p id="approvalMessage">Votre demande doit être validée par le commandement LSPD.</p>
     <div id="approvalIdentity" class="approval-identity"></div>
     <button id="approvalLogoutBtn" class="btn full" type="button">Se déconnecter</button>
+  </div>
+</section>
+
+<section id="passwordChangeScreen" class="approval-screen password-change-screen hidden">
+  <div class="approval-card password-change-card">
+    <div class="badge">LSPD</div>
+    <div class="eyebrow">PREMIÈRE CONNEXION</div>
+    <h1>Choisis ton mot de passe</h1>
+    <p>Ton compte professionnel a été préparé par le Commandement. Le mot de passe provisoire doit maintenant être remplacé.</p>
+    <div id="passwordChangeIdentity" class="approval-identity"></div>
+    <form id="passwordChangeForm">
+      <label class="field"><span>Nouveau mot de passe</span><input id="newImportedPassword" type="password" required minlength="8" autocomplete="new-password"></label>
+      <label class="field"><span>Confirmer le mot de passe</span><input id="newImportedPassword2" type="password" required minlength="8" autocomplete="new-password"></label>
+      <div class="password-rules">8 caractères minimum. Évite d'utiliser ton nom, ton matricule ou ton ancien mot de passe.</div>
+      <p id="passwordChangeError" class="error"></p>
+      <button class="btn full" type="submit">Enregistrer mon mot de passe</button>
+    </form>
+    <button id="passwordChangeLogoutBtn" class="first-login-logout" type="button">Se déconnecter</button>
   </div>
 </section>
 
@@ -198,6 +216,6 @@
 
 <div id="mailOverlayRoot" class="mail-overlay-root"></div>
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-<script type="module" src="app.js?v=17.6"></script>
+<script type="module" src="app.js?v=17.7"></script>
 </body>
 </html>

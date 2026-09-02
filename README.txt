@@ -923,3 +923,78 @@ Firebase :
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=176
+
+
+================================================
+PHASE 17.7 — IMPORT PERSONNEL + PREMIÈRE CONNEXION
+================================================
+
+OBJECTIF
+- Comptes LSPD précréés avec adresse @catena.ma
+- Mot de passe provisoire
+- Première connexion obligatoire : le membre choisit son propre mot de passe
+- Aucun mot de passe provisoire stocké dans Firestore ou dans le site GitHub
+
+IMPORTANT : LE ZIP DU SITE NE CONTIENT AUCUN MOT DE PASSE.
+Les mots de passe sont uniquement dans le fichier Excel privé et dans
+l'importeur Firebase privé livré séparément.
+
+PREMIÈRE CONNEXION
+1. Le membre se connecte avec : prenom.nom@catena.ma + mot de passe provisoire.
+2. Le site détecte mustChangePassword = true.
+3. Toute l'application reste bloquée.
+4. Le membre choisit un nouveau mot de passe.
+5. Firebase Authentication remplace le mot de passe.
+6. Firestore passe mustChangePassword à false.
+7. Le Command Center s'ouvre normalement.
+
+PERSONNEL
+La page Officiers affiche maintenant :
+- adresse professionnelle
+- statut du compte : À activer / Activé / Standard
+
+ADMIN
+La page Admin affiche :
+- nombre de comptes importés
+- jamais activés
+- activés
+
+GRADES VIDÉO
+Ajout des grades visibles : Rookie, Police Officer1/2/3,
+Detective1/2/3, Senior Lead Officer, Sergeant1/2, Commander,
+Deputy Chief of Police, Commissioner, tout en conservant les grades legacy.
+
+MAPPING RÔLES
+Rookie / Police Officer / Detective / Senior Lead Officer -> Officer
+Sergeant1/2 -> Sergeant
+Lieutenant -> Lieutenant
+Commander -> Captain
+Deputy Chief of Police -> Deputy Chief
+Commissioner -> Assistant Chief
+Chief of Police -> Chief
+
+MAPPING DIVISIONS
+Detective1/2/3 -> Detective
+Commander / Deputy Chief / Chief / Commissioner -> Command
+Autres -> Patrol
+
+MATricules 0000
+Ils sont importés comme « — » dans le Command Center.
+Le matricule source 0000 reste conservé dans sourceBadge.
+
+IMPORT EFFECTIF FIREBASE
+Le site seul ne peut pas créer 109 comptes Authentication en sécurité.
+Utiliser le paquet privé LSPD_Personnel_Importer_PRIVATE.zip fourni séparément.
+NE JAMAIS METTRE CE PAQUET, LE JSON PRIVÉ, L'EXCEL OU serviceAccountKey.json SUR GITHUB.
+
+INSTALLATION SITE
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules -> Firestore Database -> Règles -> Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=177

@@ -105,6 +105,15 @@ service cloud.firestore {
       allow update: if isChief() || (
         hasPerm("personnel_manage")
         && request.resource.data.role == resource.data.role
+      ) || (
+        signedIn()
+        && request.auth.uid == userId
+        && resource.data.importedAccount == true
+        && resource.data.mustChangePassword == true
+        && request.resource.data.mustChangePassword == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "mustChangePassword","passwordChangedAt","updatedAt"
+        ])
       );
 
       allow delete: if false;
