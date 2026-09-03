@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.11.7 RECRUITMENT INCORPORATION FIX — based on Phase 17.11.6 FINAL
+// LSPD Command Center — Phase 17.11.9 RECRUITMENT WORKFLOW PERMISSION FIX — based on Phase 17.11.8
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -2672,6 +2672,16 @@ async function upsertRecruitmentReview(applicationId,patch){
   if(existing.exists())await updateDoc(ref,{...patch,updatedAt:serverTimestamp()});
   else await setDoc(ref,{applicationId,...patch,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
 }
+async function commitRecruitmentReviewStep(applicationId,reviewPatch,applicationPatch){
+  const reviewRef=doc(db,"lspd_recruitment_reviews",applicationId);
+  const applicationRef=doc(db,"lspd_applications",applicationId);
+  const existing=await getDoc(reviewRef);
+  const batch=writeBatch(db),now=serverTimestamp();
+  if(existing.exists()) batch.update(reviewRef,{...reviewPatch,updatedAt:now});
+  else batch.set(reviewRef,{applicationId,...reviewPatch,createdAt:now,updatedAt:now});
+  batch.update(applicationRef,{...applicationPatch,updatedAt:now});
+  await batch.commit();
+}
 async function renderRecruitmentDesk(){
   if(!canAccessRecruitmentDesk())return;
   try{
@@ -2738,7 +2748,30 @@ async function openRecruitmentScreeningForm(id){
   const crit=["Présentation & cohérence du personnage","Motivation LSPD","Expérience / maturité RP","Disponibilités & implication","Jugement dans les mises en situation"];
   showModal(`<div class="recruitment-score-modal"><span class="eyebrow">PRÉSÉLECTION</span><h2>Évaluer le dossier — ${esc(a.applicantName)}</h2><p class="muted">Note chaque critère de 1 à 5. Le score aide la décision mais ne la remplace pas.</p><form id="screeningForm"><div class="recruitment-score-grid">${recruitmentScoreInputs('scr',crit)}</div><label class="field full"><span>Notes internes du recruteur</span><textarea id="screeningNotes" rows="5" required minlength="20" placeholder="Points forts, réserves, éléments à reprendre pendant l'entretien...">${esc(old?.screeningNotes||"")}</textarea></label><label class="field full"><span>Décision de présélection</span><select id="screeningOutcome"><option value="Pré-sélectionné">Retenir pour entretien</option><option value="En étude">Mettre en attente / réexaminer</option><option value="Refusé">Ne pas retenir le dossier</option></select></label><label class="field full" id="screeningPublicReasonWrap"><span>Message au candidat si refus</span><textarea id="screeningPublicReason" rows="3" placeholder="Message professionnel, sans notes internes."></textarea></label><div id="screeningError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer l'évaluation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
   $("screeningPublicReasonWrap").classList.add("hidden");$("screeningOutcome").onchange=()=>$("screeningPublicReasonWrap").classList.toggle("hidden",$("screeningOutcome").value!=="Refusé");
-  $("screeningForm").onsubmit=async e=>{e.preventDefault();const scores=readRecruitmentScores('scr',crit.length),total=scores.reduce((a,b)=>a+b,0),outcome=$("screeningOutcome").value,publicReason=$("screeningPublicReason").value.trim();if(outcome==="Refusé"&&!publicReason)return $("screeningError").textContent="Ajoute un message professionnel pour le candidat.";try{await upsertRecruitmentReview(id,{screeningScores:scores,screeningCriteria:crit,screeningTotal:total,screeningNotes:$("screeningNotes").value.trim(),screeningOutcome:outcome,screenedById:window.LSPD.user.uid,screenedByName:window.LSPD.profile.name,screenedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:outcome,reviewedById:window.LSPD.user.uid,reviewedByName:window.LSPD.profile.name,reviewedAt:serverTimestamp(),publicMessage:outcome==="Pré-sélectionné"?"Ton dossier a été présélectionné. Le Bureau du recrutement va maintenant organiser ton entretien oral in-game.":outcome==="En étude"?"Ton dossier reste en cours d'étude par le Bureau du recrutement.":"Le Bureau du recrutement a rendu sa décision concernant ton dossier.",publicDecisionMessage:outcome==="Refusé"?publicReason:"",updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("screeningError").textContent="Erreur : "+(err.code||err.message);}};
+  $("screeningForm").onsubmit=async e=>{
+    e.preventDefault();
+    const scores=readRecruitmentScores('scr',crit.length),total=scores.reduce((a,b)=>a+b,0),outcome=$("screeningOutcome").value,publicReason=$("screeningPublicReason").value.trim();
+    if(outcome==="Refusé"&&!publicReason)return $("screeningError").textContent="Ajoute un message professionnel pour le candidat.";
+    try{
+      const appPatch={
+        status:outcome,
+        reviewedById:window.LSPD.user.uid,
+        reviewedByName:window.LSPD.profile.name,
+        reviewedAt:serverTimestamp(),
+        publicMessage:outcome==="Pré-sélectionné"?"Ton dossier a été présélectionné. Le Bureau du recrutement va maintenant organiser ton entretien oral in-game.":outcome==="En étude"?"Ton dossier reste en cours d'étude par le Bureau du recrutement.":"Le Bureau du recrutement a rendu sa décision concernant ton dossier."
+      };
+      if(outcome==="Refusé")appPatch.publicDecisionMessage=publicReason;
+      else if(a.publicDecisionMessage)appPatch.publicDecisionMessage="";
+      await commitRecruitmentReviewStep(id,{
+        screeningScores:scores,screeningCriteria:crit,screeningTotal:total,screeningNotes:$("screeningNotes").value.trim(),screeningOutcome:outcome,
+        screenedById:window.LSPD.user.uid,screenedByName:window.LSPD.profile.name,screenedAt:serverTimestamp()
+      },appPatch);
+      document.querySelector(".modal")?.remove();await renderRecruitmentDesk();
+    }catch(err){
+      console.error("LSPD recruitment screening failed",err);
+      $("screeningError").textContent=(err?.code==="permission-denied")?"Erreur Firebase : permission-denied pendant la présélection. Publie le firestore.rules de la Phase 17.11.9 puis recharge avec Ctrl+F5.":"Erreur : "+(err.code||err.message);
+    }
+  };
 }
 async function openRecruitmentInterviewForm(id){
   if(!hasPerm("recruitment_interview_schedule"))return;
@@ -2752,13 +2785,35 @@ async function openRecruitmentInterviewEvaluationForm(id){
   const questions=["Présente ton personnage et son parcours.","Pourquoi le LSPD et pas un autre métier de service public ?","Qu'attends-tu du RP police au quotidien ?","Comment réagis-tu face à un citoyen agressif verbalement ?","Comment gères-tu un désaccord avec un collègue ?","Comment réagis-tu à un ordre d'un supérieur que tu ne comprends pas ?","Donne un exemple de scène RP où tu as privilégié le jeu des autres.","Quelles sont tes disponibilités réelles et ton niveau d'implication souhaité ?"];
   const crit=["Présentation & aisance orale","Motivation","Communication","Maturité / maîtrise de soi","Jugement RP","Esprit d'équipe","Professionnalisme"];
   showModal(`<div class="recruitment-interview-modal"><div class="recruitment-interview-title"><div><span class="eyebrow">ENTRETIEN ORAL IN-GAME</span><h2>${esc(a.applicantName)}</h2><p>Guide structuré pour garantir le même standard à tous les candidats.</p></div><span class="tag orange">Interne</span></div><div class="recruitment-interview-questions"><h3>Trame d'entretien</h3>${questions.map((q,i)=>`<div><i>${i+1}</i><span>${esc(q)}</span></div>`).join('')}</div><form id="interviewEvaluationForm"><label class="field full"><span>Notes prises pendant l'entretien</span><textarea id="interviewNotes" rows="8" required minlength="40" placeholder="Réponses importantes, comportement, cohérence, points à vérifier...">${esc(old?.interviewNotes||"")}</textarea></label><h3>Grille d'entretien</h3><div class="recruitment-score-grid">${recruitmentScoreInputs('int',crit)}</div><div class="formgrid"><label class="field full"><span>Points forts observés</span><textarea id="interviewStrengths" rows="3" required>${esc(old?.interviewStrengths||"")}</textarea></label><label class="field full"><span>Points de vigilance</span><textarea id="interviewConcerns" rows="3" required>${esc(old?.interviewConcerns||"")}</textarea></label><label class="field full"><span>Synthèse du recruteur</span><textarea id="interviewSummary" rows="4" required minlength="30">${esc(old?.interviewSummary||"")}</textarea></label><label class="field full"><span>Recommandation</span><select id="interviewRecommendation"><option>Avis favorable</option><option>Avis réservé</option><option>Avis défavorable</option></select></label></div><div id="interviewEvalError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Clôturer l'entretien et transmettre</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
-  $("interviewEvaluationForm").onsubmit=async e=>{e.preventDefault();const scores=readRecruitmentScores('int',crit.length),total=scores.reduce((a,b)=>a+b,0);try{await upsertRecruitmentReview(id,{interviewQuestions:questions,interviewNotes:$("interviewNotes").value.trim(),interviewScores:scores,interviewCriteria:crit,interviewTotal:total,interviewStrengths:$("interviewStrengths").value.trim(),interviewConcerns:$("interviewConcerns").value.trim(),interviewSummary:$("interviewSummary").value.trim(),interviewRecommendation:$("interviewRecommendation").value,interviewedById:window.LSPD.user.uid,interviewedByName:window.LSPD.profile.name,interviewCompletedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:"Entretien évalué",interviewStatus:"Effectué",publicMessage:"Ton entretien oral est terminé. Ton dossier a été transmis au Commandement pour décision finale.",updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("interviewEvalError").textContent="Erreur : "+(err.code||err.message);}};
+  $("interviewEvaluationForm").onsubmit=async e=>{
+    e.preventDefault();const scores=readRecruitmentScores('int',crit.length),total=scores.reduce((a,b)=>a+b,0);
+    try{
+      await commitRecruitmentReviewStep(id,{
+        interviewQuestions:questions,interviewNotes:$("interviewNotes").value.trim(),interviewScores:scores,interviewCriteria:crit,interviewTotal:total,
+        interviewStrengths:$("interviewStrengths").value.trim(),interviewConcerns:$("interviewConcerns").value.trim(),interviewSummary:$("interviewSummary").value.trim(),interviewRecommendation:$("interviewRecommendation").value,
+        interviewedById:window.LSPD.user.uid,interviewedByName:window.LSPD.profile.name,interviewCompletedAt:serverTimestamp()
+      },{status:"Entretien évalué",interviewStatus:"Effectué",publicMessage:"Ton entretien oral est terminé. Ton dossier a été transmis au Commandement pour décision finale."});
+      document.querySelector(".modal")?.remove();await renderRecruitmentDesk();
+    }catch(err){console.error("LSPD recruitment interview evaluation failed",err);$("interviewEvalError").textContent="Erreur : "+(err.code||err.message);}
+  };
 }
 async function openRecruitmentCommandDecisionForm(id){
   if(!hasPerm("recruitment_command_decision"))return;
   const [s,r]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!s.exists())return;const a=s.data();
   showModal(`<div class="recruitment-command-decision"><span class="eyebrow">DÉCISION DU COMMANDEMENT</span><h2>${esc(a.applicantName)}</h2><div class="command-decision-summary"><div><span>Dossier</span><b>${r?.screeningTotal??'—'}/25</b></div><div><span>Entretien</span><b>${r?.interviewTotal??'—'}/35</b></div><div><span>Recommandation recruteur</span><b>${esc(r?.interviewRecommendation||"—")}</b></div></div><form id="commandDecisionForm"><label class="field full"><span>Décision</span><select id="commandDecision"><option value="Admission approuvée">Admission approuvée</option><option value="Refusé">Candidature refusée</option></select></label><label class="field full"><span>Justification interne</span><textarea id="commandDecisionNotes" rows="4" required minlength="20" placeholder="Motifs de la décision, réserves éventuelles..."></textarea></label><label class="field full"><span>Message communiqué au candidat</span><textarea id="commandPublicMessage" rows="3" required placeholder="Message professionnel et concis."></textarea></label><div id="commandDecisionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer la décision</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
-  $("commandDecisionForm").onsubmit=async e=>{e.preventDefault();const decision=$("commandDecision").value;try{await upsertRecruitmentReview(id,{commandDecision:decision,commandDecisionNotes:$("commandDecisionNotes").value.trim(),commandById:window.LSPD.user.uid,commandByName:window.LSPD.profile.name,commandDecisionAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:decision,publicDecisionMessage:$("commandPublicMessage").value.trim(),publicMessage:decision==="Admission approuvée"?"Le Commandement a approuvé ton admission. Ton incorporation administrative va maintenant être finalisée.":"Le Commandement a rendu sa décision finale concernant ta candidature.",decisionById:window.LSPD.user.uid,decisionByName:window.LSPD.profile.name,decisionAt:serverTimestamp(),updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("commandDecisionError").textContent="Erreur : "+(err.code||err.message);}};
+  $("commandDecisionForm").onsubmit=async e=>{
+    e.preventDefault();const decision=$("commandDecision").value;
+    try{
+      await commitRecruitmentReviewStep(id,{
+        commandDecision:decision,commandDecisionNotes:$("commandDecisionNotes").value.trim(),commandById:window.LSPD.user.uid,commandByName:window.LSPD.profile.name,commandDecisionAt:serverTimestamp()
+      },{
+        status:decision,publicDecisionMessage:$("commandPublicMessage").value.trim(),
+        publicMessage:decision==="Admission approuvée"?"Le Commandement a approuvé ton admission. Ton incorporation administrative va maintenant être finalisée.":"Le Commandement a rendu sa décision finale concernant ta candidature.",
+        decisionById:window.LSPD.user.uid,decisionByName:window.LSPD.profile.name,decisionAt:serverTimestamp()
+      });
+      document.querySelector(".modal")?.remove();await renderRecruitmentDesk();
+    }catch(err){console.error("LSPD recruitment command decision failed",err);$("commandDecisionError").textContent="Erreur : "+(err.code||err.message);}
+  };
 }
 // Legacy entry point kept for backward compatibility with older buttons/data.
 async function openRecruitmentDecisionForm(id,passed){

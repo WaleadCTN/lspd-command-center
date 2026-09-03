@@ -1,3 +1,19 @@
+PHASE 17.11.9 — RECRUITMENT WORKFLOW PERMISSION FIX
+
+CAUSE EXACTE DU BUG DE PRÉSÉLECTION
+- app.js écrivait publicDecisionMessage pendant la présélection.
+- firestore.rules n'autorisait pas ce champ pour recruitment_screening.
+- Firebase renvoyait donc permission-denied, y compris au Chief.
+
+CORRECTIONS
+- publicDecisionMessage est désormais autorisé de façon contrôlée pendant la présélection.
+- La présélection n'écrit ce champ que lorsqu'il est réellement nécessaire.
+- Présélection, évaluation d'entretien et Command Decision sont maintenant atomiques : review interne + candidature sont enregistrées ensemble ou annulées ensemble.
+- Les statuts autorisés à la présélection sont limités à Pré-sélectionné / En étude / Refusé.
+- Les 349 fonctions existantes de la 17.11.8 sont conservées, plus le helper atomique.
+
+IMPORTANT : publier firestore.rules manuellement dans Firebase Console > Firestore Database > Règles.
+
 PHASE 17.11.8 — INCORPORATION REPAIR FIX
 
 Correction ciblée du permission-denied lors de l'incorporation finale.

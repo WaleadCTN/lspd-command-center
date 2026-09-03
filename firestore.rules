@@ -543,8 +543,9 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","withdrawnAt","updatedAt"])
       ) || (
         hasPerm("recruitment_screening")
+        && request.resource.data.status in ["Pré-sélectionné","En étude","Refusé"]
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          "status","reviewedById","reviewedByName","reviewedAt","publicMessage","updatedAt"
+          "status","reviewedById","reviewedByName","reviewedAt","publicMessage","publicDecisionMessage","updatedAt"
         ])
       ) || (
         hasPerm("recruitment_interview_schedule")
