@@ -122,3 +122,11 @@ Le fichier firestore.rules présent sur GitHub ne publie PAS les règles Firebas
 Il faut impérativement les coller et les publier dans Firebase Console.
 
 Firebase Admin / serviceAccountKey.json ne doit jamais être placé dans ce site public.
+
+=== PHASE 17.11.7 — CORRECTIF INCORPORATION RECRUTEMENT ===
+- Finalisation d'admission convertie en écriture atomique Firestore (batch).
+- Profil candidat + candidature + review interne + audit sont validés ensemble ou annulés ensemble.
+- Règles d'incorporation compatibles avec les profils candidats hérités (Applicant / Candidat / Recruitment) tout en limitant strictement les champs modifiables.
+- Chief of Police explicitement accepté sur chaque écriture d'incorporation.
+- Message permission-denied plus clair et sans état partiellement modifié.
+IMPORTANT : publier firestore.rules dans Firebase Console > Firestore Database > Règles.

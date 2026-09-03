@@ -189,7 +189,10 @@ service cloud.firestore {
         hasPerm("registrations_reject") && resource.data.status == "En attente" && request.resource.data.status == "Refusé"
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","rejectedById","rejectedByName","rejectedAt","updatedAt"])
       ) || (
-        hasPerm("recruitment_incorporate") && resource.data.role == "Applicant" && request.resource.data.role == "Officer" && request.resource.data.status == "Actif"
+        (isChief() || hasPerm("recruitment_incorporate"))
+        && (resource.data.role == "Applicant" || resource.data.grade == "Candidat" || resource.data.recruitmentApplicant == true || resource.data.division == "Recruitment")
+        && request.resource.data.role == "Officer"
+        && request.resource.data.status == "Actif"
         && request.resource.data.recruitmentApplicant == false
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["badge","grade","role","status","division","recruitmentApplicant","recruitedAt","recruitedById","recruitedByName","updatedAt"])
       ) || (
@@ -546,7 +549,7 @@ service cloud.firestore {
           "status","publicMessage","publicDecisionMessage","decisionById","decisionByName","decisionAt","updatedAt"
         ])
       ) || (
-        hasPerm("recruitment_incorporate")
+        (isChief() || hasPerm("recruitment_incorporate"))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","recruitmentBadge","recruitmentGrade","recruitmentDivision",
           "recruitedById","recruitedByName","recruitedAt","publicMessage","updatedAt"
@@ -572,7 +575,7 @@ service cloud.firestore {
         (hasPerm("recruitment_command_decision") && request.resource.data.keys().hasOnly([
           "applicationId","commandDecision","commandDecisionNotes","commandById","commandByName","commandDecisionAt","createdAt","updatedAt"
         ])) ||
-        (hasPerm("recruitment_incorporate") && request.resource.data.keys().hasOnly([
+        ((isChief() || hasPerm("recruitment_incorporate")) && request.resource.data.keys().hasOnly([
           "applicationId","incorporationNote","incorporatedById","incorporatedByName","incorporatedAt","createdAt","updatedAt"
         ]))
       );
@@ -596,7 +599,7 @@ service cloud.firestore {
           "commandDecision","commandDecisionNotes","commandById","commandByName","commandDecisionAt","updatedAt"
         ])
       ) || (
-        hasPerm("recruitment_incorporate")
+        (isChief() || hasPerm("recruitment_incorporate"))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "incorporationNote","incorporatedById","incorporatedByName","incorporatedAt","updatedAt"
         ])

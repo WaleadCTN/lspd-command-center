@@ -1,11 +1,11 @@
-// LSPD Command Center — Phase 17.11.6 PERMISSION AUDIT + FTO ASSIGNMENTS + REPORT VIEWER — based on Phase 17.11.6
+// LSPD Command Center — Phase 17.11.7 RECRUITMENT INCORPORATION FIX — based on Phase 17.11.6 FINAL
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updatePassword, deleteUser as deleteAuthUser } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot,
-  collection, query, where, serverTimestamp, deleteDoc
+  collection, query, where, serverTimestamp, deleteDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2769,9 +2769,50 @@ async function openRecruitmentDecisionForm(id,passed){
 }
 async function openRecruitmentHireForm(id){
   if(!hasPerm("recruitment_incorporate"))return;
-  const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data(),status=normalizedRecruitmentStage(a.status);if(!["Admission approuvée","Entretien réussi"].includes(status))return showToast("L'admission doit être approuvée avant l'incorporation.","warning");
-  showModal(`<div class="recruitment-hire-modal"><span class="eyebrow">INCORPORATION LSPD</span><h2>Finaliser l'admission de ${esc(a.applicantName)}</h2><p class="muted">Cette étape transforme le compte candidat en compte membre actif.</p><form id="recruitmentHireForm"><div class="formgrid"><label class="field"><span>Matricule</span><input id="hireBadge" required placeholder="Ex. 0421"></label><label class="field"><span>Grade d'entrée</span><select id="hireGrade">${gradeList.filter(g=>g[0]!=="Visiteur"&&g[0]!=="Candidat").map(g=>`<option ${g[0]==="Rookie"?"selected":""}>${g[0]}</option>`).join("")}</select></label><label class="field"><span>Division initiale</span><select id="hireDivision">${divisions.filter(d=>d!=="External"&&d!=="Recruitment").map(d=>`<option ${d==="Patrol"?"selected":""}>${d}</option>`).join("")}</select></label></div><label class="field full"><span>Note d'incorporation</span><textarea id="hireNote" rows="3" placeholder="Ex. Affectation Patrol, orientation Academy à planifier..."></textarea></label><div id="hireError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer le profil LSPD actif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
-  $("recruitmentHireForm").onsubmit=async e=>{e.preventDefault();const badge=$("hireBadge").value.trim();if(!badge)return $("hireError").textContent="Le matricule est obligatoire.";try{const grade=$("hireGrade").value,division=$("hireDivision").value;await updateDoc(doc(db,"users",a.applicantId),{badge,grade,role:"Officer",status:"Actif",division,recruitmentApplicant:false,recruitedAt:serverTimestamp(),recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:"Recruté",recruitmentBadge:badge,recruitmentGrade:grade,recruitmentDivision:division,recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,recruitedAt:serverTimestamp(),publicMessage:`Bienvenue au LSPD. Ton incorporation est finalisée avec le matricule ${badge}.`,updatedAt:serverTimestamp()});await upsertRecruitmentReview(id,{incorporationNote:$("hireNote").value.trim(),incorporatedById:window.LSPD.user.uid,incorporatedByName:window.LSPD.profile.name,incorporatedAt:serverTimestamp()});await addAudit("LSPD_RECRUITMENT",a.applicantId,`${a.applicantName} — ${badge} — ${grade}`);document.querySelector(".modal")?.remove();showToast("Incorporation finalisée.","success");await renderRecruitmentDesk();}catch(err){$("hireError").textContent="Erreur : "+(err.code||err.message);}};
+  const s=await getDoc(doc(db,"lspd_applications",id));
+  if(!s.exists())return;
+  const a=s.data(),status=normalizedRecruitmentStage(a.status);
+  if(!["Admission approuvée","Entretien réussi"].includes(status))return showToast("L'admission doit être approuvée avant l'incorporation.","warning");
+  showModal(`<div class="recruitment-hire-modal"><span class="eyebrow">INCORPORATION LSPD</span><h2>Finaliser l'admission de ${esc(a.applicantName)}</h2><p class="muted">Cette étape transforme le compte candidat en compte membre actif. L'opération est atomique : aucun changement partiel n'est enregistré en cas d'erreur.</p><form id="recruitmentHireForm"><div class="formgrid"><label class="field"><span>Matricule</span><input id="hireBadge" required placeholder="Ex. 0421"></label><label class="field"><span>Grade d'entrée</span><select id="hireGrade">${gradeList.filter(g=>g[0]!=="Visiteur"&&g[0]!=="Candidat").map(g=>`<option ${g[0]==="Rookie"?"selected":""}>${g[0]}</option>`).join("")}</select></label><label class="field"><span>Division initiale</span><select id="hireDivision">${divisions.filter(d=>d!=="External"&&d!=="Recruitment").map(d=>`<option ${d==="Patrol"?"selected":""}>${d}</option>`).join("")}</select></label></div><label class="field full"><span>Note d'incorporation</span><textarea id="hireNote" rows="3" placeholder="Ex. Affectation Patrol, orientation Academy à planifier..."></textarea></label><div id="hireError" class="error"></div><div class="modal-actions"><button class="btn" type="submit" id="hireSubmitBtn">Créer le profil LSPD actif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("recruitmentHireForm").onsubmit=async e=>{
+    e.preventDefault();
+    const errorBox=$("hireError"),submitBtn=$("hireSubmitBtn"),badge=$("hireBadge").value.trim();
+    if(!badge)return errorBox.textContent="Le matricule est obligatoire.";
+    errorBox.textContent="";
+    submitBtn.disabled=true;
+    submitBtn.textContent="Incorporation en cours...";
+    try{
+      const grade=$("hireGrade").value,division=$("hireDivision").value;
+      if(!a.applicantId)throw new Error("Dossier candidat invalide : UID Firebase absent.");
+      const userRef=doc(db,"users",a.applicantId),applicationRef=doc(db,"lspd_applications",id),reviewRef=doc(db,"lspd_recruitment_reviews",id);
+      const [candidateSnap,reviewSnap]=await Promise.all([getDoc(userRef),getDoc(reviewRef)]);
+      if(!candidateSnap.exists())throw new Error("Profil Firebase/Firestore du candidat introuvable. Vérifie que son compte existe encore dans Authentication et users.");
+      const candidate=candidateSnap.data();
+      const candidateLike=candidate.role==="Applicant"||candidate.grade==="Candidat"||candidate.recruitmentApplicant===true||candidate.division==="Recruitment";
+      if(!candidateLike && candidate.status!=="Actif")throw new Error(`Le profil cible n'est plus un candidat compatible (rôle: ${candidate.role||"—"}, grade: ${candidate.grade||"—"}, statut: ${candidate.status||"—"}).`);
+
+      const batch=writeBatch(db),now=serverTimestamp();
+      batch.update(userRef,{badge,grade,role:"Officer",status:"Actif",division,recruitmentApplicant:false,recruitedAt:now,recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,updatedAt:now});
+      batch.update(applicationRef,{status:"Recruté",recruitmentBadge:badge,recruitmentGrade:grade,recruitmentDivision:division,recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,recruitedAt:now,publicMessage:`Bienvenue au LSPD. Ton incorporation est finalisée avec le matricule ${badge}.`,updatedAt:now});
+      const reviewPatch={incorporationNote:$("hireNote").value.trim(),incorporatedById:window.LSPD.user.uid,incorporatedByName:window.LSPD.profile.name,incorporatedAt:now,updatedAt:now};
+      if(reviewSnap.exists())batch.update(reviewRef,reviewPatch);
+      else batch.set(reviewRef,{applicationId:id,...reviewPatch,createdAt:now});
+      const auditRef=doc(collection(db,"audit_logs"));
+      batch.set(auditRef,{actorId:window.LSPD.user.uid,actorName:window.LSPD.profile.name,action:"LSPD_RECRUITMENT",targetId:a.applicantId,details:`${a.applicantName} — ${badge} — ${grade}`,createdAt:now});
+      await batch.commit();
+      document.querySelector(".modal")?.remove();
+      showToast("Incorporation finalisée.","success");
+      await renderRecruitmentDesk();
+    }catch(err){
+      console.error("LSPD recruitment incorporation failed",err);
+      const code=err?.code||"";
+      errorBox.textContent=code==="permission-denied"
+        ? "Erreur Firebase : permission-denied. L'incorporation a été annulée entièrement. Publie le firestore.rules de la Phase 17.11.7 dans Firebase Console → Firestore Database → Règles, puis réessaie."
+        : "Erreur : "+(code||err?.message||String(err));
+      submitBtn.disabled=false;
+      submitBtn.textContent="Créer le profil LSPD actif";
+    }
+  };
 }
 
 function openCaseForm(){
