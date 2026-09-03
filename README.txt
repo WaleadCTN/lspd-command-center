@@ -1,4 +1,32 @@
-LSPD COMMAND CENTER — PHASE 17.11 — CHIEF PERSONNEL & ACCESS CONTROL
+LSPD COMMAND CENTER — PHASE 17.11.1 — OFFICER FILTERS & PROVISIONAL CODES
+
+NOUVEAUTÉS 17.11.1
+- Officiers : filtres combinables Grade + Rôle + Unité + Statut, en plus de la recherche texte.
+- Bouton Réinitialiser pour vider tous les filtres.
+- Nouvelle permission : provisional_credentials_view = Voir les codes provisoires d’activation.
+- Dans Officiers, le bouton « Voir le code provisoire » apparaît uniquement pour un compte importé encore À activer et uniquement si le rôle connecté possède la permission.
+- Le Chief conserve toujours ce droit comme toutes les permissions.
+- Les nouveaux comptes créés par le Chief enregistrent le code provisoire dans la collection protégée provisional_credentials/{uid}.
+- Firestore interdit toute liste globale de ce coffre : lecture uniquement par UID et seulement si le profil cible a mustChangePassword=true.
+- Dès la première activation, mustChangePassword passe à false : le code devient immédiatement illisible, puis le document est supprimé en nettoyage.
+- La consultation d’un code crée une entrée d’audit VIEW_PROVISIONAL_CODE.
+- La suppression Chief d’un officier nettoie aussi son éventuel code provisoire.
+
+COMPTES IMPORTÉS AVANT 17.11.1
+Firebase Authentication ne permet jamais de relire un mot de passe existant. Pour les 109 comptes importés avec l’ancien importeur, utilise une seule fois le ZIP privé LSPD_SYNC_CODES_PROVISOIRES_PRIVATE.zip fourni séparément. Il ne change aucun mot de passe : il copie seulement les codes de l’ancien fichier privé pour les profils encore À activer.
+
+INSTALLATION 17.11.1
+1. GitHub : remplacer index.html, app.js et style.css.
+2. Firebase Console > Firestore Database > Règles : coller puis PUBLIER firestore.rules de cette phase.
+3. Chief > Permissions : cocher « Voir les codes provisoires d’activation » pour les rôles autorisés (par exemple Captain).
+4. Si tu as déjà importé l’ancien roster : exécuter ensuite l’outil privé de synchronisation une seule fois.
+
+SECURITÉ
+Le code est volontairement stocké dans une collection séparée car Firebase Auth ne permet pas de récupérer les mots de passe. Ne donne la permission qu’aux rôles de confiance. Les codes ne sont pas présents dans le ZIP public du site.
+
+========================================
+
+HISTORIQUE — PHASE 17.11 — CHIEF PERSONNEL & ACCESS CONTROL
 
 NOUVEAUTÉS
 - Suspendu : accès complètement bloqué au Command Center.

@@ -1602,3 +1602,16 @@ button.training-history-row{cursor:pointer}.training-history-row:last-child{bord
 @media(max-width:1000px){.nav-visibility-grid{grid-template-columns:1fr}.auth-tabs-four{grid-template-columns:repeat(2,1fr)}.navigation-admin-head{flex-direction:column}.grade-visibility-list{grid-template-columns:1fr}.invite-default-profile{align-items:flex-start;flex-direction:column}}
 .chief-provision-note{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;border-left:3px solid #4f87b5}.chief-provision-note span{color:var(--muted);font-size:.84rem}.uid-value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;word-break:break-all}
 @media(max-width:760px){.chief-provision-note{align-items:flex-start;flex-direction:column}}
+
+
+/* Phase 17.11.1 — officer filters + protected provisional credentials */
+.officer-filter-toolbar{display:grid;grid-template-columns:minmax(220px,1.8fr) repeat(4,minmax(145px,1fr)) auto auto auto;gap:10px;align-items:center}
+.officer-filter-toolbar .search{width:100%;min-width:0}
+.account-state-cell{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:118px}
+.account-state-cell .btn.tiny{white-space:nowrap;padding:6px 9px;font-size:11px}
+.credential-access-note{display:flex;gap:12px;align-items:flex-start;border-left:3px solid rgba(245,180,65,.9)}
+.credential-access-note b{white-space:nowrap}
+.temporary-secret-row{display:flex;gap:8px;align-items:center}
+.temporary-secret-row input{flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04em}
+@media(max-width:1250px){.officer-filter-toolbar{grid-template-columns:repeat(3,minmax(160px,1fr))}.officer-filter-search{grid-column:span 2}}
+@media(max-width:720px){.officer-filter-toolbar{grid-template-columns:1fr}.officer-filter-search{grid-column:auto}.credential-access-note{flex-direction:column}}

@@ -37,7 +37,7 @@ service cloud.firestore {
     function permissionCategoryAllowed(permission) {
       let communicationPerms = ["incident_review","announcements_manage"];
       let trainingPerms = ["fto_tools","fto_assignments_view","fto_assignments_manage","training_manage","academy_manage","academy_content_manage","academy_final_review"];
-      let personnelPerms = ["personnel_view","personnel_manage","certifications_view","certifications_manage","records_view","records_manage","leave_review","division_review","promotions_view","promotions_manage"];
+      let personnelPerms = ["personnel_view","personnel_manage","provisional_credentials_view","certifications_view","certifications_manage","records_view","records_manage","leave_review","division_review","promotions_view","promotions_manage"];
       let operationsPerms = ["shifts_view","shifts_manage","duty_board","mdt_manage","cad_manage","bolo_manage","watch_manage"];
       let adminPerms = ["analytics","audit","registrations_manage"];
       return (communicationPerms.hasAny([permission]) && navAllowed("communication"))
@@ -196,6 +196,25 @@ service cloud.firestore {
       );
 
       allow delete: if isChief() && request.auth.uid != userId;
+    }
+
+    // Protected vault for temporary activation codes.
+    // Passwords cannot be read back from Firebase Authentication, so only
+    // the temporary credential generated at provisioning/import time is kept here.
+    // Direct document reads only: listing the whole vault is always forbidden.
+    match /provisional_credentials/{userId} {
+      allow get: if hasPerm("provisional_credentials_view")
+        && exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.importedAccount == true
+        && get(/databases/$(database)/documents/users/$(userId)).data.mustChangePassword == true;
+      allow list: if false;
+      allow create: if isChief()
+        && request.resource.data.userId == userId
+        && request.resource.data.createdById == request.auth.uid
+        && request.resource.data.temporaryPassword is string
+        && request.resource.data.temporaryPassword.size() >= 8;
+      allow update: if false;
+      allow delete: if (signedIn() && request.auth.uid == userId) || isChief();
     }
 
     match /announcements/{id} {

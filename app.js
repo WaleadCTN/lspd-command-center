@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.11 CHIEF PERSONNEL & ACCESS CONTROL — Phase 17.10 fully preserved
+// LSPD Command Center — Phase 17.11.1 OFFICER FILTERS & PROVISIONAL CODES — Phase 17.11 fully preserved
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -66,6 +66,7 @@ Object.assign(I18N_EN,{"Centre Formation":"Training Center","Formation & FTO":"T
 Object.assign(I18N_EN,{"Formation validée":"Training validated","Formation à refaire":"Training to repeat","Non évaluée":"Not evaluated","Formation planifiée":"Training scheduled","Continuer la formation":"Continue training","Planifier cette formation":"Schedule this training","Évaluer cette formation":"Evaluate this training","Résultat de la formation":"Training result","Formations validées":"Validated training","Formations à refaire":"Training to repeat","Formations non évaluées":"Not evaluated","Terminer la formation":"Complete training","Formation terminée, évalue maintenant les participants.":"Training completed. Now evaluate the participants.","À évaluer":"Needs evaluation","Évalué":"Evaluated","Ancien historique FTO":"Legacy FTO history","Aucun prérequis bloquant":"No blocking prerequisite"});
 
 Object.assign(I18N_EN,{"Première connexion":"First login","Choisis ton mot de passe":"Choose your password","Nouveau mot de passe":"New password","Enregistrer mon mot de passe":"Save my password","Compte importé":"Imported account","À activer":"Needs activation","Activé":"Activated","Adresse professionnelle":"Professional email","Mot de passe provisoire":"Temporary password","Comptes importés":"Imported accounts","Jamais activés":"Never activated"});
+Object.assign(I18N_EN,{"Tous grades":"All ranks","Tous rôles":"All roles","Toutes unités":"All units","Tous statuts":"All statuses","Voir le code provisoire":"View temporary code","Code provisoire":"Temporary code","Voir les codes provisoires d’activation":"View temporary activation codes","Code provisoire indisponible":"Temporary code unavailable"});
 
 Object.assign(I18N_EN,{"Postuler au LSPD":"Apply to LSPD","Ma candidature LSPD":"My LSPD application","Centre de recrutement":"Recruitment desk","Dossier reçu":"Application received","À convoquer":"Invite to interview","Entretien planifié":"Interview scheduled","Entretien réussi":"Interview passed","Recruté":"Hired","Retirée":"Withdrawn","Pré-sélectionner":"Shortlist","Planifier l’entretien":"Schedule interview","Finaliser le recrutement":"Finalize hiring","Envoyer ma candidature LSPD":"Submit LSPD application","Approuver le rapport":"Approve report","Refuser le rapport":"Reject report","Envoyer":"Send"});
 
@@ -284,6 +285,7 @@ const PERMISSION_CATALOG = [
   ["fto_tools","Lecture / gestion FTO"],
   ["personnel_view","Voir tous les officiers"],
   ["personnel_manage","Modifier les profils officiers"],
+  ["provisional_credentials_view","Voir les codes provisoires d’activation"],
   ["fto_assignments_view","Voir les affectations FTO"],
   ["fto_assignments_manage","Gérer les affectations FTO"],
   ["certifications_view","Voir les certifications"],
@@ -916,7 +918,7 @@ async function loadNavigationConfig(){
 
 async function loadPermissionsConfig(){
   if(isVisitor() || isApplicant() || isInactive()){
-    window.LSPD.permissionConfig={roles:{Visiteur:[],Applicant:[]},catalogVersion:17};
+    window.LSPD.permissionConfig={roles:{Visiteur:[],Applicant:[]},catalogVersion:18};
     return;
   }
   try{
@@ -927,26 +929,26 @@ async function loadPermissionsConfig(){
       const rolesMap=JSON.parse(JSON.stringify(cfg.roles||{}));
       let changed=false;
       if(!Array.isArray(rolesMap.Visiteur)){rolesMap.Visiteur=[];changed=true;}
-      if((cfg.catalogVersion||0)<17){
+      if((cfg.catalogVersion||0)<18){
         for(const [r,perms] of Object.entries(PHASE17_PERMISSION_DEFAULTS)){
           rolesMap[r]=Array.isArray(rolesMap[r])?rolesMap[r]:[];
           for(const permission of perms){if(!rolesMap[r].includes(permission)){rolesMap[r].push(permission);changed=true;}}
         }
       }
-      window.LSPD.permissionConfig={...cfg,roles:rolesMap,catalogVersion:17};
+      window.LSPD.permissionConfig={...cfg,roles:rolesMap,catalogVersion:18};
       if(changed && isChief()){
         await setDoc(ref,{...window.LSPD.permissionConfig,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
       }
       return;
     }
-    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),catalogVersion:17};
+    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),catalogVersion:18};
     if(isChief()){
       await setDoc(ref,{
         roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),
         updatedById:window.LSPD.user.uid,
         updatedByName:window.LSPD.profile.name,
         updatedAt:serverTimestamp(),
-        catalogVersion:17
+        catalogVersion:18
       });
     }
   }catch(err){
@@ -980,6 +982,9 @@ async function handleImportedPasswordChange(e){
       passwordChangedAt:serverTimestamp(),
       updatedAt:serverTimestamp()
     });
+    // The temporary code is no longer readable once mustChangePassword=false.
+    // Remove the separate protected credential document as cleanup.
+    try{await deleteDoc(doc(db,"provisional_credentials",auth.currentUser.uid));}catch(cleanupErr){console.warn("Temporary credential cleanup",cleanupErr);}
     if(window.LSPD.profile)window.LSPD.profile.mustChangePassword=false;
     $("newImportedPassword").value="";$("newImportedPassword2").value="";
     showToast("Mot de passe enregistré.","success");
@@ -2711,9 +2716,9 @@ async function savePermissions(){
   }
   try{
     await setDoc(doc(db,"settings","permissions"),{
-      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:17
+      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:18
     });
-    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:17};
+    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:18};
     await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions & rôles");
     applyRoleVisibility();
     showToast("Permissions enregistrées.","success");
@@ -2725,9 +2730,9 @@ async function resetPermissionsDefaults(){
   try{
     const rolesMap=JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
     await setDoc(doc(db,"settings","permissions"),{
-      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:17
+      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:18
     });
-    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:17};
+    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:18};
     showToast("Valeurs par défaut restaurées.","success");
     permissionsAdmin();
   }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
@@ -4749,26 +4754,38 @@ async function trainees(){
 async function officers(){
   if(!hasPerm("personnel_view"))return;
   const data=(await getUsers()).sort((a,b)=>(a.badge||"").localeCompare(b.badge||"",undefined,{numeric:true}));
-  $("content").innerHTML=`<div class="toolbar">
-    <input id="officerSearch" class="search" placeholder="Rechercher...">
-    <select id="officerStatusFilter" class="search"><option value="">Tous statuts</option>${statuses.map(s=>`<option>${s}</option>`).join("")}</select>
-    <select id="officerDivisionFilter" class="search"><option value="">Toutes unités</option>${divisions.map(s=>`<option>${s}</option>`).join("")}</select>
+  const unique=key=>[...new Set(data.map(o=>String(o?.[key]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr",{numeric:true}));
+  const gradeOptions=unique("grade"),roleOptions=unique("role"),divisionOptions=unique("division"),statusOptions=unique("status");
+  $("content").innerHTML=`<div class="toolbar officer-filter-toolbar">
+    <input id="officerSearch" class="search officer-filter-search" placeholder="Rechercher nom, matricule, e-mail...">
+    <select id="officerGradeFilter" class="search"><option value="">Tous grades</option>${gradeOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
+    <select id="officerRoleFilter" class="search"><option value="">Tous rôles</option>${roleOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
+    <select id="officerDivisionFilter" class="search"><option value="">Toutes unités</option>${divisionOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
+    <select id="officerStatusFilter" class="search"><option value="">Tous statuts</option>${statusOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
+    <button class="btn secondary" id="officerResetFilters">Réinitialiser</button>
     <button class="btn secondary" id="exportOfficersBtn">Exporter CSV</button>
     ${isChief()?'<button class="btn" id="addOfficerBtn">+ Ajouter un officier</button>':""}
   </div>
+  ${hasPerm("provisional_credentials_view")?`<div class="card credential-access-note"><b>Accès aux codes provisoires</b><span>Tu peux afficher le code uniquement tant que le compte est <strong>À activer</strong>. Après le premier changement de mot de passe, le code devient inaccessible et son document protégé est supprimé.</span></div>`:""}
   ${isChief()?`<div class="card chief-provision-note"><b>Création simplifiée Chief</b><span>Nom RP + adresse e-mail uniquement. Firebase Authentication crée automatiquement l'UID et un mot de passe provisoire est généré.</span></div>`:""}
   <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th>E-mail</th><th>Compte</th><th></th>${hasPerm("personnel_manage")?"<th></th>":""}${isChief()?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
 
   function refresh(){
-    const term=$("officerSearch").value.toLowerCase(),st=$("officerStatusFilter").value,div=$("officerDivisionFilter").value;
+    const term=$("officerSearch").value.trim().toLowerCase();
+    const grade=$("officerGradeFilter").value,roleFilter=$("officerRoleFilter").value,div=$("officerDivisionFilter").value,st=$("officerStatusFilter").value;
     const filtered=data.filter(o=>
       [o.badge,o.name,o.grade,o.role,o.status,o.division,o.registeredEmail].some(v=>String(v||"").toLowerCase().includes(term))
-      && (!st||o.status===st) && (!div||o.division===div)
+      && (!grade||o.grade===grade)
+      && (!roleFilter||o.role===roleFilter)
+      && (!div||o.division===div)
+      && (!st||o.status===st)
     );
     $("officerRows").innerHTML=officerRows(filtered);bindOfficerButtons(data);
   }
 
-  $("officerSearch").oninput=refresh;$("officerStatusFilter").onchange=refresh;$("officerDivisionFilter").onchange=refresh;
+  ["officerGradeFilter","officerRoleFilter","officerDivisionFilter","officerStatusFilter"].forEach(id=>$(id).onchange=refresh);
+  $("officerSearch").oninput=refresh;
+  $("officerResetFilters").onclick=()=>{ $("officerSearch").value="";["officerGradeFilter","officerRoleFilter","officerDivisionFilter","officerStatusFilter"].forEach(id=>$(id).value="");refresh(); };
   $("exportOfficersBtn").onclick=()=>csvDownload("officiers_lspd.csv",data.map(o=>({
     matricule:o.badge,nom:o.name,grade:o.grade,role:o.role,unite:o.division||"",statut:o.status,email:o.registeredEmail||"",compte:o.importedAccount?(o.mustChangePassword?"À activer":"Activé"):"Standard"
   })));
@@ -4777,12 +4794,35 @@ async function officers(){
 }
 function officerRows(data){
   const cols=9+(hasPerm("personnel_manage")?1:0)+(isChief()?1:0);
-  return data.length?data.map(o=>`<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td>${esc(o.registeredEmail||"—")}</td><td>${o.importedAccount?`<span class="tag ${o.mustChangePassword?"orange":"green"}">${o.mustChangePassword?"À activer":"Activé"}</span>`:'<span class="tag">Standard</span>'}</td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${hasPerm("personnel_manage")?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}${isChief()?`<td>${o.uid!==window.LSPD.user.uid?`<button class="btn danger delete-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Supprimer</button>`:'<span class="muted">Compte actuel</span>'}</td>`:""}</tr>`).join(""):`<tr><td colspan="${cols}">Aucun officier.</td></tr>`;
+  return data.length?data.map(o=>{
+    const activation=o.importedAccount?`<span class="tag ${o.mustChangePassword?"orange":"green"}">${o.mustChangePassword?"À activer":"Activé"}</span>`:'<span class="tag">Standard</span>';
+    const codeButton=o.importedAccount&&o.mustChangePassword&&hasPerm("provisional_credentials_view")?`<button class="btn tiny secondary temporary-code-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Voir le code provisoire</button>`:"";
+    return `<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td>${esc(o.registeredEmail||"—")}</td><td><div class="account-state-cell">${activation}${codeButton}</div></td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${hasPerm("personnel_manage")?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}${isChief()?`<td>${o.uid!==window.LSPD.user.uid?`<button class="btn danger delete-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Supprimer</button>`:'<span class="muted">Compte actuel</span>'}</td>`:""}</tr>`;
+  }).join(""):`<tr><td colspan="${cols}">Aucun officier.</td></tr>`;
 }
 function bindOfficerButtons(data){
   document.querySelectorAll(".view-officer").forEach(b=>b.onclick=()=>officerFile(b.dataset.uid));
   document.querySelectorAll(".edit-officer").forEach(b=>b.onclick=()=>openOfficerForm(data.find(o=>o.uid===b.dataset.uid)));
   document.querySelectorAll(".delete-officer").forEach(b=>b.onclick=()=>deleteOfficerProfile(b.dataset.uid,b.dataset.name));
+  document.querySelectorAll(".temporary-code-officer").forEach(b=>b.onclick=()=>revealTemporaryOfficerPassword(b.dataset.uid,b.dataset.name));
+}
+
+async function revealTemporaryOfficerPassword(uid,name){
+  if(!hasPerm("provisional_credentials_view"))return showToast("Permission refusée.","error");
+  try{
+    const officer=await getUser(uid);
+    if(!officer?.importedAccount || officer?.mustChangePassword!==true)return showToast("Ce compte n'est plus en attente d'activation.","error");
+    const snap=await getDoc(doc(db,"provisional_credentials",uid));
+    if(!snap.exists()){
+      showModal(`<h2>Code provisoire indisponible</h2><div class="security-note"><b>${esc(name||officer.name)}</b><span>Ce compte est bien à activer, mais son code n'est pas enregistré dans le coffre Firestore. C'est normal pour les comptes importés avant la Phase 17.11.1.</span></div><p class="muted">Pour les anciens comptes, lance une seule fois l'outil privé <b>SYNC_CODES_PROVISOIRES.bat</b> fourni avec cette phase. Il ne change aucun mot de passe Firebase et n'importe que les codes des comptes encore à activer.</p><div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+      return;
+    }
+    const cred=snap.data();
+    await addAudit("VIEW_PROVISIONAL_CODE",uid,`${officer.name} — code provisoire consulté`).catch(()=>{});
+    showModal(`<h2>Code provisoire — ${esc(officer.name)}</h2><div class="activation-success"><div class="detail-grid"><div><span>Adresse professionnelle</span><b>${esc(officer.registeredEmail||cred.email||"—")}</b></div><div><span>État</span><b>À activer</b></div></div><label class="field full"><span>Code provisoire</span><div class="temporary-secret-row"><input id="temporaryOfficerCredential" type="password" readonly value="${esc(cred.temporaryPassword||"")}"><button class="btn secondary" id="toggleTemporaryCredential" type="button">Afficher</button></div></label><p class="muted">Information sensible. Transmets-la uniquement à l'officier concerné. Le code devient inaccessible dès qu'il choisit son propre mot de passe.</p></div><div class="modal-actions"><button class="btn" id="copyTemporaryCredential">Copier les identifiants</button><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+    $("toggleTemporaryCredential").onclick=()=>{const input=$("temporaryOfficerCredential");const show=input.type==="password";input.type=show?"text":"password";$("toggleTemporaryCredential").textContent=show?"Masquer":"Afficher";};
+    $("copyTemporaryCredential").onclick=async()=>{const text=`LSPD — Compte provisoire\nNom RP : ${officer.name}\nE-mail : ${officer.registeredEmail||cred.email||""}\nCode provisoire : ${cred.temporaryPassword||""}\n\nLe mot de passe doit être changé à la première connexion.`;try{await navigator.clipboard.writeText(text);showToast("Identifiants copiés.","success");}catch{showToast("Copie impossible.","error");}};
+  }catch(err){showToast("Impossible de lire le code provisoire : "+(err.code||err.message),"error");}
 }
 
 async function officerFile(uid){
@@ -4830,6 +4870,9 @@ async function provisionOfficerAccount(e){
       provisionedById:window.LSPD.user.uid,provisionedByName:window.LSPD.profile.name,
       createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     });
+    await setDoc(doc(db,"provisional_credentials",uid),{
+      userId:uid,name,email,temporaryPassword:tempPassword,createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,createdAt:serverTimestamp()
+    });
     profileCreated=true;
     try{await addAudit("CREATE_OFFICER",uid,`${name} — ${email} — UID automatique`);}catch(auditErr){console.warn("Audit CREATE_OFFICER non enregistré",auditErr);}
     try{await signOut(secondaryAuth);}catch{}
@@ -4851,7 +4894,7 @@ async function deleteOfficerProfile(uid,name){
   if(!isChief() || uid===window.LSPD.user.uid)return;
   if(!confirm(`Supprimer définitivement ${name} de la base LSPD ?\n\nSon profil Firestore sera supprimé et son accès au Command Center sera immédiatement bloqué. Les rapports et historiques déjà créés sont conservés pour la traçabilité.`))return;
   if(!confirm(`CONFIRMATION FINALE : supprimer le profil de ${name} ?`))return;
-  try{await deleteDoc(doc(db,"users",uid));await addAudit("DELETE_OFFICER",uid,`${name} — profil supprimé`);showToast("Officier supprimé de la base LSPD.","success");officers();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+  try{try{await deleteDoc(doc(db,"provisional_credentials",uid));}catch{}await deleteDoc(doc(db,"users",uid));await addAudit("DELETE_OFFICER",uid,`${name} — profil supprimé`);showToast("Officier supprimé de la base LSPD.","success");officers();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 
 function openOfficerForm(o=null){
@@ -5560,7 +5603,7 @@ async function admin(){
   const users=await getUsers();
   $("content").innerHTML=`<div class="grid2">
     <div class="card admin-feature"><span class="eyebrow">SYSTEM</span><h3>Gestion système</h3><div class="row"><span>Profils</span><b>${users.length}</b></div><div class="row"><span>Authentication</span><b>Firebase Console</b></div><div class="row"><span>Rôles & unités</span><b>Onglet Officiers</b></div></div>
-    <div class="card admin-feature"><span class="eyebrow">ACCOUNT PROVISIONING</span><h3>Comptes importés</h3><div class="row"><span>Total importé</span><b>${users.filter(u=>u.importedAccount).length}</b></div><div class="row"><span>Jamais activés</span><b>${users.filter(u=>u.importedAccount&&u.mustChangePassword).length}</b></div><div class="row"><span>Activés</span><b>${users.filter(u=>u.importedAccount&&!u.mustChangePassword).length}</b></div><p class="muted">Les mots de passe provisoires ne sont jamais stockés dans Firestore.</p></div>
+    <div class="card admin-feature"><span class="eyebrow">ACCOUNT PROVISIONING</span><h3>Comptes importés</h3><div class="row"><span>Total importé</span><b>${users.filter(u=>u.importedAccount).length}</b></div><div class="row"><span>Jamais activés</span><b>${users.filter(u=>u.importedAccount&&u.mustChangePassword).length}</b></div><div class="row"><span>Activés</span><b>${users.filter(u=>u.importedAccount&&!u.mustChangePassword).length}</b></div><p class="muted">Les codes provisoires des comptes à activer sont conservés dans un coffre Firestore séparé, lisible uniquement avec la permission dédiée, puis deviennent inaccessibles après activation.</p></div>
     <div class="card admin-feature"><span class="eyebrow">ACCESS CONTROL</span><h3>Permissions</h3><p class="muted">Configure les droits de chaque rôle sans modifier app.js.</p><button class="btn" id="openPermissionsBtn">🔐 Permissions</button></div>
     <div class="card admin-feature"><span class="eyebrow">NAVIGATION</span><h3>Menus par grade</h3><p class="muted">Affiche ou masque chaque grande catégorie du menu selon le grade exact de l'officier.</p><button class="btn" id="openNavigationAdminBtn">🧭 Configurer les menus</button></div>
     <div class="card admin-feature"><span class="eyebrow">OPERATIONS</span><h3>CAD & Watch</h3><p class="muted">Unités live, BOLO et Watch Commander sont intégrés au Command Center.</p></div>
