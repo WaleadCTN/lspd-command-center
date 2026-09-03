@@ -39,7 +39,7 @@ service cloud.firestore {
       let trainingPerms = ["fto_tools","fto_assignments_view","fto_assignments_manage","training_manage","academy_manage","academy_content_manage","academy_final_review"];
       let personnelPerms = ["personnel_view","personnel_manage","provisional_credentials_view","certifications_view","certifications_manage","records_view","records_manage","leave_review","division_review","promotions_view","promotions_manage"];
       let operationsPerms = ["shifts_view","shifts_manage","duty_board","mdt_manage","cad_manage","bolo_manage","watch_manage"];
-      let adminPerms = ["analytics","audit","registrations_manage"];
+      let adminPerms = ["analytics","audit","registrations_manage","recruitment_settings_manage"];
       return (communicationPerms.hasAny([permission]) && navAllowed("communication"))
         || (trainingPerms.hasAny([permission]) && navAllowed("training"))
         || (personnelPerms.hasAny([permission]) && navAllowed("personnel"))
@@ -469,8 +469,14 @@ service cloud.firestore {
     }
 
 
+    function recruitmentApplicationsOpen() {
+      let recruitmentRef = /databases/$(database)/documents/public_settings/recruitment;
+      return !exists(recruitmentRef) || get(recruitmentRef).data.open == true;
+    }
+
     match /lspd_applications/{id} {
       allow create: if signedIn()
+        && recruitmentApplicationsOpen()
         && request.auth.uid == id
         && request.resource.data.applicantId == request.auth.uid
         && request.resource.data.email == request.auth.token.email
@@ -528,6 +534,18 @@ service cloud.firestore {
         ])
       );
 
+      allow delete: if false;
+    }
+
+    match /public_settings/{settingId} {
+      // Public recruitment switch: safe to read before login so the application
+      // button can disappear immediately when recruitment is closed.
+      allow read: if settingId == "recruitment";
+      allow create, update: if settingId == "recruitment"
+        && hasPerm("recruitment_settings_manage")
+        && request.resource.data.open is bool
+        && request.resource.data.updatedById == request.auth.uid
+        && request.resource.data.keys().hasOnly(["open","updatedById","updatedByName","updatedAt"]);
       allow delete: if false;
     }
 

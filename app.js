@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.11.1 OFFICER FILTERS & PROVISIONAL CODES — Phase 17.11 fully preserved
+// LSPD Command Center — Phase 17.11.3 RECRUITMENT CONTROL & AUTO CATENA EMAIL — Phase 17.11.2 fully preserved
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -306,6 +306,7 @@ const PERMISSION_CATALOG = [
   ["audit","Voir l'historique audit"],
   ["announcements_manage","Publier des annonces"],
   ["registrations_manage","Valider les inscriptions"],
+  ["recruitment_settings_manage","Ouvrir / fermer les candidatures LSPD"],
   ["cad_manage","Gérer toutes les unités CAD"],
   ["bolo_manage","Gérer les BOLO"],
   ["watch_manage","Gérer Watch Commander"],
@@ -328,6 +329,7 @@ const DEFAULT_PERMISSIONS = {
 
 const PAGE_PERMISSIONS = {
   registrations:"registrations_manage",
+  recruitmentControl:"recruitment_settings_manage",
   approvals:"incident_review",
   trainees:"fto_tools",
   officers:"personnel_view",
@@ -815,7 +817,13 @@ Object.assign(I18N_EN,{
   "Centre Formation":"Training Center",
   "Grades & responsabilités":"Ranks & responsibilities",
   "Menus par grade":"Menus by rank",
-  "Ajouter un officier":"Add an officer"
+  "Ajouter un officier":"Add an officer",
+  "Ouverture recrutements":"Recruitment opening",
+  "Ouvrir / fermer les candidatures LSPD":"Open / close LSPD applications",
+  "Candidatures LSPD":"LSPD applications",
+  "Ouvrir les candidatures":"Open applications",
+  "Fermer les candidatures":"Close applications",
+  "Adresse e-mail LSPD générée automatiquement":"Automatically generated LSPD email"
 });
 
 const pages = {
@@ -825,7 +833,7 @@ const pages = {
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
  promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
- scenarios:"Scénarios",visitorPortal:"Portail visiteur",applicationPortal:"Ma candidature LSPD",handbook:"Handbook nouveaux arrivants",trainingCenter:"Centre Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",navigationAdmin:"Menus par grade",history:"Historique"
+ scenarios:"Scénarios",visitorPortal:"Portail visiteur",applicationPortal:"Ma candidature LSPD",handbook:"Handbook nouveaux arrivants",trainingCenter:"Centre Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",navigationAdmin:"Menus par grade",recruitmentControl:"Ouverture recrutements",history:"Historique"
 };
 
 const NAV_GROUP_LABELS = {
@@ -842,7 +850,7 @@ const NAV_PAGE_GROUP = {
   handbook:"training",trainingCenter:"training",evaluations:"training",academyManager:"training",trainingWorkspace:"training",ftoAcademy:"training",ftoJournal:"training",ftoFinal:"training",ftoDossier:"training",trainingAnalytics:"training",trainingQuiz:"training",myTrainingFeedback:"training",modules:"training",assignments:"training",calendar:"training",trainingHub:"training",scenarios:"training",manual:"training",
   officers:"personnel",certifications:"personnel",records:"personnel",leave:"personnel",requirements:"personnel",promotionAdvisor:"personnel",promotions:"personnel",divisionsPage:"personnel",grades:"personnel",trainees:"personnel",
   shifts:"operations",dutyBoard:"operations",cad:"operations",watchCommand:"operations",bolos:"operations",mdt:"operations",
-  registrations:"administration",stats:"administration",admin:"administration",permissionsAdmin:"administration",navigationAdmin:"administration",history:"administration"
+  registrations:"administration",recruitmentControl:"administration",stats:"administration",admin:"administration",permissionsAdmin:"administration",navigationAdmin:"administration",history:"administration"
 };
 function navigationGradeList(){ return gradeList.filter(g=>g[0]!=="Visiteur").map(g=>g[0]); }
 function defaultNavigationConfig(){
@@ -1198,9 +1206,54 @@ function validateRecruitmentPublicStep(step){
   }
   return true;
 }
+function catenaEmailFromRpName(name){
+  const local=String(name||"")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g,".")
+    .replace(/^\.+|\.+$/g,"")
+    .replace(/\.{2,}/g,".");
+  return local?`${local}@catena.ma`:"";
+}
+function syncApplicationEmailFromName(){
+  const email=catenaEmailFromRpName($("applicationName")?.value);
+  if($("applicationEmail")) $("applicationEmail").value=email;
+}
+function setPublicRecruitmentUi(isOpen){
+  window.LSPD.recruitmentOpen=isOpen!==false;
+  $("showApplicationBtn")?.classList.toggle("hidden",!window.LSPD.recruitmentOpen);
+  $("recruitmentClosedNotice")?.classList.toggle("hidden",window.LSPD.recruitmentOpen);
+  if(!window.LSPD.recruitmentOpen && $("applicationForm") && !$("applicationForm").classList.contains("hidden")) toggleAuthMode("login");
+}
+function startPublicRecruitmentAvailabilityWatch(){
+  try{
+    window.LSPD.recruitmentPublicUnsub?.();
+    window.LSPD.recruitmentPublicUnsub=onSnapshot(doc(db,"public_settings","recruitment"),snap=>{
+      setPublicRecruitmentUi(!snap.exists() || snap.data()?.open!==false);
+    },err=>{console.warn("Recruitment public status unavailable",err);setPublicRecruitmentUi(true);});
+  }catch(err){console.warn(err);setPublicRecruitmentUi(true);}
+}
+async function recruitmentApplicationsAreOpen(){
+  try{const snap=await getDoc(doc(db,"public_settings","recruitment"));return !snap.exists() || snap.data()?.open!==false;}catch{return true;}
+}
+async function getRecruitmentSettings(){
+  try{const snap=await getDoc(doc(db,"public_settings","recruitment"));return snap.exists()?{open:snap.data()?.open!==false,...snap.data()}:{open:true};}
+  catch{return {open:true};}
+}
+async function saveRecruitmentOpenState(open){
+  if(!hasPerm("recruitment_settings_manage")) return;
+  try{
+    await setDoc(doc(db,"public_settings","recruitment"),{open:!!open,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
+    await addAudit(open?"RECRUITMENT_OPENED":"RECRUITMENT_CLOSED","public_settings/recruitment",open?"Candidatures LSPD ouvertes":"Candidatures LSPD fermées");
+    setPublicRecruitmentUi(!!open);
+    showToast(open?"Les candidatures LSPD sont ouvertes.":"Les candidatures LSPD sont fermées.","success");
+  }catch(err){showToast("Erreur : "+(err.code||err.message),"error");throw err;}
+}
 function initRecruitmentPublicWizard(){
   $("applicationNextBtn")?.addEventListener("click",()=>{if(validateRecruitmentPublicStep(recruitmentPublicStep))setRecruitmentPublicStep(recruitmentPublicStep+1);});
   $("applicationBackBtn")?.addEventListener("click",()=>setRecruitmentPublicStep(recruitmentPublicStep-1));
+  $("applicationName")?.addEventListener("input",syncApplicationEmailFromName);
+  syncApplicationEmailFromName();
   setRecruitmentPublicStep(1);
 }
 
@@ -1214,10 +1267,13 @@ async function handleRecruitmentApplication(e){
   const error=$("applicationError");if(error)error.textContent="";
   if(!validateRecruitmentPublicStep(4))return;
   const name=$("applicationName").value.trim();
-  const email=$("applicationEmail").value.trim().toLowerCase();
+  syncApplicationEmailFromName();
+  const email=catenaEmailFromRpName(name);
   const password=$("applicationPassword").value,password2=$("applicationPassword2").value;
   const age=Number($("applicationAge").value);
   if(name.length<3)return error.textContent="Entre un nom RP valide.";
+  if(!email)return error.textContent="Impossible de générer une adresse e-mail depuis ce nom RP.";
+  if(!(await recruitmentApplicationsAreOpen()))return error.textContent="Les candidatures LSPD sont actuellement fermées.";
   if(!Number.isFinite(age)||age<18||age>80)return error.textContent="L'âge RP doit être compris entre 18 et 80 ans.";
   if(password!==password2)return error.textContent="Les mots de passe ne correspondent pas.";
   if(password.length<8)return error.textContent="Le mot de passe doit contenir au moins 8 caractères.";
@@ -1337,7 +1393,7 @@ function render(page){
   const pageResult=({
     dashboard,visitorPortal,applicationPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,handbook,trainingCenter,trainingWorkspace,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
-    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,navigationAdmin,history
+    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,navigationAdmin,recruitmentControl,history
   }[page]||dashboard)();
   Promise.resolve(pageResult).finally(()=>injectTrainingContextBar(page));
   requestAnimationFrame(()=>content?.classList.add("page-enter"));
@@ -2444,14 +2500,14 @@ async function upsertRecruitmentReview(applicationId,patch){
 async function renderRecruitmentDesk(){
   if(!hasPerm("mdt_manage"))return;
   try{
-    const [snap,reviewSnap]=await Promise.all([getDocs(collection(db,"lspd_applications")),getDocs(collection(db,"lspd_recruitment_reviews"))]);
+    const [snap,reviewSnap,recruitmentSettings]=await Promise.all([getDocs(collection(db,"lspd_applications")),getDocs(collection(db,"lspd_recruitment_reviews")),getRecruitmentSettings()]);
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     const reviews=new Map(reviewSnap.docs.map(d=>[d.id,{id:d.id,...d.data()}]));window.LSPD.recruitmentApplications=data;window.LSPD.recruitmentReviews=reviews;
     const statusCount=s=>data.filter(a=>normalizedRecruitmentStage(a.status)===s).length;
     const active=data.filter(a=>!["Refusé","Retirée","Recruté"].includes(normalizedRecruitmentStage(a.status)));
     $("mdtTabContent").innerHTML=`<div class="recruitment-bureau-header">
       <div><span class="eyebrow">LSPD — RECRUITMENT BUREAU</span><h2>Gestion des candidatures</h2><p>Présélection documentée, entretien oral, recommandation du recruteur et décision du Commandement.</p></div>
-      <div class="recruitment-bureau-standard"><b>PROCESSUS OFFICIEL</b><span>Dossier → Étude → Entretien → Décision → Incorporation</span></div>
+      <div class="recruitment-bureau-standard"><b>PROCESSUS OFFICIEL</b><span>Dossier → Étude → Entretien → Décision → Incorporation</span>${hasPerm("recruitment_settings_manage")?`<button class="btn tiny ${recruitmentSettings.open?"danger":""}" id="deskRecruitmentToggle">${recruitmentSettings.open?"🔒 Fermer les candidatures":"🟢 Ouvrir les candidatures"}</button>`:`<small>${recruitmentSettings.open?"🟢 Candidatures ouvertes":"🔒 Candidatures fermées"}</small>`}</div>
     </div>
     <div class="recruitment-desk-summary pro">
       <div><span>Nouveaux dossiers</span><b>${statusCount("Dossier reçu")}</b></div><div><span>En étude / présélection</span><b>${statusCount("En étude")+statusCount("Pré-sélectionné")}</b></div><div><span>Entretiens planifiés</span><b>${statusCount("Entretien planifié")}</b></div><div><span>Décision Commandement</span><b>${statusCount("Entretien évalué")}</b></div><div><span>Admissions approuvées</span><b>${statusCount("Admission approuvée")}</b></div>
@@ -2465,6 +2521,7 @@ async function renderRecruitmentDesk(){
       document.querySelectorAll(".recruitment-open").forEach(b=>b.onclick=()=>openRecruitmentApplication(b.dataset.id));
     };
     $("recruitmentSearch").oninput=draw;$("recruitmentFilter").onchange=draw;draw();
+    if($("deskRecruitmentToggle")) $("deskRecruitmentToggle").onclick=async()=>{await saveRecruitmentOpenState(!recruitmentSettings.open);await renderRecruitmentDesk();};
     $("exportRecruitmentBtn").onclick=()=>csvDownload("candidatures_lspd.csv",data.map(a=>{const r=reviews.get(a.id)||{};return {numero:a.applicationNumber,nom:a.applicantName,email:a.email,ageRP:a.ageRP,disponibilite:a.availability,experience:a.policeExperience,statut:normalizedRecruitmentStage(a.status),scoreDossier:r.screeningTotal??"",scoreEntretien:r.interviewTotal??"",recommandation:r.interviewRecommendation||""};}));
     const inline=$("mdtRecruitmentInlineCount");if(inline)inline.textContent=active.length?`(${active.length})`:"";refreshRecruitmentBadge().catch(()=>{});
   }catch(err){$("mdtTabContent").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
@@ -5600,10 +5657,11 @@ function startScenario(id){
 
 async function admin(){
   if(!isChief())return;
-  const users=await getUsers();
+  const [users,recruitmentSettings]=await Promise.all([getUsers(),getRecruitmentSettings()]);
   $("content").innerHTML=`<div class="grid2">
     <div class="card admin-feature"><span class="eyebrow">SYSTEM</span><h3>Gestion système</h3><div class="row"><span>Profils</span><b>${users.length}</b></div><div class="row"><span>Authentication</span><b>Firebase Console</b></div><div class="row"><span>Rôles & unités</span><b>Onglet Officiers</b></div></div>
     <div class="card admin-feature"><span class="eyebrow">ACCOUNT PROVISIONING</span><h3>Comptes importés</h3><div class="row"><span>Total importé</span><b>${users.filter(u=>u.importedAccount).length}</b></div><div class="row"><span>Jamais activés</span><b>${users.filter(u=>u.importedAccount&&u.mustChangePassword).length}</b></div><div class="row"><span>Activés</span><b>${users.filter(u=>u.importedAccount&&!u.mustChangePassword).length}</b></div><p class="muted">Les codes provisoires des comptes à activer sont conservés dans un coffre Firestore séparé, lisible uniquement avec la permission dédiée, puis deviennent inaccessibles après activation.</p></div>
+    <div class="card admin-feature recruitment-admin-card"><span class="eyebrow">RECRUITMENT CONTROL</span><h3>Candidatures LSPD</h3><div class="recruitment-open-state ${recruitmentSettings.open?"open":"closed"}"><b>${recruitmentSettings.open?"🟢 OUVERTES":"🔒 FERMÉES"}</b><span>${recruitmentSettings.open?"Les candidats peuvent déposer un nouveau dossier.":"Aucun nouveau dossier ne peut être déposé."}</span></div><div class="admin-recruitment-actions"><button class="btn ${recruitmentSettings.open?"danger":""}" id="adminRecruitmentToggle">${recruitmentSettings.open?"Fermer les candidatures":"Ouvrir les candidatures"}</button><button class="btn secondary" id="openRecruitmentControlBtn">Gestion avancée</button></div></div>
     <div class="card admin-feature"><span class="eyebrow">ACCESS CONTROL</span><h3>Permissions</h3><p class="muted">Configure les droits de chaque rôle sans modifier app.js.</p><button class="btn" id="openPermissionsBtn">🔐 Permissions</button></div>
     <div class="card admin-feature"><span class="eyebrow">NAVIGATION</span><h3>Menus par grade</h3><p class="muted">Affiche ou masque chaque grande catégorie du menu selon le grade exact de l'officier.</p><button class="btn" id="openNavigationAdminBtn">🧭 Configurer les menus</button></div>
     <div class="card admin-feature"><span class="eyebrow">OPERATIONS</span><h3>CAD & Watch</h3><p class="muted">Unités live, BOLO et Watch Commander sont intégrés au Command Center.</p></div>
@@ -5611,6 +5669,15 @@ async function admin(){
   </div>`;
   $("openPermissionsBtn").onclick=()=>render("permissionsAdmin");
   $("openNavigationAdminBtn").onclick=()=>render("navigationAdmin");
+  $("openRecruitmentControlBtn").onclick=()=>render("recruitmentControl");
+  $("adminRecruitmentToggle").onclick=async()=>{await saveRecruitmentOpenState(!recruitmentSettings.open);await admin();};
+}
+
+async function recruitmentControl(){
+  if(!hasPerm("recruitment_settings_manage"))return;
+  const settings=await getRecruitmentSettings();
+  $("content").innerHTML=`<div class="card recruitment-control-panel"><div class="recruitment-control-hero"><div><span class="eyebrow">BUREAU DU RECRUTEMENT</span><h2>Ouverture des candidatures</h2><p>Ce contrôle agit immédiatement sur le portail public et sur les règles Firestore.</p></div><div class="recruitment-open-state large ${settings.open?"open":"closed"}"><b>${settings.open?"🟢 CANDIDATURES OUVERTES":"🔒 CANDIDATURES FERMÉES"}</b><span>${settings.open?"Les nouveaux candidats peuvent créer leur dossier.":"Les nouveaux dépôts sont bloqués."}</span></div></div><div class="recruitment-control-actions"><button class="btn ${settings.open?"danger":""}" id="recruitmentMainToggle">${settings.open?"🔒 Fermer les candidatures":"🟢 Ouvrir les candidatures"}</button></div><div class="security-note"><b>Permission dédiée</b><span>Le droit <code>recruitment_settings_manage</code> peut être accordé depuis Permissions à Captain, Lieutenant ou tout autre rôle. La visibilité du groupe Commandement & administration reste également soumise à Menus par grade.</span></div>${settings.updatedByName?`<p class="muted recruitment-last-update">Dernière modification : ${esc(settings.updatedByName)} • ${formatDate(settings.updatedAt)}</p>`:""}</div>`;
+  $("recruitmentMainToggle").onclick=async()=>{await saveRecruitmentOpenState(!settings.open);await recruitmentControl();};
 }
 
 async function navigationAdmin(){
@@ -5722,6 +5789,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   $("signupForm")?.addEventListener("submit",handleSignup);
   $("applicationForm")?.addEventListener("submit",handleRecruitmentApplication);
   initRecruitmentPublicWizard();
+  startPublicRecruitmentAvailabilityWatch();
   $("showLoginBtn")?.addEventListener("click",()=>toggleAuthMode("login"));
   $("showSignupBtn")?.addEventListener("click",()=>toggleAuthMode("signup"));
   $("showApplicationBtn")?.addEventListener("click",()=>toggleAuthMode("apply"));

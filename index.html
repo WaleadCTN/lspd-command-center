@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=17.11.1">
+  <link rel="stylesheet" href="style.css?v=17.11.3">
 </head>
 <body>
 
@@ -19,10 +19,13 @@
     <div class="eyebrow">LOS SANTOS POLICE DEPARTMENT</div>
     <h1>Command Center</h1>
     <p class="muted">Training • Personnel • Operations • Communication</p>
-    <div class="auth-tabs auth-tabs-three">
+    <div class="auth-tabs">
       <button id="showLoginBtn" class="auth-tab active" type="button">Connexion</button>
-      <button id="showSignupBtn" class="auth-tab" type="button">Créer un compte</button>
       <button id="showApplicationBtn" class="auth-tab" type="button">Postuler au LSPD</button>
+    </div>
+    <div id="recruitmentClosedNotice" class="recruitment-closed-notice hidden">
+      <b>🔒 Candidatures LSPD fermées</b>
+      <span>Le Bureau du recrutement n’accepte actuellement aucun nouveau dossier.</span>
     </div>
 
     <form id="loginForm">
@@ -32,15 +35,7 @@
       <p id="loginError" class="error"></p>
     </form>
 
-    <form id="signupForm" class="hidden">
-      <label class="field"><span>Nom RP</span><input id="signupName" required maxlength="60" placeholder="Ex. John Smith"></label>
-      <label class="field"><span>Adresse e-mail</span><input id="signupEmail" type="email" required autocomplete="email"></label>
-      <label class="field"><span>Mot de passe</span><input id="signupPassword" type="password" required minlength="6" autocomplete="new-password"></label>
-      <label class="field"><span>Confirmer le mot de passe</span><input id="signupPassword2" type="password" required minlength="6" autocomplete="new-password"></label>
-      <button class="btn full" type="submit">Créer ma demande d'inscription</button>
-      <p class="muted signup-note">Le compte Firebase est créé automatiquement. L'accès LSPD reste bloqué jusqu'à validation par le Chief.</p>
-      <p id="signupError" class="error"></p>
-    </form>
+
 
 
     <form id="applicationForm" class="hidden recruitment-public-form recruitment-official-form">
@@ -61,7 +56,7 @@
         <div class="recruitment-public-grid">
           <label class="field"><span>Nom et prénom RP</span><input id="applicationName" required maxlength="60" placeholder="Ex. John Smith"></label>
           <label class="field"><span>Âge RP</span><input id="applicationAge" type="number" min="18" max="80" required placeholder="24"></label>
-          <label class="field"><span>Adresse e-mail</span><input id="applicationEmail" type="email" required autocomplete="email"></label>
+          <label class="field"><span>Adresse e-mail LSPD générée automatiquement</span><input id="applicationEmail" class="generated-email-input" type="email" required readonly tabindex="-1" placeholder="prenom.nom@catena.ma"><small class="field-help">Générée à partir du nom RP. Elle servira d’identifiant de connexion.</small></label>
           <label class="field"><span>Téléphone RP</span><input id="applicationPhone" maxlength="30" required placeholder="Ex. 555-0123"></label>
           <label class="field"><span>Discord / contact</span><input id="applicationDiscord" maxlength="60" placeholder="Optionnel"></label>
           <label class="field"><span>Permis de conduire RP</span><select id="applicationDriving" required><option value="Oui">Oui</option><option value="Non">Non</option></select></label>
@@ -240,6 +235,7 @@
           <span class="nav-group-chevron">⌄</span>
         </button>
         <div class="nav-group-items">
+        <button data-page="recruitmentControl"><span class="nav-icon">🟢</span><span class="nav-label">Ouverture recrutements</span> </button>
         <button data-page="registrations"><span class="nav-icon">🪪</span><span class="nav-label">Inscriptions</span> <span id="registrationCount" class="nav-badge hidden"></span></button>
         <button data-page="stats"><span class="nav-icon">📈</span><span class="nav-label">Statistiques</span> </button>
         <button data-page="admin"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span> </button>
@@ -296,6 +292,6 @@
 
 <div id="mailOverlayRoot" class="mail-overlay-root"></div>
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-<script type="module" src="app.js?v=17.11.1"></script>
+<script type="module" src="app.js?v=17.11.3"></script>
 </body>
 </html>

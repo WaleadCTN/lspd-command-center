@@ -1,3 +1,21 @@
+LSPD COMMAND CENTER — PHASE 17.11.3
+RECRUITMENT OPEN/CLOSE + AUTO @CATENA.MA EMAIL
+
+NOUVEAUTES
+- L'onglet public « Créer un compte » est retiré.
+- Le candidat saisit son Nom RP : son identifiant prenom.nom@catena.ma est généré automatiquement et en lecture seule.
+- Nouveau contrôle public des candidatures : OUVERTES / FERMEES.
+- Chief : contrôle directement depuis Admin.
+- Permission dédiée recruitment_settings_manage, configurable dans Permissions.
+- Les rôles autorisés disposent aussi de la page « Ouverture recrutements » et du contrôle depuis le Bureau du recrutement.
+- La fermeture est protégée dans Firestore : un dépôt est refusé même si l'interface est contournée.
+- Le bouton Postuler disparaît en temps réel lorsque les candidatures sont fermées.
+
+INSTALLATION
+1. Remplacer index.html, app.js et style.css sur GitHub.
+2. Conserver le dossier assets/ (logo LSPD).
+3. IMPORTANT : publier le nouveau firestore.rules dans Firebase Console.
+
 LSPD COMMAND CENTER — PHASE 17.11.1 — OFFICER FILTERS & PROVISIONAL CODES
 
 NOUVEAUTÉS 17.11.1
