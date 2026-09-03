@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.11.9 RECRUITMENT WORKFLOW PERMISSION FIX — based on Phase 17.11.8
+// LSPD Command Center — Phase 17.11.10 RECRUITMENT CHIEF BYPASS FIX — based on Phase 17.11.9
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -2840,7 +2840,11 @@ async function openRecruitmentHireForm(id){
       const grade=$("hireGrade").value,division=$("hireDivision").value;
       if(!a.applicantId)throw new Error("Dossier candidat invalide : UID Firebase absent.");
       const userRef=doc(db,"users",a.applicantId),applicationRef=doc(db,"lspd_applications",id),reviewRef=doc(db,"lspd_recruitment_reviews",id);
-      const [candidateSnap,reviewSnap]=await Promise.all([getDoc(userRef),getDoc(reviewRef)]);
+      let candidateSnap,reviewSnap;
+      try{ candidateSnap=await getDoc(userRef); }
+      catch(readErr){ const e=new Error("Lecture du profil candidat refusée par Firestore."); e.code=readErr?.code||"permission-denied"; e.stage="candidate-read"; throw e; }
+      try{ reviewSnap=await getDoc(reviewRef); }
+      catch(readErr){ const e=new Error("Lecture de la review interne refusée par Firestore."); e.code=readErr?.code||"permission-denied"; e.stage="review-read"; throw e; }
       if(!candidateSnap.exists())throw new Error("Profil Firebase/Firestore du candidat introuvable. Vérifie que son compte existe encore dans Authentication et users.");
       const candidate=candidateSnap.data();
       const candidateLike=candidate.role==="Applicant"||candidate.grade==="Candidat"||candidate.recruitmentApplicant===true||candidate.division==="Recruitment";
@@ -2854,18 +2858,23 @@ async function openRecruitmentHireForm(id){
       const reviewPatch={incorporationNote:$("hireNote").value.trim(),incorporatedById:window.LSPD.user.uid,incorporatedByName:window.LSPD.profile.name,incorporatedAt:now,updatedAt:now};
       if(reviewSnap.exists())batch.update(reviewRef,reviewPatch);
       else batch.set(reviewRef,{applicationId:id,...reviewPatch,createdAt:now});
-      const auditRef=doc(collection(db,"audit_logs"));
-      batch.set(auditRef,{actorId:window.LSPD.user.uid,actorName:window.LSPD.profile.name,action:"LSPD_RECRUITMENT",targetId:a.applicantId,details:`${a.applicantName} — ${badge} — ${grade}`,createdAt:now});
-      await batch.commit();
+      try{ await batch.commit(); }
+      catch(commitErr){ const e=new Error("Le commit atomique profil + candidature + review a été refusé par Firestore."); e.code=commitErr?.code||"permission-denied"; e.stage="incorporation-commit"; throw e; }
+      // Audit is intentionally best-effort and outside the atomic admission transaction:
+      // a logging permission must never roll back a valid incorporation.
+      try{
+        await addDoc(collection(db,"audit_logs"),{actorId:window.LSPD.user.uid,actorName:window.LSPD.profile.name,action:"LSPD_RECRUITMENT",targetId:a.applicantId,details:`${a.applicantName} — ${badge} — ${grade}`,createdAt:serverTimestamp()});
+      }catch(auditErr){ console.warn("LSPD recruitment audit log skipped",auditErr); }
       document.querySelector(".modal")?.remove();
       showToast("Incorporation finalisée.","success");
       await renderRecruitmentDesk();
     }catch(err){
       console.error("LSPD recruitment incorporation failed",err);
-      const code=err?.code||"";
-      errorBox.textContent=code==="permission-denied"
-        ? "Erreur Firebase : permission-denied. L'incorporation a été annulée entièrement. Vérifie que le firestore.rules de la Phase 17.11.8 est bien publié dans Firebase Console → Firestore Database → Règles. Si c'est déjà fait, recharge avec Ctrl+F5 puis réessaie."
-        : "Erreur : "+(code||err?.message||String(err));
+      const code=err?.code||"",stage=err?.stage||"unknown";
+      const stageLabel=stage==="candidate-read"?"lecture du profil candidat":stage==="review-read"?"lecture de la review interne":stage==="incorporation-commit"?"commit profil + candidature + review":"étape inconnue";
+      errorBox.textContent=(code==="permission-denied"||code==="firestore/permission-denied")
+        ? `Erreur Firebase : permission-denied pendant ${stageLabel}. L'incorporation a été annulée. Publie le firestore.rules de la Phase 17.11.10 puis recharge avec Ctrl+F5.`
+        : "Erreur : "+(err?.message||code||String(err));
       submitBtn.disabled=false;
       submitBtn.textContent="Créer le profil LSPD actif";
     }

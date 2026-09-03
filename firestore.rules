@@ -44,7 +44,17 @@ service cloud.firestore {
 
     // Permissions are resolved by canonical grade. Roles remain technical labels only
     // (Visitor / Applicant / FTO display) and never grant command permissions.
-    function isChief() { return isInternal() && myPermissionGrade() == "Chief of Police"; }
+    function isChief() {
+      // Emergency-safe Chief bypass. Permissions remain grade-based; the role check is
+      // only a legacy recovery path for old Chief profiles created before rank cleanup.
+      return hasSiteAccess()
+        && myStatus() != "Inactif"
+        && myStatus() != "Suspendu"
+        && (
+          ["Chief of Police","Chief"].hasAny([myPermissionGrade()])
+          || (myRole() == "Chief" && ["Actif","En formation"].hasAny([myStatus()]))
+        );
+    }
 
     function isLieutenantPlus() { return isInternal() && ["Lieutenant","Commander","Captain","Deputy Chief of Police","Assistant Chief","Chief of Police","Commissioner"].hasAny([myPermissionGrade()]); }
     function canManageFtoAssignments() { return isChief() || (isLieutenantPlus() && hasPerm("fto_assignments_manage")); }
@@ -187,11 +197,11 @@ service cloud.firestore {
       );
 
       // First activation is self-service and independent from grade/menu permissions.
-      allow update: if (
+      allow update: if isChief() || (
         signedIn() && request.auth.uid == userId && resource.data.mustChangePassword == true
         && request.resource.data.mustChangePassword == false
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["mustChangePassword","passwordChangedAt","updatedAt"])
-      ) || isChief() || (
+      ) || (
         hasPerm("registrations_approve") && resource.data.status in ["En attente","Refusé"]
         && request.resource.data.status == "Actif"
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["badge","grade","role","division","status","approvedById","approvedByName","approvedAt","updatedAt"])
@@ -392,7 +402,7 @@ service cloud.firestore {
 
     match /audit_logs/{id} {
       allow read: if hasPerm("audit");
-      allow create: if isInternal() && request.resource.data.actorId == request.auth.uid;
+      allow create: if isChief() || (isInternal() && request.resource.data.actorId == request.auth.uid);
       allow update, delete: if false;
     }
 
@@ -532,10 +542,11 @@ service cloud.firestore {
       // are stored separately in lspd_recruitment_reviews and are never applicant-readable.
       allow read: if signedIn() && (
         resource.data.applicantId == request.auth.uid
+        || isChief()
         || canReadRecruitment()
       );
 
-      allow update: if (
+      allow update: if isChief() || (
         signedIn()
         && resource.data.applicantId == request.auth.uid
         && resource.data.status in ["Dossier reçu","En étude","Pré-sélectionné","À convoquer"]
@@ -577,27 +588,29 @@ service cloud.firestore {
     }
 
     match /lspd_recruitment_reviews/{id} {
-      allow read: if canReadRecruitment();
+      allow read: if isChief() || canReadRecruitment();
 
-      allow create: if request.resource.data.applicationId == id && (
-        (hasPerm("recruitment_screening") && request.resource.data.keys().hasOnly([
-          "applicationId","screeningScores","screeningCriteria","screeningTotal","screeningNotes","screeningOutcome",
-          "screenedById","screenedByName","screenedAt","createdAt","updatedAt"
-        ])) ||
-        (hasPerm("recruitment_interview_evaluate") && request.resource.data.keys().hasOnly([
-          "applicationId","interviewQuestions","interviewNotes","interviewScores","interviewCriteria","interviewTotal",
-          "interviewStrengths","interviewConcerns","interviewSummary","interviewRecommendation",
-          "interviewedById","interviewedByName","interviewCompletedAt","createdAt","updatedAt"
-        ])) ||
-        (hasPerm("recruitment_command_decision") && request.resource.data.keys().hasOnly([
-          "applicationId","commandDecision","commandDecisionNotes","commandById","commandByName","commandDecisionAt","createdAt","updatedAt"
-        ])) ||
-        ((isChief() || hasPerm("recruitment_incorporate")) && request.resource.data.keys().hasOnly([
-          "applicationId","incorporationNote","incorporatedById","incorporatedByName","incorporatedAt","createdAt","updatedAt"
-        ]))
+      allow create: if isChief() || (
+        request.resource.data.applicationId == id && (
+          (hasPerm("recruitment_screening") && request.resource.data.keys().hasOnly([
+            "applicationId","screeningScores","screeningCriteria","screeningTotal","screeningNotes","screeningOutcome",
+            "screenedById","screenedByName","screenedAt","createdAt","updatedAt"
+          ])) ||
+          (hasPerm("recruitment_interview_evaluate") && request.resource.data.keys().hasOnly([
+            "applicationId","interviewQuestions","interviewNotes","interviewScores","interviewCriteria","interviewTotal",
+            "interviewStrengths","interviewConcerns","interviewSummary","interviewRecommendation",
+            "interviewedById","interviewedByName","interviewCompletedAt","createdAt","updatedAt"
+          ])) ||
+          (hasPerm("recruitment_command_decision") && request.resource.data.keys().hasOnly([
+            "applicationId","commandDecision","commandDecisionNotes","commandById","commandByName","commandDecisionAt","createdAt","updatedAt"
+          ])) ||
+          (hasPerm("recruitment_incorporate") && request.resource.data.keys().hasOnly([
+            "applicationId","incorporationNote","incorporatedById","incorporatedByName","incorporatedAt","createdAt","updatedAt"
+          ]))
+        )
       );
 
-      allow update: if (
+      allow update: if isChief() || (
         hasPerm("recruitment_screening")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "screeningScores","screeningCriteria","screeningTotal","screeningNotes","screeningOutcome",
@@ -616,7 +629,7 @@ service cloud.firestore {
           "commandDecision","commandDecisionNotes","commandById","commandByName","commandDecisionAt","updatedAt"
         ])
       ) || (
-        (isChief() || hasPerm("recruitment_incorporate"))
+        hasPerm("recruitment_incorporate")
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "incorporationNote","incorporatedById","incorporatedByName","incorporatedAt","updatedAt"
         ])

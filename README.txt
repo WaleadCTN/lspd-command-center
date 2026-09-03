@@ -1,3 +1,13 @@
+PHASE 17.11.10 — RECRUITMENT CHIEF BYPASS FIX
+
+- Bypass Chief renforcé dans les règles Firestore (grade canonique + récupération legacy Chief).
+- Bypass Chief explicite sur candidatures et reviews internes.
+- Audit sorti de la transaction d’incorporation : un problème de log ne peut plus annuler une admission.
+- Diagnostic précis : lecture profil / lecture review / commit incorporation.
+- Message de version corrigé.
+
+IMPORTANT : publier firestore.rules manuellement dans Firebase Console.
+
 PHASE 17.11.9 — RECRUITMENT WORKFLOW PERMISSION FIX
 
 CAUSE EXACTE DU BUG DE PRÉSÉLECTION
