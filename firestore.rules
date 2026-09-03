@@ -87,6 +87,16 @@ service cloud.firestore {
     function canReadRecruitment() {
       return hasPerm("recruitment_view") || hasPerm("recruitment_screening") || hasPerm("recruitment_interview_schedule") || hasPerm("recruitment_interview_evaluate") || hasPerm("recruitment_command_decision") || hasPerm("recruitment_incorporate");
     }
+    // An older incorporation attempt could have converted users/{uid} to Officer/Actif
+    // before a later recruitment write failed. The application document uses the same UID,
+    // so this helper safely recognizes that recoverable state without allowing arbitrary
+    // personnel edits to users that do not belong to an approved recruitment dossier.
+    function incorporationApplicationReady(userId) {
+      let appRef = /databases/$(database)/documents/lspd_applications/$(userId);
+      return exists(appRef)
+        && get(appRef).data.applicantId == userId
+        && ["Admission approuvée","Entretien réussi","Recruté"].hasAny([get(appRef).data.status]);
+    }
     function canReadMdtCases() { return hasPerm("mdt_manage") || hasPerm("mdt_case_create") || hasPerm("mdt_case_close"); }
     function directoryAccess() {
       return isChief() || hasPerm("personnel_view") || hasPerm("personnel_manage") || hasPerm("personnel_grade_manage") || hasPerm("personnel_status_manage") || hasPerm("personnel_create") || hasPerm("personnel_delete")
@@ -190,7 +200,13 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","rejectedById","rejectedByName","rejectedAt","updatedAt"])
       ) || (
         (isChief() || hasPerm("recruitment_incorporate"))
-        && (resource.data.role == "Applicant" || resource.data.grade == "Candidat" || resource.data.recruitmentApplicant == true || resource.data.division == "Recruitment")
+        && (
+          resource.data.role == "Applicant"
+          || resource.data.grade == "Candidat"
+          || resource.data.recruitmentApplicant == true
+          || resource.data.division == "Recruitment"
+          || incorporationApplicationReady(userId)
+        )
         && request.resource.data.role == "Officer"
         && request.resource.data.status == "Actif"
         && request.resource.data.recruitmentApplicant == false

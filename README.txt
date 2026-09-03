@@ -1,3 +1,11 @@
+PHASE 17.11.8 — INCORPORATION REPAIR FIX
+
+Correction ciblée du permission-denied lors de l'incorporation finale.
+- Autorise la reprise sécurisée d'un candidat dont users/{uid} a déjà été partiellement converti en Officer/Actif par une ancienne tentative.
+- La réparation n'est autorisée que si lspd_applications/{uid} appartient au même candidat et est Admission approuvée / Entretien réussi / Recruté.
+- Le flux reste atomique.
+- Publier firestore.rules manuellement dans Firebase Console est obligatoire.
+
 LSPD COMMAND CENTER — PHASE 17.11.6 FINAL
 Permissions Audit + FTO Assignments + Report Viewer
 

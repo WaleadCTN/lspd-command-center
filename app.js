@@ -2789,7 +2789,9 @@ async function openRecruitmentHireForm(id){
       if(!candidateSnap.exists())throw new Error("Profil Firebase/Firestore du candidat introuvable. Vérifie que son compte existe encore dans Authentication et users.");
       const candidate=candidateSnap.data();
       const candidateLike=candidate.role==="Applicant"||candidate.grade==="Candidat"||candidate.recruitmentApplicant===true||candidate.division==="Recruitment";
-      if(!candidateLike && candidate.status!=="Actif")throw new Error(`Le profil cible n'est plus un candidat compatible (rôle: ${candidate.role||"—"}, grade: ${candidate.grade||"—"}, statut: ${candidate.status||"—"}).`);
+      const partiallyIncorporated=!candidateLike&&candidate.role==="Officer"&&candidate.status==="Actif";
+      if(!candidateLike&&!partiallyIncorporated)throw new Error(`Le profil cible n'est plus un candidat compatible (rôle: ${candidate.role||"—"}, grade: ${candidate.grade||"—"}, statut: ${candidate.status||"—"}).`);
+      if(partiallyIncorporated)console.info("LSPD recruitment: repairing a partially incorporated candidate",a.applicantId);
 
       const batch=writeBatch(db),now=serverTimestamp();
       batch.update(userRef,{badge,grade,role:"Officer",status:"Actif",division,recruitmentApplicant:false,recruitedAt:now,recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,updatedAt:now});
@@ -2807,7 +2809,7 @@ async function openRecruitmentHireForm(id){
       console.error("LSPD recruitment incorporation failed",err);
       const code=err?.code||"";
       errorBox.textContent=code==="permission-denied"
-        ? "Erreur Firebase : permission-denied. L'incorporation a été annulée entièrement. Publie le firestore.rules de la Phase 17.11.7 dans Firebase Console → Firestore Database → Règles, puis réessaie."
+        ? "Erreur Firebase : permission-denied. L'incorporation a été annulée entièrement. Vérifie que le firestore.rules de la Phase 17.11.8 est bien publié dans Firebase Console → Firestore Database → Règles. Si c'est déjà fait, recharge avec Ctrl+F5 puis réessaie."
         : "Erreur : "+(code||err?.message||String(err));
       submitBtn.disabled=false;
       submitBtn.textContent="Créer le profil LSPD actif";
