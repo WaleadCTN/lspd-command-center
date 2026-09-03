@@ -1059,7 +1059,12 @@ async function handleImportedPasswordChange(e){
     showToast("Mot de passe enregistré.","success");
     await loadProfile(auth.currentUser);
   }catch(err){
-    if(error)error.textContent=err.code==="auth/requires-recent-login"?"Reconnecte-toi avec le mot de passe provisoire puis réessaie.":"Erreur : "+(err.code||err.message);
+    console.error("Imported account activation failed",err);
+    if(error){
+      if(err.code==="auth/requires-recent-login") error.textContent="Reconnecte-toi puis réessaie.";
+      else if(err.code==="permission-denied" || err.code==="firestore/permission-denied") error.textContent="Le mot de passe Firebase a pu être modifié, mais l’activation du profil a été refusée par Firestore. Publie les règles 17.11.5 puis reconnecte-toi avec le NOUVEAU mot de passe et valide à nouveau.";
+      else error.textContent="Erreur : "+(err.code||err.message);
+    }
   }
 }
 

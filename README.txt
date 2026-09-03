@@ -1343,3 +1343,10 @@ PHASE 17.11.4 — PERMISSIONS PAR GRADE & GRADES NETTOYÉS
 - Menus par grade migrés/canonicalisés pour éviter les doublons.
 - Chief of Police conserve tous les droits.
 - Publier firestore.rules après déploiement.
+
+
+=== PHASE 17.11.5 — PERMISSION DENIED FIX ===
+- Corrige l'activation des comptes provisoires : l'utilisateur connecté peut finaliser son propre compte sans dépendre des permissions/grades.
+- Corrige Command Decision : personnel_manage peut lire le dossier recrutement interne nécessaire et enregistrer la décision finale, même sans mdt_manage.
+- IMPORTANT : publier firestore.rules 17.11.5 dans Firebase Console.
+- Si un utilisateur a déjà vu Permission denied après avoir choisi son nouveau mot de passe, Firebase Auth a pu enregistrer le nouveau mot de passe. Il doit se reconnecter avec CE NOUVEAU mot de passe puis refaire la validation après publication des règles.

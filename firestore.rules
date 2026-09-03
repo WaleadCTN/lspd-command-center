@@ -180,9 +180,19 @@ service cloud.firestore {
         )
       );
 
-      // Personnel managers may edit officer data but cannot change roles.
-      // Chief remains the only role that can alter the role field itself.
-      allow update: if isChief() || (
+      // First activation is a self-service operation and must not depend on
+      // grade, role, menu visibility or personnel permissions. The signed-in
+      // user may ONLY clear mustChangePassword and stamp the activation time.
+      allow update: if (
+        signedIn()
+        && request.auth.uid == userId
+        && resource.data.mustChangePassword == true
+        && request.resource.data.mustChangePassword == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "mustChangePassword","passwordChangedAt","updatedAt"
+        ])
+      ) || isChief() || (
+        // Personnel managers may edit officer data but cannot change roles.
         hasPerm("personnel_manage")
         && request.resource.data.role == resource.data.role
       ) || (
@@ -195,15 +205,6 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "badge","grade","role","status","division","recruitmentApplicant",
           "recruitedAt","recruitedById","recruitedByName","updatedAt"
-        ])
-      ) || (
-        signedIn()
-        && request.auth.uid == userId
-        && resource.data.importedAccount == true
-        && resource.data.mustChangePassword == true
-        && request.resource.data.mustChangePassword == false
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          "mustChangePassword","passwordChangedAt","updatedAt"
         ])
       );
 
@@ -498,7 +499,9 @@ service cloud.firestore {
       // Applicant can read their public application document. Internal notes/scores
       // are stored separately in lspd_recruitment_reviews and are never applicant-readable.
       allow read: if signedIn() && (
-        resource.data.applicantId == request.auth.uid || hasPerm("mdt_manage")
+        resource.data.applicantId == request.auth.uid
+        || hasPerm("mdt_manage")
+        || hasPerm("personnel_manage")
       );
 
       allow update: if (
@@ -508,6 +511,16 @@ service cloud.firestore {
         && request.resource.data.status == "Retirée"
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","withdrawnAt","updatedAt"
+        ])
+      ) || (
+        // Final Command decision is a personnel-management action. It must
+        // remain possible even when the decision maker does not have general
+        // MDT management enabled for their grade.
+        hasPerm("personnel_manage")
+        && request.resource.data.status in ["Admission approuvée","Refusé"]
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","publicMessage","publicDecisionMessage",
+          "decisionById","decisionByName","decisionAt","updatedAt"
         ])
       ) || (
         hasPerm("mdt_manage")
@@ -525,9 +538,19 @@ service cloud.firestore {
 
     match /lspd_recruitment_reviews/{id} {
       // Internal recruitment file. Applicants and Visitors never have access.
-      allow read: if hasPerm("mdt_manage");
-      allow create: if hasPerm("mdt_manage")
-        && request.resource.data.applicationId == id;
+      // Command personnel can read the review needed to render a final decision.
+      allow read: if hasPerm("mdt_manage") || hasPerm("personnel_manage");
+      allow create: if (
+        hasPerm("mdt_manage")
+        && request.resource.data.applicationId == id
+      ) || (
+        hasPerm("personnel_manage")
+        && request.resource.data.applicationId == id
+        && request.resource.data.keys().hasOnly([
+          "applicationId","commandDecision","commandDecisionNotes","commandById","commandByName",
+          "commandDecisionAt","createdAt","updatedAt"
+        ])
+      );
 
       allow update: if (
         hasPerm("mdt_manage")
