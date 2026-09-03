@@ -10,17 +10,50 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "En attente"
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "Refusé"
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "Archivé";
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "Archivé"
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != "Suspendu";
     }
 
     function myProfile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
     function myRole() { return signedIn() ? myProfile().data.role : null; }
+    function myStatus() { return signedIn() ? myProfile().data.status : null; }
+    function myGrade() { return signedIn() ? myProfile().data.grade : null; }
     function isVisitor() { return hasSiteAccess() && myRole() == "Visiteur"; }
     function isApplicant() { return hasSiteAccess() && myRole() == "Applicant"; }
-    function isInternal() { return hasSiteAccess() && myRole() != "Visiteur" && myRole() != "Applicant"; }
+    function isInactive() { return hasSiteAccess() && myStatus() == "Inactif" && myRole() != "Visiteur" && myRole() != "Applicant"; }
+    function isInternal() { return hasSiteAccess() && myRole() != "Visiteur" && myRole() != "Applicant" && myStatus() != "Inactif"; }
+
+    function navAllowed(group) {
+      let navRef = /databases/$(database)/documents/settings/navigation_visibility;
+      return isInternal() && (
+        myRole() == "Chief" ||
+        !exists(navRef) ||
+        !get(navRef).data.keys().hasAny(["groups"]) ||
+        !get(navRef).data.groups.keys().hasAny([group]) ||
+        get(navRef).data.groups[group].hasAny([myGrade()])
+      );
+    }
+
+    function permissionCategoryAllowed(permission) {
+      let communicationPerms = ["incident_review","announcements_manage"];
+      let trainingPerms = ["fto_tools","fto_assignments_view","fto_assignments_manage","training_manage","academy_manage","academy_content_manage","academy_final_review"];
+      let personnelPerms = ["personnel_view","personnel_manage","certifications_view","certifications_manage","records_view","records_manage","leave_review","division_review","promotions_view","promotions_manage"];
+      let operationsPerms = ["shifts_view","shifts_manage","duty_board","mdt_manage","cad_manage","bolo_manage","watch_manage"];
+      let adminPerms = ["analytics","audit","registrations_manage"];
+      return (communicationPerms.hasAny([permission]) && navAllowed("communication"))
+        || (trainingPerms.hasAny([permission]) && navAllowed("training"))
+        || (personnelPerms.hasAny([permission]) && navAllowed("personnel"))
+        || (operationsPerms.hasAny([permission]) && navAllowed("operations"))
+        || (adminPerms.hasAny([permission]) && navAllowed("administration"))
+        || (!communicationPerms.hasAny([permission])
+          && !trainingPerms.hasAny([permission])
+          && !personnelPerms.hasAny([permission])
+          && !operationsPerms.hasAny([permission])
+          && !adminPerms.hasAny([permission]));
+    }
 
     function isFTO() {
-      return hasSiteAccess() && (
+      return isInternal() && (
         myRole() == "FTO" || myRole() == "Sergeant" || myRole() == "Lieutenant" ||
         myRole() == "Captain" || myRole() == "Deputy Chief" ||
         myRole() == "Assistant Chief" || myRole() == "Chief"
@@ -28,17 +61,17 @@ service cloud.firestore {
     }
 
     function isCommand() {
-      return hasSiteAccess() && (
+      return isInternal() && (
         myRole() == "Sergeant" || myRole() == "Lieutenant" ||
         myRole() == "Captain" || myRole() == "Deputy Chief" ||
         myRole() == "Assistant Chief" || myRole() == "Chief"
       );
     }
 
-    function isChief() { return hasSiteAccess() && myRole() == "Chief"; }
+    function isChief() { return isInternal() && myRole() == "Chief"; }
 
     function isSeniorCommand() {
-      return hasSiteAccess() && (
+      return isInternal() && (
         myRole() == "Lieutenant" || myRole() == "Captain" ||
         myRole() == "Deputy Chief" || myRole() == "Assistant Chief" ||
         myRole() == "Chief"
@@ -70,7 +103,7 @@ service cloud.firestore {
     }
 
     function hasPerm(permission) {
-      return isInternal() && (
+      return isInternal() && permissionCategoryAllowed(permission) && (
         isChief()
         || (
           exists(/databases/$(database)/documents/settings/permissions)
@@ -85,31 +118,55 @@ service cloud.firestore {
         request.auth.uid == userId ||
         hasPerm("personnel_view") ||
         hasPerm("fto_tools") ||
-        (isInternal() && resource.data.role != "Visiteur")
+        (isInternal() && resource.data.role != "Visiteur" && (navAllowed("communication") || navAllowed("training") || navAllowed("personnel") || navAllowed("operations") || navAllowed("administration")))
       );
 
-      allow create: if signedIn()
-        && request.auth.uid == userId
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 3
-        && request.resource.data.name.size() <= 60
-        && request.resource.data.badge == "—"
-        && request.resource.data.selfRegistered == true
-        && request.resource.data.registeredEmail == request.auth.token.email
-        && (
-          (
-            request.resource.data.grade == "PO1"
-            && request.resource.data.role == "Officer"
-            && request.resource.data.status == "En attente"
-            && request.resource.data.division == "Patrol"
-          ) || (
-            request.resource.data.grade == "Candidat"
-            && request.resource.data.role == "Applicant"
-            && request.resource.data.status == "Candidature"
-            && request.resource.data.division == "Recruitment"
-            && request.resource.data.recruitmentApplicant == true
+      allow create: if signedIn() && (
+        (
+          request.auth.uid == userId
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 3
+          && request.resource.data.name.size() <= 60
+          && request.resource.data.badge == "—"
+          && request.resource.data.registeredEmail == request.auth.token.email
+          && (
+            (
+              request.resource.data.selfRegistered == true
+              && request.resource.data.grade == "PO1"
+              && request.resource.data.role == "Officer"
+              && request.resource.data.status == "En attente"
+              && request.resource.data.division == "Patrol"
+            ) || (
+              request.resource.data.selfRegistered == true
+              && request.resource.data.grade == "Candidat"
+              && request.resource.data.role == "Applicant"
+              && request.resource.data.status == "Candidature"
+              && request.resource.data.division == "Recruitment"
+              && request.resource.data.recruitmentApplicant == true
+            )
           )
-        );
+        ) || (
+          // Chief provisioning: Authentication UID is created by a secondary
+          // Firebase Auth instance in the browser, then the Chief creates the
+          // corresponding LSPD profile without ever typing an UID.
+          isChief()
+          && request.auth.uid != userId
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 3
+          && request.resource.data.name.size() <= 60
+          && request.resource.data.registeredEmail is string
+          && request.resource.data.badge == "—"
+          && request.resource.data.grade == "Rookie"
+          && request.resource.data.role == "Officer"
+          && request.resource.data.status == "En formation"
+          && request.resource.data.division == "Patrol"
+          && request.resource.data.importedAccount == true
+          && request.resource.data.mustChangePassword == true
+          && request.resource.data.chiefProvisioned == true
+          && request.resource.data.selfRegistered == false
+          && request.resource.data.provisionedById == request.auth.uid
+        )
+      );
 
       // Personnel managers may edit officer data but cannot change roles.
       // Chief remains the only role that can alter the role field itself.
@@ -138,28 +195,28 @@ service cloud.firestore {
         ])
       );
 
-      allow delete: if false;
+      allow delete: if isChief() && request.auth.uid != userId;
     }
 
     match /announcements/{id} {
-      allow read: if isInternal() || (isVisitor() && resource.data.visibility == "Public");
+      allow read: if (isInternal() && navAllowed("communication")) || isInactive() || (isVisitor() && resource.data.visibility == "Public");
       allow create: if hasPerm("announcements_manage") && request.resource.data.authorId == request.auth.uid;
       allow update: if hasPerm("announcements_manage");
       allow delete: if false;
     }
 
     match /messages/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("communication") && (
         resource.data.senderId == request.auth.uid ||
         resource.data.recipientId == request.auth.uid
       );
 
-      allow create: if isInternal()
+      allow create: if navAllowed("communication")
         && request.resource.data.senderId == request.auth.uid
         && request.resource.data.recipientId is string;
 
       // The recipient may only change read state, like an email inbox.
-      allow update: if isInternal()
+      allow update: if navAllowed("communication")
         && resource.data.recipientId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "read","readAt"
@@ -169,11 +226,11 @@ service cloud.firestore {
     }
 
     match /incident_reports/{id} {
-      allow create: if isInternal()
+      allow create: if navAllowed("communication")
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.status == "En attente";
 
-      allow read: if isInternal() && (
+      allow read: if navAllowed("communication") && (
         resource.data.authorId == request.auth.uid || hasPerm("incident_review")
       );
 
@@ -185,7 +242,7 @@ service cloud.firestore {
     }
 
     match /evaluations/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.officerId == request.auth.uid ||
         resource.data.ftoId == request.auth.uid || hasPerm("personnel_view") || hasPerm("academy_manage")
       );
@@ -200,7 +257,7 @@ service cloud.firestore {
     match /fto_assignments/{id} {
       // A trainee may read only their own assignment so the Training Center
       // can show who their active FTO is. FTO/Command keep their existing access.
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.traineeId == request.auth.uid ||
         hasPerm("fto_tools") ||
         hasPerm("fto_assignments_view")
@@ -214,25 +271,25 @@ service cloud.firestore {
       // Internal certification directory is readable by all department members
       // so mail recipients can be resolved by certification.
       // Visitors remain excluded because isInternal() is false for them.
-      allow read: if isInternal();
+      allow read: if navAllowed("personnel") || navAllowed("communication") || navAllowed("training");
       allow create: if hasPerm("certifications_manage") && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /personnel_records/{id} {
-      allow read: if isInternal() && (resource.data.officerId == request.auth.uid || hasPerm("records_view"));
+      allow read: if navAllowed("personnel") && (resource.data.officerId == request.auth.uid || hasPerm("records_view"));
       allow create: if hasPerm("records_manage") && request.resource.data.issuedById == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /shifts/{id} {
-      allow read: if isInternal() && (resource.data.officerId == request.auth.uid || hasPerm("shifts_view"));
+      allow read: if navAllowed("operations") && (resource.data.officerId == request.auth.uid || hasPerm("shifts_view"));
       allow create: if hasPerm("shifts_manage") && request.resource.data.createdById == request.auth.uid;
 
       allow update: if (
         hasPerm("shifts_manage")
       ) || (
-        isInternal()
+        navAllowed("operations")
         && resource.data.officerId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "dutyStatus","checkInAt","checkOutAt"
@@ -243,14 +300,14 @@ service cloud.firestore {
     }
 
     match /leave_requests/{id} {
-      allow create: if isInternal() && request.resource.data.officerId == request.auth.uid;
-      allow read: if isInternal() && (resource.data.officerId == request.auth.uid || hasPerm("leave_review"));
+      allow create: if navAllowed("personnel") && request.resource.data.officerId == request.auth.uid;
+      allow read: if navAllowed("personnel") && (resource.data.officerId == request.auth.uid || hasPerm("leave_review"));
       allow update: if hasPerm("leave_review");
       allow delete: if false;
     }
 
     match /training_events/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("training");
       allow create: if hasPerm("training_manage") && request.resource.data.trainerId == request.auth.uid;
 
       allow update: if hasPerm("training_manage")
@@ -295,11 +352,11 @@ service cloud.firestore {
     }
 
     match /correction_requests/{id} {
-      allow create: if isInternal()
+      allow create: if navAllowed("communication")
         && request.resource.data.requestedById == request.auth.uid
         && request.resource.data.status == "En attente";
 
-      allow read: if isInternal() && (
+      allow read: if navAllowed("communication") && (
         resource.data.requestedById == request.auth.uid ||
         hasPerm("incident_review")
       );
@@ -313,7 +370,7 @@ service cloud.firestore {
     }
 
     match /amendments/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("communication");
 
       allow create: if hasPerm("incident_review")
         && request.resource.data.approvedById == request.auth.uid
@@ -324,13 +381,13 @@ service cloud.firestore {
 
 
     match /training_registrations/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.officerId == request.auth.uid ||
         hasPerm("training_manage")
       );
 
       // Self-registration OR a training manager inviting another internal member.
-      allow create: if isInternal() && (
+      allow create: if navAllowed("training") && (
         (
           request.resource.data.officerId == request.auth.uid
           && request.resource.data.status == "Inscrit"
@@ -344,7 +401,7 @@ service cloud.firestore {
 
       // The invitee can accept/decline/cancel only their own registration.
       allow update: if (
-        isInternal()
+        navAllowed("training")
         && resource.data.officerId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "status","attendanceStatus","cancelledAt","respondedAt"
@@ -360,9 +417,9 @@ service cloud.firestore {
     }
 
     match /case_files/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("operations");
 
-      allow create: if isInternal()
+      allow create: if navAllowed("operations")
         && request.resource.data.createdById == request.auth.uid
         && request.resource.data.status == "Ouvert";
 
@@ -375,11 +432,11 @@ service cloud.firestore {
     }
 
     match /division_applications/{id} {
-      allow create: if isInternal()
+      allow create: if navAllowed("personnel")
         && request.resource.data.applicantId == request.auth.uid
         && request.resource.data.status == "En attente";
 
-      allow read: if isInternal() && (
+      allow read: if navAllowed("personnel") && (
         resource.data.applicantId == request.auth.uid ||
         hasPerm("division_review")
       );
@@ -457,19 +514,19 @@ service cloud.firestore {
 
     match /settings/{settingId} {
       allow read: if isInternal();
-      allow create, update: if isChief() && settingId == "permissions";
+      allow create, update: if isChief() && settingId in ["permissions","navigation_visibility"];
       allow delete: if false;
     }
 
     match /cad_units/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("operations");
 
-      allow create: if isInternal() && (
+      allow create: if navAllowed("operations") && (
         request.resource.data.ownerId == request.auth.uid ||
         hasPerm("cad_manage")
       );
 
-      allow update: if isInternal() && (
+      allow update: if navAllowed("operations") && (
         (
           resource.data.ownerId == request.auth.uid
           && request.resource.data.ownerId == resource.data.ownerId
@@ -483,7 +540,7 @@ service cloud.firestore {
     }
 
     match /bolos/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("operations");
       allow create: if hasPerm("bolo_manage")
         && request.resource.data.createdById == request.auth.uid;
       allow update: if hasPerm("bolo_manage");
@@ -491,7 +548,7 @@ service cloud.firestore {
     }
 
     match /watch_sessions/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("operations");
       allow create: if hasPerm("watch_manage")
         && request.resource.data.startedById == request.auth.uid;
       allow update: if hasPerm("watch_manage");
@@ -500,7 +557,7 @@ service cloud.firestore {
 
 
     match /fto_sessions/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.traineeId == request.auth.uid ||
         resource.data.ftoId == request.auth.uid ||
         hasPerm("academy_manage")
@@ -515,7 +572,7 @@ service cloud.firestore {
     }
 
     match /training_objectives/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.traineeId == request.auth.uid ||
         resource.data.createdById == request.auth.uid ||
         hasPerm("academy_manage")
@@ -530,7 +587,7 @@ service cloud.firestore {
     }
 
     match /final_fto_reviews/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.traineeId == request.auth.uid ||
         hasPerm("academy_manage") ||
         hasPerm("personnel_view")
@@ -549,31 +606,31 @@ service cloud.firestore {
 
 
     match /academy_content/{moduleCode} {
-      allow read: if isInternal();
+      allow read: if navAllowed("training");
       allow create, update: if hasPerm("academy_content_manage");
       allow delete: if false;
     }
 
     match /academy_scenarios/{id} {
-      allow read: if isInternal();
+      allow read: if navAllowed("training");
       allow create, update: if hasPerm("academy_content_manage");
       allow delete: if false;
     }
 
     match /academy_quiz_attempts/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.officerId == request.auth.uid || hasPerm("academy_manage")
       );
-      allow create: if isInternal()
+      allow create: if navAllowed("training")
         && request.resource.data.officerId == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /fto_feedback/{id} {
-      allow read: if isInternal() && (
+      allow read: if navAllowed("training") && (
         resource.data.traineeId == request.auth.uid || hasPerm("academy_manage")
       );
-      allow create: if isInternal()
+      allow create: if navAllowed("training")
         && request.resource.data.traineeId == request.auth.uid;
       allow update, delete: if false;
     }

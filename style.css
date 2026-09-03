@@ -1569,3 +1569,36 @@ button.training-history-row{cursor:pointer}.training-history-row:last-child{bord
 @media(max-width:1050px){.handbook-layout{grid-template-columns:1fr}.handbook-toc{position:static;max-height:none}.handbook-toc-item small{display:none}.handbook-toc{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}.handbook-toc-title{grid-column:1/-1}.handbook-quick-actions{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:650px){.handbook-hero{align-items:flex-start;flex-direction:column}.handbook-quick-actions,.ten-code-grid,.handbook-toc{grid-template-columns:1fr}.handbook-section{padding:14px}.handbook-section-head{grid-template-columns:37px 1fr}.handbook-section-head>span{width:35px;height:35px;font-size:16px}}
 @media print{.sidebar,.topbar,.sidebar-backdrop,.handbook-quick-actions,.handbook-search,.handbook-toc,.handbook-hero-actions,.developer-credit,.side-footer{display:none!important}.app-main,.main-content,#content{margin:0!important;padding:0!important;width:100%!important}.handbook-layout{display:block}.handbook-section{break-inside:avoid;border:1px solid #ccc!important;background:#fff!important;color:#111!important;margin:0 0 12px}.handbook-section *{color:#111!important}.handbook-hero{background:#fff!important;border:1px solid #ccc!important}.ten-code-row{background:#fff!important;border-color:#ccc!important}}
+
+/* Phase 17.11 — Chief personnel & category access control */
+.auth-tabs-four{grid-template-columns:repeat(4,minmax(0,1fr));}
+.auth-tabs-four .auth-tab{font-size:.78rem;padding-inline:8px;}
+.invite-activation-form{margin-top:18px;}
+.invite-activation-head{padding:14px 16px;margin-bottom:14px;border:1px solid var(--border);border-radius:14px;background:rgba(64,132,190,.08);}
+.invite-activation-head h3{margin:4px 0 6px;}
+.invite-default-profile{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;margin:8px 0 14px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.025);}
+.invite-default-profile span{color:var(--muted);font-size:.86rem;}
+.btn.danger{background:rgba(192,48,58,.12);border-color:rgba(212,70,80,.38);color:#ffb1b8;}
+.btn.danger:hover{background:rgba(192,48,58,.22);}
+.officer-invitations-card{margin-top:18px;}
+.invite-code{font-size:.78rem;letter-spacing:.04em;white-space:nowrap;}
+.activation-success{display:grid;gap:10px;}
+.navigation-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px;}
+.navigation-admin-head h2{margin:5px 0 8px;}
+.nav-admin-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.nav-visibility-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.nav-visibility-card>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.nav-visibility-card h3{margin:4px 0 0;}
+.grade-visibility-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.grade-visibility-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:9px 10px;cursor:pointer;background:rgba(255,255,255,.02);}
+.grade-visibility-item:hover{background:rgba(255,255,255,.05);}
+.grade-visibility-item input{accent-color:#5aa7e6;}
+.grade-visibility-item span{display:flex;min-width:0;flex-direction:column;}
+.grade-visibility-item b{font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.grade-visibility-item small{color:var(--muted);font-size:.72rem;}
+.security-note{display:flex;gap:10px;margin-top:16px;align-items:flex-start;}
+.security-note span{color:var(--muted);}
+.btn.tiny{padding:6px 8px;font-size:.74rem;}
+@media(max-width:1000px){.nav-visibility-grid{grid-template-columns:1fr}.auth-tabs-four{grid-template-columns:repeat(2,1fr)}.navigation-admin-head{flex-direction:column}.grade-visibility-list{grid-template-columns:1fr}.invite-default-profile{align-items:flex-start;flex-direction:column}}
+.chief-provision-note{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;border-left:3px solid #4f87b5}.chief-provision-note span{color:var(--muted);font-size:.84rem}.uid-value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;word-break:break-all}
+@media(max-width:760px){.chief-provision-note{align-items:flex-start;flex-direction:column}}

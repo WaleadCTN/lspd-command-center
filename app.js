@@ -1,11 +1,11 @@
-// LSPD Command Center — Phase 17.10 NEWCOMER HANDBOOK — Phase 17.9 fully preserved
+// LSPD Command Center — Phase 17.11 CHIEF PERSONNEL & ACCESS CONTROL — Phase 17.10 fully preserved
 
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updatePassword, deleteUser as deleteAuthUser } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot,
-  collection, query, where, serverTimestamp
+  collection, query, where, serverTimestamp, deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -23,7 +23,7 @@ const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-window.LSPD = { auth, db, storage, user:null, profile:null, permissionConfig:null, pageCleanup:null, currentPage:"dashboard", academyOverrides:{}, customAcademyScenarios:[] };
+window.LSPD = { auth, db, storage, user:null, profile:null, permissionConfig:null, navigationConfig:null, pageCleanup:null, currentPage:"dashboard", academyOverrides:{}, customAcademyScenarios:[] };
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "")
@@ -811,7 +811,9 @@ Object.assign(I18N_EN,{
   "Ouvrir le CAD":"Open CAD",
   "Ouvrir le MDT":"Open MDT",
   "Centre Formation":"Training Center",
-  "Grades & responsabilités":"Ranks & responsibilities"
+  "Grades & responsabilités":"Ranks & responsibilities",
+  "Menus par grade":"Menus by rank",
+  "Ajouter un officier":"Add an officer"
 });
 
 const pages = {
@@ -821,14 +823,48 @@ const pages = {
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
  promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
- scenarios:"Scénarios",visitorPortal:"Portail visiteur",applicationPortal:"Ma candidature LSPD",handbook:"Handbook nouveaux arrivants",trainingCenter:"Centre Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
+ scenarios:"Scénarios",visitorPortal:"Portail visiteur",applicationPortal:"Ma candidature LSPD",handbook:"Handbook nouveaux arrivants",trainingCenter:"Centre Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",navigationAdmin:"Menus par grade",history:"Historique"
 };
+
+const NAV_GROUP_LABELS = {
+  main:"Accueil & personnel",
+  communication:"Communication & rapports",
+  training:"Formation & FTO",
+  personnel:"Personnel & carrière",
+  operations:"Opérations & MDT",
+  administration:"Commandement & administration"
+};
+const NAV_PAGE_GROUP = {
+  dashboard:"main",profile:"main",mySpace:"main",visitorPortal:"main",applicationPortal:"main",
+  announcements:"communication",messages:"communication",incidents:"communication",approvals:"communication",corrections:"communication",
+  handbook:"training",trainingCenter:"training",evaluations:"training",academyManager:"training",trainingWorkspace:"training",ftoAcademy:"training",ftoJournal:"training",ftoFinal:"training",ftoDossier:"training",trainingAnalytics:"training",trainingQuiz:"training",myTrainingFeedback:"training",modules:"training",assignments:"training",calendar:"training",trainingHub:"training",scenarios:"training",manual:"training",
+  officers:"personnel",certifications:"personnel",records:"personnel",leave:"personnel",requirements:"personnel",promotionAdvisor:"personnel",promotions:"personnel",divisionsPage:"personnel",grades:"personnel",trainees:"personnel",
+  shifts:"operations",dutyBoard:"operations",cad:"operations",watchCommand:"operations",bolos:"operations",mdt:"operations",
+  registrations:"administration",stats:"administration",admin:"administration",permissionsAdmin:"administration",navigationAdmin:"administration",history:"administration"
+};
+function navigationGradeList(){ return gradeList.filter(g=>g[0]!=="Visiteur").map(g=>g[0]); }
+function defaultNavigationConfig(){
+  const all=navigationGradeList();
+  return {groups:Object.fromEntries(Object.keys(NAV_GROUP_LABELS).map(k=>[k,[...all]])),catalogVersion:1};
+}
+function isNavGroupAllowed(group){
+  if(!group || isChief()) return true;
+  const allowed=window.LSPD.navigationConfig?.groups?.[group];
+  if(!Array.isArray(allowed)) return true;
+  return allowed.includes(window.LSPD.profile?.grade);
+}
+function isPageCategoryAllowed(page){
+  if(page==="profile") return true;
+  return isNavGroupAllowed(NAV_PAGE_GROUP[page]);
+}
 
 function role(){ return window.LSPD.profile?.role; }
 function isChief(){ return role()==="Chief"; }
 function isVisitor(){ return role()==="Visiteur"; }
 function isApplicant(){ return role()==="Applicant"; }
-function isInternal(){ return !!window.LSPD.profile && !isVisitor() && !isApplicant(); }
+function isInactive(){ return window.LSPD.profile?.status==="Inactif"; }
+function isSuspended(){ return window.LSPD.profile?.status==="Suspendu"; }
+function isInternal(){ return !!window.LSPD.profile && !isVisitor() && !isApplicant() && !isInactive() && !isSuspended(); }
 function isFTO(){ return ["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function canApproveIncidents(){ return isCommand(); }
@@ -838,7 +874,7 @@ function permissionRoles(){
   return window.LSPD.permissionConfig?.roles || DEFAULT_PERMISSIONS;
 }
 function hasPerm(permission){
-  if(isVisitor() || isApplicant()) return false;
+  if(!isInternal()) return false;
   if(isChief()) return true;
   const list=permissionRoles()[role()] || DEFAULT_PERMISSIONS[role()] || [];
   return Array.isArray(list) && list.includes(permission);
@@ -846,11 +882,13 @@ function hasPerm(permission){
 function canAccessPage(page){
   if(isApplicant()) return page==="applicationPortal";
   if(isVisitor()) return ["visitorPortal","profile","announcements"].includes(page);
+  if(isInactive()) return ["profile","handbook","announcements"].includes(page);
   if(page==="applicationPortal") return false;
+  if(!isPageCategoryAllowed(page)) return false;
   if(page==="messages" || page==="trainingCenter") return isInternal();
   if(page==="trainingWorkspace") return hasPerm("academy_manage") || hasPerm("fto_tools");
   if(page==="visitorPortal") return false;
-  if(page==="permissionsAdmin" || page==="admin") return isChief();
+  if(page==="permissionsAdmin" || page==="navigationAdmin" || page==="admin") return isChief();
   const needed=PAGE_PERMISSIONS[page];
   return needed ? hasPerm(needed) : true;
 }
@@ -863,8 +901,21 @@ const PHASE17_PERMISSION_DEFAULTS={
   "Deputy Chief":["academy_content_manage","academy_final_review"],
   "Assistant Chief":["academy_content_manage","academy_final_review"]
 };
+async function loadNavigationConfig(){
+  if(!isInternal()){ window.LSPD.navigationConfig=defaultNavigationConfig(); return; }
+  try{
+    const ref=doc(db,"settings","navigation_visibility"),snap=await getDoc(ref);
+    if(snap.exists() && snap.data()?.groups){ window.LSPD.navigationConfig=snap.data(); return; }
+    window.LSPD.navigationConfig=defaultNavigationConfig();
+    if(isChief()) await setDoc(ref,{...window.LSPD.navigationConfig,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
+  }catch(err){
+    console.warn("Navigation visibility config unavailable",err);
+    window.LSPD.navigationConfig=defaultNavigationConfig();
+  }
+}
+
 async function loadPermissionsConfig(){
-  if(isVisitor() || isApplicant()){
+  if(isVisitor() || isApplicant() || isInactive()){
     window.LSPD.permissionConfig={roles:{Visiteur:[],Applicant:[]},catalogVersion:17};
     return;
   }
@@ -978,12 +1029,21 @@ async function loadProfile(user){
     return;
   }
 
+  if(window.LSPD.profile.status==="Suspendu"){
+    showApprovalGate(
+      "Accès suspendu",
+      "Ton accès aux systèmes internes du LSPD est suspendu. Contacte le Command Staff pour toute information."
+    );
+    return;
+  }
+
   if(window.LSPD.profile.mustChangePassword===true){
     showForcedPasswordChange();
     return;
   }
 
   await loadPermissionsConfig();
+  await loadNavigationConfig();
   showApp();
   applyRoleVisibility();
   if(isInternal()){
@@ -1002,7 +1062,7 @@ async function loadProfile(user){
     $("registrationCount")?.classList.add("hidden");
     $("recruitmentCount")?.classList.add("hidden");
   }
-  render(isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":"dashboard");
+  render(isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":isInactive()?"profile":"dashboard");
 }
 function showApp(){
   $("loginScreen")?.classList.add("hidden");
@@ -1011,7 +1071,7 @@ function showApp(){
   $("appShell")?.classList.remove("hidden");
   if($("currentUser")) $("currentUser").textContent=window.LSPD.user?.email||"Connecté";
   if($("userPill")) $("userPill").textContent=`${window.LSPD.profile?.grade||"Officer"} • ${window.LSPD.profile?.role||"Officer"}`;
-  $("globalSearch")?.classList.toggle("hidden",isVisitor()||isApplicant());
+  $("globalSearch")?.classList.toggle("hidden",isVisitor()||isApplicant()||isInactive()||(!isNavGroupAllowed("communication")&&!isNavGroupAllowed("training")&&!isNavGroupAllowed("personnel")&&!isNavGroupAllowed("operations")));
 }
 function showLogin(){
   $("approvalScreen")?.classList.add("hidden");
@@ -1193,7 +1253,7 @@ async function handleRecruitmentApplication(e){
 }
 
 onAuthStateChanged(auth,async user=>{
-  if(!user){window.LSPD.pageCleanup?.();window.LSPD.notificationUnsub?.();window.LSPD.mailUnsub?.();window.LSPD.pageCleanup=null;window.LSPD.notificationUnsub=null;window.LSPD.mailUnsub=null;window.LSPD.user=null;window.LSPD.profile=null;window.LSPD.permissionConfig=null;closeNotificationDropdown();closeMailWindow();showLogin();return;}
+  if(!user){window.LSPD.pageCleanup?.();window.LSPD.notificationUnsub?.();window.LSPD.mailUnsub?.();window.LSPD.pageCleanup=null;window.LSPD.notificationUnsub=null;window.LSPD.mailUnsub=null;window.LSPD.user=null;window.LSPD.profile=null;window.LSPD.permissionConfig=null;window.LSPD.navigationConfig=null;closeNotificationDropdown();closeMailWindow();showLogin();return;}
   await loadProfile(user);
 });
 function logout(){ return signOut(auth); }
@@ -1255,7 +1315,7 @@ function render(page){
   closeMailWindow();
   if(!canAccessPage(page)){
     showToast("Cette fonction n'est pas autorisée pour ton rôle.","error");
-    page=isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":"dashboard";
+    page=isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":isInactive()?"profile":canAccessPage("dashboard")?"dashboard":"profile";
   }
   if(window.LSPD.pageCleanup){
     try{window.LSPD.pageCleanup();}catch{}
@@ -1272,7 +1332,7 @@ function render(page){
   const pageResult=({
     dashboard,visitorPortal,applicationPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,handbook,trainingCenter,trainingWorkspace,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
-    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,history
+    stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,navigationAdmin,history
   }[page]||dashboard)();
   Promise.resolve(pageResult).finally(()=>injectTrainingContextBar(page));
   requestAnimationFrame(()=>content?.classList.add("page-enter"));
@@ -2068,13 +2128,17 @@ async function generateUpcomingReminders(){
 async function mySpace(){
   try{
     const uid=window.LSPD.user.uid;
+    const emptySnap={docs:[]};
+    const operationsVisible=isNavGroupAllowed("operations");
+    const personnelVisible=isNavGroupAllowed("personnel");
+    const trainingVisible=isNavGroupAllowed("training");
     const [shiftSnap,certSnap,recordSnap,leaveSnap,regSnap,eventSnap]=await Promise.all([
-      getDocs(query(collection(db,"shifts"),where("officerId","==",uid))),
-      getDocs(query(collection(db,"certifications"),where("officerId","==",uid))),
-      getDocs(query(collection(db,"personnel_records"),where("officerId","==",uid))),
-      getDocs(query(collection(db,"leave_requests"),where("officerId","==",uid))),
-      getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid))),
-      getDocs(collection(db,"training_events"))
+      operationsVisible?getDocs(query(collection(db,"shifts"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      personnelVisible?getDocs(query(collection(db,"certifications"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      personnelVisible?getDocs(query(collection(db,"personnel_records"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      personnelVisible?getDocs(query(collection(db,"leave_requests"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      trainingVisible?getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      trainingVisible?getDocs(collection(db,"training_events")):Promise.resolve(emptySnap)
     ]);
     const today=todayISO();
     const shiftsData=shiftSnap.docs.map(d=>({id:d.id,...d.data()}))
@@ -4690,14 +4754,15 @@ async function officers(){
     <select id="officerStatusFilter" class="search"><option value="">Tous statuts</option>${statuses.map(s=>`<option>${s}</option>`).join("")}</select>
     <select id="officerDivisionFilter" class="search"><option value="">Toutes unités</option>${divisions.map(s=>`<option>${s}</option>`).join("")}</select>
     <button class="btn secondary" id="exportOfficersBtn">Exporter CSV</button>
-    ${hasPerm("personnel_manage")?'<button class="btn" id="addOfficerBtn">+ Ajouter un profil</button>':""}
+    ${isChief()?'<button class="btn" id="addOfficerBtn">+ Ajouter un officier</button>':""}
   </div>
-  <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th>E-mail</th><th>Compte</th><th></th>${hasPerm("personnel_manage")?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
+  ${isChief()?`<div class="card chief-provision-note"><b>Création simplifiée Chief</b><span>Nom RP + adresse e-mail uniquement. Firebase Authentication crée automatiquement l'UID et un mot de passe provisoire est généré.</span></div>`:""}
+  <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th>E-mail</th><th>Compte</th><th></th>${hasPerm("personnel_manage")?"<th></th>":""}${isChief()?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
 
   function refresh(){
-    const s=$("officerSearch").value.toLowerCase(),st=$("officerStatusFilter").value,div=$("officerDivisionFilter").value;
+    const term=$("officerSearch").value.toLowerCase(),st=$("officerStatusFilter").value,div=$("officerDivisionFilter").value;
     const filtered=data.filter(o=>
-      [o.badge,o.name,o.grade,o.role,o.status,o.division,o.registeredEmail].some(v=>String(v||"").toLowerCase().includes(s))
+      [o.badge,o.name,o.grade,o.role,o.status,o.division,o.registeredEmail].some(v=>String(v||"").toLowerCase().includes(term))
       && (!st||o.status===st) && (!div||o.division===div)
     );
     $("officerRows").innerHTML=officerRows(filtered);bindOfficerButtons(data);
@@ -4707,15 +4772,19 @@ async function officers(){
   $("exportOfficersBtn").onclick=()=>csvDownload("officiers_lspd.csv",data.map(o=>({
     matricule:o.badge,nom:o.name,grade:o.grade,role:o.role,unite:o.division||"",statut:o.status,email:o.registeredEmail||"",compte:o.importedAccount?(o.mustChangePassword?"À activer":"Activé"):"Standard"
   })));
-  $("addOfficerBtn")?.addEventListener("click",()=>openOfficerForm());bindOfficerButtons(data);
+  $("addOfficerBtn")?.addEventListener("click",openOfficerProvisionForm);
+  bindOfficerButtons(data);
 }
 function officerRows(data){
-  return data.length?data.map(o=>`<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td>${esc(o.registeredEmail||"—")}</td><td>${o.importedAccount?`<span class="tag ${o.mustChangePassword?"orange":"green"}">${o.mustChangePassword?"À activer":"Activé"}</span>`:'<span class="tag">Standard</span>'}</td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${hasPerm("personnel_manage")?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}</tr>`).join(""):'<tr><td colspan="10">Aucun officier.</td></tr>';
+  const cols=9+(hasPerm("personnel_manage")?1:0)+(isChief()?1:0);
+  return data.length?data.map(o=>`<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td>${esc(o.registeredEmail||"—")}</td><td>${o.importedAccount?`<span class="tag ${o.mustChangePassword?"orange":"green"}">${o.mustChangePassword?"À activer":"Activé"}</span>`:'<span class="tag">Standard</span>'}</td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${hasPerm("personnel_manage")?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}${isChief()?`<td>${o.uid!==window.LSPD.user.uid?`<button class="btn danger delete-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Supprimer</button>`:'<span class="muted">Compte actuel</span>'}</td>`:""}</tr>`).join(""):`<tr><td colspan="${cols}">Aucun officier.</td></tr>`;
 }
 function bindOfficerButtons(data){
   document.querySelectorAll(".view-officer").forEach(b=>b.onclick=()=>officerFile(b.dataset.uid));
   document.querySelectorAll(".edit-officer").forEach(b=>b.onclick=()=>openOfficerForm(data.find(o=>o.uid===b.dataset.uid)));
+  document.querySelectorAll(".delete-officer").forEach(b=>b.onclick=()=>deleteOfficerProfile(b.dataset.uid,b.dataset.name));
 }
+
 async function officerFile(uid){
   const o=await getUser(uid);if(!o)return;
   const [ev,certs,recs]=await Promise.all([
@@ -4731,10 +4800,64 @@ async function officerFile(uid){
   <h3>Distinctions / sanctions</h3><div class="record-list">${recordData.length?recordData.map(r=>`<div class="record ${r.type==="Sanction"?"negative":"positive"}"><b>${esc(r.type)} — ${esc(r.title)}</b><span>${formatDate(r.createdAt)} • ${esc(r.issuedByName)}</span><p>${esc(r.details||"")}</p></div>`).join(""):'<p class="muted">Aucune entrée.</p>'}</div>
   <h3>Dernières évaluations</h3><div class="table-card"><table class="table"><thead><tr><th>Date</th><th>Module</th><th>FTO</th><th>Score</th><th>Résultat</th></tr></thead><tbody>${evals.slice(0,10).map(e=>`<tr><td>${formatDate(e.createdAt)}</td><td>${esc(e.moduleCode)}</td><td>${esc(e.ftoName)}</td><td>${esc(e.score)}/100</td><td>${esc(e.result)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune évaluation.</td></tr>'}</tbody></table></div><div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
 }
+function generateTemporaryOfficerPassword(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes=new Uint8Array(14);crypto.getRandomValues(bytes);
+  return `LSPD!${[...bytes].map(b=>chars[b%chars.length]).join("")}9a`;
+}
+async function openOfficerProvisionForm(){
+  if(!isChief())return;
+  showModal(`<h2>Ajouter un nouvel officier</h2><p class="muted">Entre uniquement son nom RP et son adresse e-mail. Le compte Firebase Authentication, l'UID et le mot de passe provisoire sont générés automatiquement.</p><form id="officerProvisionForm"><label class="field full"><span>Nom RP</span><input id="opName" required maxlength="60" placeholder="Ex. John Smith"></label><label class="field full"><span>Adresse e-mail</span><input id="opEmail" type="email" required autocomplete="off" placeholder="john.smith@catena.ma"></label><div class="invite-default-profile"><b>Profil initial automatique</b><span>Rookie • Officer • En formation • Patrol</span></div><div id="officerProvisionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer le compte</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  $("officerProvisionForm").onsubmit=provisionOfficerAccount;
+}
+async function provisionOfficerAccount(e){
+  e.preventDefault();if(!isChief())return;
+  const error=$("officerProvisionError"),name=$("opName").value.trim(),email=$("opEmail").value.trim().toLowerCase();if(error)error.textContent="";
+  if(name.length<3){error.textContent="Nom RP invalide.";return;}
+  let secondaryApp=null,secondaryAuth=null,createdUser=null,profileCreated=false;
+  try{
+    const existingUsers=await getDocs(query(collection(db,"users"),where("registeredEmail","==",email)));
+    if(!existingUsers.empty){error.textContent="Un profil LSPD utilise déjà cette adresse e-mail.";return;}
+    const tempPassword=generateTemporaryOfficerPassword();
+    secondaryApp=initializeApp(firebaseConfig,`officer-provision-${Date.now()}-${crypto.randomUUID?.()||Math.random().toString(36).slice(2)}`);
+    secondaryAuth=getAuth(secondaryApp);
+    const credential=await createUserWithEmailAndPassword(secondaryAuth,email,tempPassword);
+    createdUser=credential.user;
+    const uid=createdUser.uid;
+    await setDoc(doc(db,"users",uid),{
+      name,badge:"—",grade:"Rookie",role:"Officer",status:"En formation",division:"Patrol",registeredEmail:email,
+      importedAccount:true,mustChangePassword:true,chiefProvisioned:true,selfRegistered:false,
+      provisionedById:window.LSPD.user.uid,provisionedByName:window.LSPD.profile.name,
+      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    });
+    profileCreated=true;
+    try{await addAudit("CREATE_OFFICER",uid,`${name} — ${email} — UID automatique`);}catch(auditErr){console.warn("Audit CREATE_OFFICER non enregistré",auditErr);}
+    try{await signOut(secondaryAuth);}catch{}
+    try{await deleteApp(secondaryApp);}catch{}
+    secondaryApp=null;secondaryAuth=null;createdUser=null;
+    document.querySelector(".modal")?.remove();
+    const credentials=`LSPD — Compte provisoire\nNom RP : ${name}\nE-mail : ${email}\nMot de passe provisoire : ${tempPassword}\n\nLe mot de passe devra être changé à la première connexion.`;
+    showModal(`<h2>Compte officier créé</h2><div class="activation-success"><p><b>${esc(name)}</b></p><p>${esc(email)}</p><div class="detail-grid"><div><span>UID Firebase automatique</span><b class="uid-value">${esc(uid)}</b></div><div><span>Profil initial</span><b>Rookie • En formation</b></div></div><label class="field full"><span>Mot de passe provisoire</span><input id="generatedOfficerPassword" readonly value="${esc(tempPassword)}"></label><p class="muted">Transmets ce mot de passe uniquement à l'officier. À sa première connexion, le Command Center l'obligera à en choisir un nouveau.</p></div><div class="modal-actions"><button class="btn" id="copyOfficerCredentials">Copier les identifiants</button><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+    $("copyOfficerCredentials").onclick=async()=>{try{await navigator.clipboard.writeText(credentials);showToast("Identifiants copiés.","success");}catch{showToast("Copie impossible : sélectionne le mot de passe manuellement.","error");}};
+  }catch(err){
+    if(createdUser && !profileCreated){try{await deleteAuthUser(createdUser);}catch{}}
+    if(secondaryAuth){try{await signOut(secondaryAuth);}catch{}}
+    if(secondaryApp){try{await deleteApp(secondaryApp);}catch{}}
+    if(error)error.textContent=err.code==="auth/email-already-in-use"?"Cette adresse possède déjà un compte Firebase Authentication. Utilise son inscription existante ou une autre adresse.":"Erreur : "+(err.code||err.message);
+  }
+}
+
+async function deleteOfficerProfile(uid,name){
+  if(!isChief() || uid===window.LSPD.user.uid)return;
+  if(!confirm(`Supprimer définitivement ${name} de la base LSPD ?\n\nSon profil Firestore sera supprimé et son accès au Command Center sera immédiatement bloqué. Les rapports et historiques déjà créés sont conservés pour la traçabilité.`))return;
+  if(!confirm(`CONFIRMATION FINALE : supprimer le profil de ${name} ?`))return;
+  try{await deleteDoc(doc(db,"users",uid));await addAudit("DELETE_OFFICER",uid,`${name} — profil supprimé`);showToast("Officier supprimé de la base LSPD.","success");officers();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
 function openOfficerForm(o=null){
   if(!hasPerm("personnel_manage"))return;
-  showModal(`<h2>${o?"Modifier":"Ajouter"} un profil</h2><form id="officerForm"><div class="formgrid">
-  <label class="field full"><span>UID Firebase Authentication</span><input id="fUid" ${o?"readonly":""} required value="${esc(o?.uid||"")}"></label>
+  if(!o){if(isChief())return openOfficerProvisionForm();return;}
+  showModal(`<h2>Modifier un profil</h2><form id="officerForm"><input id="fUid" type="hidden" value="${esc(o.uid)}"><div class="formgrid">
   <label class="field"><span>Matricule</span><input id="fBadge" required value="${esc(o?.badge||"")}"></label>
   <label class="field"><span>Nom RP</span><input id="fName" required value="${esc(o?.name||"")}"></label>
   <label class="field"><span>Grade</span><select id="fGrade">${gradeList.map(g=>`<option ${g[0]===o?.grade?"selected":""}>${g[0]}</option>`).join("")}</select></label>
@@ -4759,7 +4882,8 @@ async function saveOfficerProfile(e){
     const ref=doc(db,"users",uid),existing=await getDoc(ref);
     if(existing.exists())await updateDoc(ref,payload);else await setDoc(ref,{...payload,createdAt:serverTimestamp()});
     await addAudit(existing.exists()?"UPDATE_OFFICER":"CREATE_OFFICER",uid,`${payload.badge} — ${payload.name} — ${payload.grade}`);
-    document.querySelector(".modal")?.remove();officers();
+    document.querySelector(".modal")?.remove();
+    if(uid===window.LSPD.user.uid) await loadProfile(auth.currentUser); else officers();
   }catch(err){$("formError").textContent="Erreur : "+(err.code||err.message);}
 }
 
@@ -5438,10 +5562,38 @@ async function admin(){
     <div class="card admin-feature"><span class="eyebrow">SYSTEM</span><h3>Gestion système</h3><div class="row"><span>Profils</span><b>${users.length}</b></div><div class="row"><span>Authentication</span><b>Firebase Console</b></div><div class="row"><span>Rôles & unités</span><b>Onglet Officiers</b></div></div>
     <div class="card admin-feature"><span class="eyebrow">ACCOUNT PROVISIONING</span><h3>Comptes importés</h3><div class="row"><span>Total importé</span><b>${users.filter(u=>u.importedAccount).length}</b></div><div class="row"><span>Jamais activés</span><b>${users.filter(u=>u.importedAccount&&u.mustChangePassword).length}</b></div><div class="row"><span>Activés</span><b>${users.filter(u=>u.importedAccount&&!u.mustChangePassword).length}</b></div><p class="muted">Les mots de passe provisoires ne sont jamais stockés dans Firestore.</p></div>
     <div class="card admin-feature"><span class="eyebrow">ACCESS CONTROL</span><h3>Permissions</h3><p class="muted">Configure les droits de chaque rôle sans modifier app.js.</p><button class="btn" id="openPermissionsBtn">🔐 Permissions</button></div>
+    <div class="card admin-feature"><span class="eyebrow">NAVIGATION</span><h3>Menus par grade</h3><p class="muted">Affiche ou masque chaque grande catégorie du menu selon le grade exact de l'officier.</p><button class="btn" id="openNavigationAdminBtn">🧭 Configurer les menus</button></div>
     <div class="card admin-feature"><span class="eyebrow">OPERATIONS</span><h3>CAD & Watch</h3><p class="muted">Unités live, BOLO et Watch Commander sont intégrés au Command Center.</p></div>
     <div class="card admin-feature"><span class="eyebrow">ARCHIVE</span><h3>Archivage</h3><p class="muted">Pour retirer un officier des listes actives sans supprimer son historique, passe son statut à <b>Archivé</b>.</p></div>
   </div>`;
   $("openPermissionsBtn").onclick=()=>render("permissionsAdmin");
+  $("openNavigationAdminBtn").onclick=()=>render("navigationAdmin");
+}
+
+async function navigationAdmin(){
+  if(!isChief())return;
+  const users=await getUsers(),cfg=window.LSPD.navigationConfig?.groups?window.LSPD.navigationConfig:defaultNavigationConfig();
+  const grades=navigationGradeList();
+  const counts=Object.fromEntries(grades.map(g=>[g,users.filter(u=>u.grade===g && u.status!=="Archivé").length]));
+  $("content").innerHTML=`<div class="navigation-admin-head card"><div><span class="eyebrow">CHIEF ACCESS CONTROL</span><h2>Visibilité des catégories par grade</h2><p>Décide quels grades voient chacune des grandes catégories du menu gauche. Ce filtre s'ajoute aux permissions existantes : un menu visible ne donne jamais un droit que le rôle ne possède pas.</p></div><div class="nav-admin-actions"><button class="btn secondary" id="navResetAll">Réinitialiser</button><button class="btn" id="navSaveAll">Enregistrer</button></div></div><div class="nav-visibility-grid">${Object.entries(NAV_GROUP_LABELS).map(([key,label])=>{const allowed=cfg.groups?.[key]||grades;return `<section class="card nav-visibility-card" data-nav-config-group="${key}"><header><div><span class="eyebrow">CATÉGORIE</span><h3>${esc(label)}</h3></div><div><button class="btn tiny secondary nav-group-all" type="button">Tous</button> <button class="btn tiny secondary nav-group-none" type="button">Aucun</button></div></header><div class="grade-visibility-list">${grades.map(g=>`<label class="grade-visibility-item"><input type="checkbox" value="${esc(g)}" ${allowed.includes(g)?"checked":""}><span><b>${esc(g)}</b><small>${counts[g]||0} membre${counts[g]===1?"":"s"}</small></span></label>`).join("")}</div></section>`}).join("")}</div><div class="card security-note"><b>Important</b><span>Le Chief garde toujours accès à toutes les catégories pour éviter un verrouillage administratif. Mon profil reste accessible à tous. Un membre Inactif reste limité à Profil + Handbook + Annonces ; un membre Suspendu est bloqué.</span></div>`;
+  document.querySelectorAll(".nav-visibility-card").forEach(card=>{
+    card.querySelector(".nav-group-all").onclick=()=>card.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=true);
+    card.querySelector(".nav-group-none").onclick=()=>card.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=false);
+  });
+  $("navSaveAll").onclick=()=>saveNavigationVisibility(false);
+  $("navResetAll").onclick=async()=>{if(!confirm("Réafficher toutes les catégories à tous les grades ?"))return;window.LSPD.navigationConfig=defaultNavigationConfig();await saveNavigationVisibility(true);navigationAdmin();};
+}
+async function saveNavigationVisibility(useCurrent=false){
+  if(!isChief())return;
+  let groups;
+  if(useCurrent)groups=window.LSPD.navigationConfig.groups;
+  else{
+    groups={};
+    document.querySelectorAll("[data-nav-config-group]").forEach(card=>{groups[card.dataset.navConfigGroup]=[...card.querySelectorAll('input[type="checkbox"]:checked')].map(c=>c.value);});
+  }
+  const payload={groups,catalogVersion:1,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()};
+  try{await setDoc(doc(db,"settings","navigation_visibility"),payload);window.LSPD.navigationConfig=payload;applyRoleVisibility();showToast("Visibilité des menus enregistrée.","success");}
+  catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 
 async function history(){
@@ -5452,7 +5604,7 @@ async function history(){
 }
 
 async function globalSearch(term){
-  if(isApplicant())return;
+  if(isApplicant()||isInactive())return;
   term=term.trim().toLowerCase();
   if(term.length<2) return;
   try{
@@ -5462,22 +5614,26 @@ async function globalSearch(term){
       showModal(`<h2>Recherche</h2><h3>Annonces publiques</h3>${anns.length?anns.slice(0,10).map(a=>`<div class="search-result"><b>${esc(a.title)}</b><span>${esc(a.authorName)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
       return;
     }
-    const usersSnap=await getDocs(collection(db,"users"));
-    let evalSnap;
-    if(hasPerm("personnel_view")) evalSnap=await getDocs(collection(db,"evaluations"));
-    else if(hasPerm("fto_tools")) evalSnap=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid)));
-    else evalSnap=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
-    const annSnap=await getDocs(collection(db,"announcements"));
-    const incSnap=hasPerm("incident_review")
+    const emptySnap={docs:[]};
+    const personnelVisible=isNavGroupAllowed("personnel"),trainingVisible=isNavGroupAllowed("training"),communicationVisible=isNavGroupAllowed("communication");
+    const usersSnap=personnelVisible?await getDocs(collection(db,"users")):emptySnap;
+    let evalSnap=emptySnap;
+    if(trainingVisible){
+      if(hasPerm("personnel_view")) evalSnap=await getDocs(collection(db,"evaluations"));
+      else if(hasPerm("fto_tools")) evalSnap=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid)));
+      else evalSnap=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
+    }
+    const annSnap=communicationVisible?await getDocs(collection(db,"announcements")):emptySnap;
+    const incSnap=communicationVisible?(hasPerm("incident_review")
       ? await getDocs(collection(db,"incident_reports"))
-      : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
+      : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)))):emptySnap;
 
     const users=usersSnap.docs.map(d=>({uid:d.id,...d.data()})).filter(o=>[o.badge,o.name,o.grade,o.role,o.division,o.status].some(v=>String(v||"").toLowerCase().includes(term)));
     const evals=evalSnap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>[e.officerName,e.ftoName,e.moduleCode,e.moduleTitle,e.result].some(v=>String(v||"").toLowerCase().includes(term)));
     const anns=annSnap.docs.map(d=>d.data()).filter(a=>[a.title,a.body,a.authorName].some(v=>String(v||"").toLowerCase().includes(term)));
     const incs=incSnap.docs.map(d=>d.data()).filter(a=>[a.title,a.type,a.authorName,a.status].some(v=>String(v||"").toLowerCase().includes(term)));
 
-    showModal(`<h2>Recherche globale</h2><h3>Officiers</h3>${users.length?users.slice(0,8).map(o=>`<div class="search-result"><b>${esc(o.badge)} — ${esc(o.name)}</b><span>${esc(o.grade)} • ${esc(o.division||"Patrol")} • ${esc(o.status)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<h3>Évaluations accessibles</h3>${evals.length?evals.slice(0,8).map(e=>`<div class="search-result"><b>${esc(e.officerName)} — ${esc(e.moduleCode)}</b><span>${esc(e.result)} • ${esc(e.score)}/100 • FTO ${esc(e.ftoName)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<h3>Annonces</h3>${anns.length?anns.slice(0,8).map(a=>`<div class="search-result"><b>${esc(a.title)}</b><span>${esc(a.authorName)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<h3>Incidents accessibles</h3>${incs.length?incs.slice(0,8).map(a=>`<div class="search-result"><b>${esc(a.title)}</b><span>${esc(a.type)} • ${esc(a.status)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
+    showModal(`<h2>Recherche globale</h2>${personnelVisible?`<h3>Officiers</h3>${users.length?users.slice(0,8).map(o=>`<div class="search-result"><b>${esc(o.badge)} — ${esc(o.name)}</b><span>${esc(o.grade)} • ${esc(o.division||"Patrol")} • ${esc(o.status)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}`:""}${trainingVisible?`<h3>Évaluations accessibles</h3>${evals.length?evals.slice(0,8).map(e=>`<div class="search-result"><b>${esc(e.officerName)} — ${esc(e.moduleCode)}</b><span>${esc(e.result)} • ${esc(e.score)}/100 • FTO ${esc(e.ftoName)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}`:""}${communicationVisible?`<h3>Annonces</h3>${anns.length?anns.slice(0,8).map(a=>`<div class="search-result"><b>${esc(a.title)}</b><span>${esc(a.authorName)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}<h3>Incidents accessibles</h3>${incs.length?incs.slice(0,8).map(a=>`<div class="search-result"><b>${esc(a.title)}</b><span>${esc(a.type)} • ${esc(a.status)}</span></div>`).join(""):'<p class="muted">Aucun résultat.</p>'}`:""}<div class="modal-actions"><button class="btn secondary" id="closeModal">Fermer</button></div>`);
   }catch(err){ console.error(err); }
 }
 

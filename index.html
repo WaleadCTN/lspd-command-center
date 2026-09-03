@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=17.10">
+  <link rel="stylesheet" href="style.css?v=17.11">
 </head>
 <body>
 
@@ -41,6 +41,7 @@
       <p class="muted signup-note">Le compte Firebase est créé automatiquement. L'accès LSPD reste bloqué jusqu'à validation par le Chief.</p>
       <p id="signupError" class="error"></p>
     </form>
+
 
     <form id="applicationForm" class="hidden recruitment-public-form recruitment-official-form">
       <div class="recruitment-public-intro official">
@@ -243,6 +244,7 @@
         <button data-page="stats"><span class="nav-icon">📈</span><span class="nav-label">Statistiques</span> </button>
         <button data-page="admin"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span> </button>
         <button data-page="permissionsAdmin"><span class="nav-icon">🔐</span><span class="nav-label">Permissions</span> </button>
+        <button data-page="navigationAdmin"><span class="nav-icon">🧭</span><span class="nav-label">Menus par grade</span> </button>
         <button data-page="history"><span class="nav-icon">📊</span><span class="nav-label">Historique</span> </button>
         </div>
       </section>
@@ -294,6 +296,6 @@
 
 <div id="mailOverlayRoot" class="mail-overlay-root"></div>
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-<script type="module" src="app.js?v=17.10"></script>
+<script type="module" src="app.js?v=17.11"></script>
 </body>
 </html>

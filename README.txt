@@ -1,3 +1,27 @@
+LSPD COMMAND CENTER — PHASE 17.11 — CHIEF PERSONNEL & ACCESS CONTROL
+
+NOUVEAUTÉS
+- Suspendu : accès complètement bloqué au Command Center.
+- Inactif : accès limité à Mon profil + Handbook + Annonces.
+- Chief : suppression définitive du profil Firestore d'un officier (hors compte Chief actuellement connecté).
+- Chief : création d'un nouvel officier avec seulement Nom RP + e-mail. Aucun UID à saisir.
+- Firebase Authentication crée automatiquement le compte et l'UID via une instance Auth secondaire, sans déconnecter le Chief.
+- Un mot de passe provisoire fort est généré automatiquement et affiché une seule fois au Chief.
+- Le nouvel officier est créé Rookie • Officer • En formation • Patrol et doit changer son mot de passe à sa première connexion.
+- Chief : nouvelle page « Menus par grade » pour afficher/masquer les 6 catégories du menu selon le grade exact.
+- Le filtrage par grade s'ajoute aux permissions existantes et bloque aussi l'ouverture directe des pages.
+- Les règles Firestore prennent en compte les grandes catégories pour les données opérationnelles correspondantes.
+- Le Chief garde toujours toutes les catégories pour éviter de se verrouiller lui-même.
+
+IMPORTANT
+1. Remplacer index.html, app.js et style.css sur GitHub.
+2. PUBLIER le nouveau firestore.rules dans Firebase Console -> Firestore Database -> Règles.
+3. Aucun serviceAccountKey.json n'est requis pour l'ajout d'un officier depuis le site.
+
+NOTE FIREBASE AUTH
+La création d'un nouvel officier utilise un second contexte Firebase Authentication dans le navigateur : le Chief reste connecté, le nouveau compte Auth est créé automatiquement, Firebase fournit son UID, puis le profil LSPD est créé dans Firestore.
+La suppression depuis le Command Center retire définitivement le profil Firestore et bloque immédiatement l'accès au site. Le SDK navigateur ne peut pas supprimer arbitrairement le credential Authentication d'un autre utilisateur déjà existant ; celui-ci peut donc rester visible dans Firebase Console. Pour supprimer aussi le compte Authentication, il faut le supprimer dans Firebase Console ou utiliser Firebase Admin côté serveur.
+
 LSPD COMMAND CENTER — PHASE 17
 ACADEMY PRO + TRAINING MANAGEMENT + SECURE VISITOR
 
