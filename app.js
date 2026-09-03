@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.7 PERSONNEL IMPORT + FIRST LOGIN ACADEMY PRO + VISITOR — Phase 16.2 fully preserved
+// LSPD Command Center — Phase 17.10 NEWCOMER HANDBOOK — Phase 17.9 fully preserved
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -66,6 +66,10 @@ Object.assign(I18N_EN,{"Centre Formation":"Training Center","Formation & FTO":"T
 Object.assign(I18N_EN,{"Formation validée":"Training validated","Formation à refaire":"Training to repeat","Non évaluée":"Not evaluated","Formation planifiée":"Training scheduled","Continuer la formation":"Continue training","Planifier cette formation":"Schedule this training","Évaluer cette formation":"Evaluate this training","Résultat de la formation":"Training result","Formations validées":"Validated training","Formations à refaire":"Training to repeat","Formations non évaluées":"Not evaluated","Terminer la formation":"Complete training","Formation terminée, évalue maintenant les participants.":"Training completed. Now evaluate the participants.","À évaluer":"Needs evaluation","Évalué":"Evaluated","Ancien historique FTO":"Legacy FTO history","Aucun prérequis bloquant":"No blocking prerequisite"});
 
 Object.assign(I18N_EN,{"Première connexion":"First login","Choisis ton mot de passe":"Choose your password","Nouveau mot de passe":"New password","Enregistrer mon mot de passe":"Save my password","Compte importé":"Imported account","À activer":"Needs activation","Activé":"Activated","Adresse professionnelle":"Professional email","Mot de passe provisoire":"Temporary password","Comptes importés":"Imported accounts","Jamais activés":"Never activated"});
+
+Object.assign(I18N_EN,{"Postuler au LSPD":"Apply to LSPD","Ma candidature LSPD":"My LSPD application","Centre de recrutement":"Recruitment desk","Dossier reçu":"Application received","À convoquer":"Invite to interview","Entretien planifié":"Interview scheduled","Entretien réussi":"Interview passed","Recruté":"Hired","Retirée":"Withdrawn","Pré-sélectionner":"Shortlist","Planifier l’entretien":"Schedule interview","Finaliser le recrutement":"Finalize hiring","Envoyer ma candidature LSPD":"Submit LSPD application","Approuver le rapport":"Approve report","Refuser le rapport":"Reject report","Envoyer":"Send"});
+
+Object.assign(I18N_EN,{"Bureau du recrutement":"Recruitment Bureau","Dossier officiel de candidature":"Official application file","Présentation":"Introduction","Motivation":"Motivation","Mise en situation":"Scenario","Engagement":"Commitment","En étude":"Under review","Pré-sélectionné":"Shortlisted","Entretien évalué":"Interview assessed","Admission approuvée":"Admission approved","Évaluer le dossier":"Review application","Conduire / noter l’entretien":"Conduct / score interview","Décision du Commandement":"Command decision","Avis favorable":"Favorable recommendation","Avis réservé":"Reserved recommendation","Avis défavorable":"Unfavorable recommendation","Grille de présélection":"Screening scorecard","Grille d’entretien":"Interview scorecard","Notes internes":"Internal notes","Dossier candidat":"Applicant file","Entretien oral in-game":"In-game oral interview","Incorporation":"Onboarding"});
 
 let currentLang = localStorage.getItem("lspdLanguage")
   || ((navigator.language||"").toLowerCase().startsWith("en") ? "en" : "fr");
@@ -796,6 +800,20 @@ const scenarios = [
 ["S08","Évaluation FTO","Patrouille complète","Évaluation globale en conditions réalistes"]
 ];
 
+Object.assign(I18N_EN,{
+  "Handbook nouveaux arrivants":"Newcomer Handbook",
+  "Guide opérationnel de prise de poste":"Operational onboarding guide",
+  "Démarrage rapide":"Quick start",
+  "Référentiel 10-codes":"10-code reference",
+  "Procédures essentielles":"Essential procedures",
+  "Recherche dans le handbook...":"Search the handbook...",
+  "Imprimer le handbook":"Print handbook",
+  "Ouvrir le CAD":"Open CAD",
+  "Ouvrir le MDT":"Open MDT",
+  "Centre Formation":"Training Center",
+  "Grades & responsabilités":"Ranks & responsibilities"
+});
+
 const pages = {
  dashboard:"Dashboard",profile:"Mon profil",mySpace:"Mon espace opérationnel",registrations:"Inscriptions",notifications:"Notifications",announcements:"Annonces",messages:"Messages",
  incidents:"Rapports d'incident",approvals:"Validations",mdt:"MDT / Dossiers",bolos:"BOLO / Avis",corrections:"Corrections & addenda",manual:"Manuel FTO",ftoAcademy:"FTO Academy",ftoJournal:"Journal FTO",ftoFinal:"Évaluation finale FTO",modules:"Formations",
@@ -803,13 +821,14 @@ const pages = {
  certifications:"Certifications",records:"Dossiers & distinctions",shifts:"Roster & shifts",dutyBoard:"Tableau de service",cad:"CAD / Dispatch",watchCommand:"Watch Commander",leave:"Congés",
  calendar:"Calendrier formations",trainingHub:"Inscriptions formations",requirements:"À valider",promotionAdvisor:"Promotion advisor",
  promotions:"Promotions",stats:"Statistiques",divisionsPage:"Divisions & candidatures",grades:"Grades & responsabilités",
- scenarios:"Scénarios",visitorPortal:"Portail visiteur",trainingCenter:"Centre Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
+ scenarios:"Scénarios",visitorPortal:"Portail visiteur",applicationPortal:"Ma candidature LSPD",handbook:"Handbook nouveaux arrivants",trainingCenter:"Centre Formation",trainingWorkspace:"Espace recrue FTO",ftoDossier:"Dossier FTO recrue",trainingAnalytics:"Stats formation",academyManager:"Gestion Academy",trainingQuiz:"Quiz formations",myTrainingFeedback:"Feedback formation",admin:"Admin",permissionsAdmin:"Permissions",history:"Historique"
 };
 
 function role(){ return window.LSPD.profile?.role; }
 function isChief(){ return role()==="Chief"; }
 function isVisitor(){ return role()==="Visiteur"; }
-function isInternal(){ return !!window.LSPD.profile && !isVisitor(); }
+function isApplicant(){ return role()==="Applicant"; }
+function isInternal(){ return !!window.LSPD.profile && !isVisitor() && !isApplicant(); }
 function isFTO(){ return ["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
 function canApproveIncidents(){ return isCommand(); }
@@ -819,13 +838,15 @@ function permissionRoles(){
   return window.LSPD.permissionConfig?.roles || DEFAULT_PERMISSIONS;
 }
 function hasPerm(permission){
-  if(isVisitor()) return false;
+  if(isVisitor() || isApplicant()) return false;
   if(isChief()) return true;
   const list=permissionRoles()[role()] || DEFAULT_PERMISSIONS[role()] || [];
   return Array.isArray(list) && list.includes(permission);
 }
 function canAccessPage(page){
+  if(isApplicant()) return page==="applicationPortal";
   if(isVisitor()) return ["visitorPortal","profile","announcements"].includes(page);
+  if(page==="applicationPortal") return false;
   if(page==="messages" || page==="trainingCenter") return isInternal();
   if(page==="trainingWorkspace") return hasPerm("academy_manage") || hasPerm("fto_tools");
   if(page==="visitorPortal") return false;
@@ -843,8 +864,8 @@ const PHASE17_PERMISSION_DEFAULTS={
   "Assistant Chief":["academy_content_manage","academy_final_review"]
 };
 async function loadPermissionsConfig(){
-  if(isVisitor()){
-    window.LSPD.permissionConfig={roles:{Visiteur:[]},catalogVersion:17};
+  if(isVisitor() || isApplicant()){
+    window.LSPD.permissionConfig={roles:{Visiteur:[],Applicant:[]},catalogVersion:17};
     return;
   }
   try{
@@ -965,12 +986,13 @@ async function loadProfile(user){
   await loadPermissionsConfig();
   showApp();
   applyRoleVisibility();
-  if(!isVisitor()){
+  if(isInternal()){
     startNotificationListener();
     startMailListener();
     refreshNotificationBadge().catch(()=>{});
     refreshMailBadge().catch(()=>{});
     refreshRegistrationBadge().catch(()=>{});
+    refreshRecruitmentBadge().catch(()=>{});
     generateUpcomingReminders().catch(()=>{});
     if(hasPerm("academy_manage")) generateTrainingAlerts().catch(()=>{});
   }else{
@@ -978,8 +1000,9 @@ async function loadProfile(user){
     $("notificationCount")?.classList.add("hidden");
     $("mailUnreadCount")?.classList.add("hidden");
     $("registrationCount")?.classList.add("hidden");
+    $("recruitmentCount")?.classList.add("hidden");
   }
-  render(isVisitor()?"visitorPortal":"dashboard");
+  render(isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":"dashboard");
 }
 function showApp(){
   $("loginScreen")?.classList.add("hidden");
@@ -988,7 +1011,7 @@ function showApp(){
   $("appShell")?.classList.remove("hidden");
   if($("currentUser")) $("currentUser").textContent=window.LSPD.user?.email||"Connecté";
   if($("userPill")) $("userPill").textContent=`${window.LSPD.profile?.grade||"Officer"} • ${window.LSPD.profile?.role||"Officer"}`;
-  $("globalSearch")?.classList.toggle("hidden",isVisitor());
+  $("globalSearch")?.classList.toggle("hidden",isVisitor()||isApplicant());
 }
 function showLogin(){
   $("approvalScreen")?.classList.add("hidden");
@@ -1014,13 +1037,18 @@ async function handleLogin(e){
 }
 
 function toggleAuthMode(mode){
-  const signup=mode==="signup";
-  $("loginForm")?.classList.toggle("hidden",signup);
+  const login=mode==="login",signup=mode==="signup",apply=mode==="apply";
+  $("loginForm")?.classList.toggle("hidden",!login);
   $("signupForm")?.classList.toggle("hidden",!signup);
-  $("showLoginBtn")?.classList.toggle("active",!signup);
+  $("applicationForm")?.classList.toggle("hidden",!apply);
+  $("showLoginBtn")?.classList.toggle("active",login);
   $("showSignupBtn")?.classList.toggle("active",signup);
+  $("showApplicationBtn")?.classList.toggle("active",apply);
+  document.querySelector(".login-card")?.classList.toggle("application-mode",apply);
+  if(apply)setRecruitmentPublicStep(1);
   if($("loginError")) $("loginError").textContent="";
   if($("signupError")) $("signupError").textContent="";
+  if($("applicationError")) $("applicationError").textContent="";
 }
 
 async function handleSignup(e){
@@ -1077,6 +1105,93 @@ async function handleSignup(e){
     else $("signupError").textContent="Erreur d'inscription : "+(err.message||code);
   }
 }
+let recruitmentPublicStep=1;
+function setRecruitmentPublicStep(step){
+  recruitmentPublicStep=Math.max(1,Math.min(4,Number(step)||1));
+  document.querySelectorAll("[data-application-step]").forEach(s=>s.classList.toggle("active",Number(s.dataset.applicationStep)===recruitmentPublicStep));
+  document.querySelectorAll("[data-app-step-indicator]").forEach(ind=>{
+    const n=Number(ind.dataset.appStepIndicator);
+    ind.classList.toggle("active",n===recruitmentPublicStep);
+    ind.classList.toggle("done",n<recruitmentPublicStep);
+  });
+  const back=$("applicationBackBtn"),next=$("applicationNextBtn"),submit=$("applicationSubmitBtn"),hint=$("applicationStepHint");
+  back?.classList.toggle("hidden",recruitmentPublicStep===1);
+  next?.classList.toggle("hidden",recruitmentPublicStep===4);
+  submit?.classList.toggle("hidden",recruitmentPublicStep!==4);
+  if(hint)hint.textContent=["Présentation du candidat","Motivation & expérience","Jugement & mise en situation","Engagement & envoi"][recruitmentPublicStep-1];
+  if($("applicationError"))$("applicationError").textContent="";
+  document.querySelector(".login-card")?.scrollTo?.({top:0,behavior:"smooth"});
+}
+function validateRecruitmentPublicStep(step){
+  const section=document.querySelector(`[data-application-step="${step}"]`);if(!section)return true;
+  const fields=[...section.querySelectorAll("input,textarea,select")];
+  for(const f of fields){
+    if(!f.checkValidity()){f.reportValidity();return false;}
+  }
+  if(step===3 && $("applicationCriminalRecord")?.value==="Oui" && !$("applicationCriminalRecordDetails")?.value.trim()){
+    $("applicationError").textContent="Précise la situation de ton casier judiciaire RP.";return false;
+  }
+  return true;
+}
+function initRecruitmentPublicWizard(){
+  $("applicationNextBtn")?.addEventListener("click",()=>{if(validateRecruitmentPublicStep(recruitmentPublicStep))setRecruitmentPublicStep(recruitmentPublicStep+1);});
+  $("applicationBackBtn")?.addEventListener("click",()=>setRecruitmentPublicStep(recruitmentPublicStep-1));
+  setRecruitmentPublicStep(1);
+}
+
+function recruitmentApplicationNumber(){
+  const y=new Date().getFullYear();
+  return `APP-${y}-${String(Date.now()).slice(-6)}`;
+}
+
+async function handleRecruitmentApplication(e){
+  e.preventDefault();
+  const error=$("applicationError");if(error)error.textContent="";
+  if(!validateRecruitmentPublicStep(4))return;
+  const name=$("applicationName").value.trim();
+  const email=$("applicationEmail").value.trim().toLowerCase();
+  const password=$("applicationPassword").value,password2=$("applicationPassword2").value;
+  const age=Number($("applicationAge").value);
+  if(name.length<3)return error.textContent="Entre un nom RP valide.";
+  if(!Number.isFinite(age)||age<18||age>80)return error.textContent="L'âge RP doit être compris entre 18 et 80 ans.";
+  if(password!==password2)return error.textContent="Les mots de passe ne correspondent pas.";
+  if(password.length<8)return error.textContent="Le mot de passe doit contenir au moins 8 caractères.";
+  if(!$("applicationConsentInterview").checked||!$("applicationConsentRules").checked||!$("applicationConsentRoleplay").checked)return error.textContent="Tu dois accepter les engagements du dossier.";
+
+  const submit=$("applicationSubmitBtn");if(submit){submit.disabled=true;submit.textContent="Envoi du dossier...";}
+  try{
+    const credential=await createUserWithEmailAndPassword(auth,email,password);
+    const uid=credential.user.uid,applicationNumber=recruitmentApplicationNumber();
+    await setDoc(doc(db,"users",uid),{
+      name,badge:"—",grade:"Candidat",role:"Applicant",status:"Candidature",division:"Recruitment",
+      registeredEmail:email,selfRegistered:true,recruitmentApplicant:true,
+      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    });
+    await setDoc(doc(db,"lspd_applications",uid),{
+      applicationNumber,applicationVersion:2,applicantId:uid,applicantName:name,email,
+      ageRP:age,phoneRP:$("applicationPhone").value.trim(),discord:$("applicationDiscord").value.trim(),
+      presentation:$("applicationPresentation").value.trim(),background:$("applicationBackground").value.trim(),
+      availability:$("applicationAvailability").value,scheduleDetails:$("applicationScheduleDetails").value.trim(),
+      drivingLicense:$("applicationDriving").value,policeExperience:$("applicationPoliceExperience").value,
+      whyLspd:$("applicationWhy").value.trim(),contribution:$("applicationContribution").value.trim(),
+      experience:$("applicationExperience").value.trim(),strengths:$("applicationStrengths").value.trim(),weakness:$("applicationWeakness").value.trim(),
+      criminalRecord:$("applicationCriminalRecord").value,criminalRecordDetails:$("applicationCriminalRecordDetails").value.trim(),
+      citizenScenario:$("applicationCitizenScenario").value.trim(),colleagueScenario:$("applicationColleagueScenario").value.trim(),teamScenario:$("applicationTeamScenario").value.trim(),
+      commitments:{interview:true,rules:true,roleplay:true},
+      status:"Dossier reçu",interviewStatus:"À planifier",publicMessage:"Ton dossier a bien été reçu par le Bureau du recrutement.",
+      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    });
+    await loadProfile(credential.user);
+  }catch(err){
+    const code=err.code||"";
+    if(code==="auth/email-already-in-use")error.textContent="Cette adresse e-mail possède déjà un compte.";
+    else if(code==="auth/invalid-email")error.textContent="Adresse e-mail invalide.";
+    else if(code==="auth/weak-password")error.textContent="Mot de passe trop faible.";
+    else error.textContent="Erreur : "+(err.message||code);
+    if(submit){submit.disabled=false;submit.textContent="Envoyer officiellement ma candidature";}
+  }
+}
+
 onAuthStateChanged(auth,async user=>{
   if(!user){window.LSPD.pageCleanup?.();window.LSPD.notificationUnsub?.();window.LSPD.mailUnsub?.();window.LSPD.pageCleanup=null;window.LSPD.notificationUnsub=null;window.LSPD.mailUnsub=null;window.LSPD.user=null;window.LSPD.profile=null;window.LSPD.permissionConfig=null;closeNotificationDropdown();closeMailWindow();showLogin();return;}
   await loadProfile(user);
@@ -1140,7 +1255,7 @@ function render(page){
   closeMailWindow();
   if(!canAccessPage(page)){
     showToast("Cette fonction n'est pas autorisée pour ton rôle.","error");
-    page=isVisitor()?"visitorPortal":"dashboard";
+    page=isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":"dashboard";
   }
   if(window.LSPD.pageCleanup){
     try{window.LSPD.pageCleanup();}catch{}
@@ -1155,7 +1270,7 @@ function render(page){
   const content=$("content");
   content?.classList.remove("page-enter");
   const pageResult=({
-    dashboard,visitorPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,trainingCenter,trainingWorkspace,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
+    dashboard,visitorPortal,applicationPortal,profile,mySpace,registrations,notifications,announcements,messages,incidents,approvals,mdt,bolos,corrections,manual,handbook,trainingCenter,trainingWorkspace,ftoAcademy,ftoJournal,ftoFinal,ftoDossier,trainingAnalytics,academyManager,trainingQuiz,myTrainingFeedback,modules:modulesPage,evaluations,trainees,officers,assignments,
     certifications,records,shifts,dutyBoard,cad,watchCommand,leave,calendar,trainingHub,requirements,promotionAdvisor,promotions,
     stats,divisionsPage,grades:gradesPage,scenarios:scenariosPage,admin,permissionsAdmin,history
   }[page]||dashboard)();
@@ -1169,7 +1284,7 @@ async function getUser(uid){
 }
 async function getUsers(){
   const s=await getDocs(collection(db,"users"));
-  return s.docs.map(d=>({uid:d.id,...d.data()}));
+  return s.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.role!=="Applicant");
 }
 async function getMyEvaluations(){
   const s=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
@@ -1190,6 +1305,350 @@ function csvDownload(filename, rows){
 }
 
 
+
+
+const CATENA_TEN_CODES=[
+  ["10-4","Reçu / compris","Copy / understood"],
+  ["10-6","Occupé, sauf urgence","Busy unless urgent"],
+  ["10-7","Hors service","Out of service"],
+  ["10-8","En service / disponible","In service / available"],
+  ["10-9","Répétez la transmission","Repeat transmission"],
+  ["10-11","Contrôle routier","Traffic stop"],
+  ["10-15","Suspect / détenu en garde","Prisoner / suspect in custody"],
+  ["10-19","Retour au poste","Return to station"],
+  ["10-20","Localisation","Location"],
+  ["10-22","Annuler / ne pas tenir compte","Disregard / cancel"],
+  ["10-23","Arrivé sur place","Arrived on scene"],
+  ["10-27","Vérification permis / identité conducteur","Driver license / identity check"],
+  ["10-28","Vérification plaque / véhicule","Plate / vehicle registration check"],
+  ["10-29","Vérification mandats","Warrant check"],
+  ["10-31","Infraction / crime en cours","Crime in progress"],
+  ["10-32","Individu armé","Armed person"],
+  ["10-33","Priorité radio / trafic d'urgence","Emergency radio traffic"],
+  ["10-41","Début de service","Beginning tour of duty"],
+  ["10-42","Fin de service","Ending tour of duty"],
+  ["10-50","Accident de la circulation","Traffic collision"],
+  ["10-52","EMS / assistance médicale demandée","EMS / medical assistance requested"],
+  ["10-76","En route","En route"],
+  ["10-78","Renfort urgent demandé","Urgent backup requested"],
+  ["10-80","Poursuite véhicule","Vehicle pursuit"]
+];
+
+const NEWCOMER_HANDBOOK=[
+  {
+    id:"start",icon:"🛡️",titleFr:"1. Bienvenue & mission",titleEn:"1. Welcome & mission",
+    summaryFr:"Ce que représente un officier LSPD et les priorités à garder dès la première prise de service.",
+    summaryEn:"What an LSPD officer represents and the priorities to keep from the first shift.",
+    bodyFr:[
+      "La mission du département est de maintenir un environnement sûr, préserver l'ordre et fournir un service de police professionnel à la communauté.",
+      "En service, tu représentes immédiatement le département : sécurité, professionnalisme, maîtrise de soi et qualité du RP passent avant la recherche d'action.",
+      "Traite chaque appel sérieusement, enquête autant que la situation le permet et demande un superviseur lorsque la procédure n'est pas claire."
+    ],
+    bodyEn:[
+      "The department mission is to maintain a safe environment, preserve order and provide professional policing to the community.",
+      "While on duty you immediately represent the department: safety, professionalism, self-control and RP quality come before chasing action.",
+      "Treat every call seriously, investigate as fully as the situation allows and request a supervisor when procedure is unclear."
+    ],
+    tipsFr:["Reste en personnage pendant le service.","La sécurité du public, de ton binôme et de toi-même est prioritaire.","En cas de doute : ralentis, sécurise, communique, demande un supérieur."],
+    tipsEn:["Stay in character while on duty.","Public, partner and officer safety come first.","When unsure: slow down, secure, communicate and request a supervisor."]
+  },
+  {
+    id:"conduct",icon:"⭐",titleFr:"2. Conduite & chaîne de commandement",titleEn:"2. Conduct & chain of command",
+    summaryFr:"Les standards de comportement attendus et la manière d'utiliser la hiérarchie.",summaryEn:"Expected conduct standards and how to use the chain of command.",
+    bodyFr:[
+      "Le SOP impose un niveau élevé de professionnalisme et de discipline. Le manque de respect, la discrimination et les comportements qui nuisent au département ne sont pas tolérés.",
+      "Respecte la chaîne de commandement. Les Sergeants et Lieutenants assurent notamment la supervision de terrain et peuvent reprendre une scène ou donner des directives opérationnelles.",
+      "Les grades exacts et leurs responsabilités sont maintenus dans la page Grades & responsabilités du Command Center."
+    ],
+    bodyEn:[
+      "The SOP requires a high standard of professionalism and discipline. Disrespect, discrimination and behavior that harms the department are not tolerated.",
+      "Respect the chain of command. Sergeants and Lieutenants provide field supervision and may take over scenes or issue operational directions.",
+      "The exact ranks and responsibilities are maintained in the Ranks & responsibilities page of the Command Center."
+    ]
+  },
+  {
+    id:"radio",icon:"📻",titleFr:"3. Radio & communications",titleEn:"3. Radio & communications",
+    summaryFr:"Une bonne radio est courte, exploitable et donne aux autres unités les informations dont elles ont besoin.",summaryEn:"Good radio traffic is short, actionable and gives other units what they need.",
+    bodyFr:[
+      "Le SOP privilégie les transmissions courtes et précises en plain English/Darija. Donne d'abord qui tu es, où tu es, ce que tu as et ce dont tu as besoin.",
+      "Pour un contrôle routier, annonce au minimum la localisation, la plaque si disponible, le type/couleur du véhicule et le nombre d'occupants.",
+      "En situation urgente, évite de monopoliser la fréquence avec des informations secondaires."
+    ],
+    bodyEn:[
+      "The SOP favors short and precise plain English/Darija transmissions. State who you are, where you are, what you have and what you need.",
+      "For a traffic stop, transmit at least the location, plate if available, vehicle type/color and occupant count.",
+      "During urgent situations, do not occupy the channel with secondary information."
+    ],
+    exampleFr:"Exemple simple : « 393 Traffic, Alta St / Adams Apple Blvd, sedan rouge, 3 occupants, plaque à suivre. »",
+    exampleEn:"Simple example: “393 Traffic, Alta St / Adams Apple Blvd, red sedan, 3 occupants, plate to follow.”"
+  },
+  {
+    id:"tenCodes",icon:"🔟",titleFr:"4. Référentiel 10-codes Catena",titleEn:"4. Catena 10-code reference",
+    summaryFr:"Mémo radio ajouté pour ton serveur. Utilise toujours le plain language si un code risque d'être mal compris.",summaryEn:"Radio shorthand added for your server. Always use plain language if a code may be misunderstood.",
+    custom:true
+  },
+  {
+    id:"traffic",icon:"🚓",titleFr:"5. Contrôle routier",titleEn:"5. Traffic stop",
+    summaryFr:"Préparer, annoncer, approcher, contrôler puis clôturer proprement un traffic stop.",summaryEn:"Prepare, call out, approach, control and properly clear a traffic stop.",
+    bodyFr:[
+      "Avant le stop : constate une infraction ou un motif légitime, choisis une zone sûre, active le lightbar et annonce le stop à la radio.",
+      "À l'approche : surveille la circulation et les occupants, garde une position tactique et observe les mains ainsi que ce qui est visible dans l'habitacle.",
+      "Présente-toi, indique la raison du contrôle et demande les documents nécessaires. Retourne ensuite au véhicule de service pour les vérifications MDT/NCIC.",
+      "À la fin, donne clairement la disposition : avertissement, citation ou transport/arrestation, puis clear la scène à la radio."
+    ],
+    bodyEn:[
+      "Before the stop: observe a violation or legitimate reason, choose a safe location, activate the lightbar and call the stop over radio.",
+      "On approach: watch traffic and occupants, maintain a tactical position and observe hands and anything visible inside the vehicle.",
+      "Introduce yourself, state the reason for the stop and request the necessary documents. Then return to the patrol vehicle for MDT/NCIC checks.",
+      "At the end, clearly state the disposition: warning, citation or transport/arrest, then clear the scene over radio."
+    ]
+  },
+  {
+    id:"legal",icon:"⚖️",titleFr:"6. Suspicion, détention & arrestation",titleEn:"6. Suspicion, detention & arrest",
+    summaryFr:"Comprendre la différence entre suspicion raisonnable, probable cause et interrogatoire sous garde.",summaryEn:"Understand reasonable suspicion, probable cause and custodial questioning.",
+    bodyFr:[
+      "La suspicion raisonnable permet une enquête/détention temporaire lorsque des faits permettent raisonnablement de soupçonner une infraction. Elle ne vaut pas automatiquement preuve d'un crime.",
+      "La probable cause exige des faits plus solides et fiables et peut soutenir une arrestation ou certaines recherches selon la procédure RP du serveur.",
+      "Si les éléments qui justifiaient la détention disparaissent, ne maintiens pas quelqu'un menotté sans motif.",
+      "Avant un interrogatoire en garde où la personne n'est pas libre de partir, le SOP prévoit l'énoncé des droits Miranda et l'arrêt des questions si les droits sont invoqués."
+    ],
+    bodyEn:[
+      "Reasonable suspicion supports a temporary investigation/detention when facts reasonably suggest an offense. It is not automatically proof of a crime.",
+      "Probable cause requires stronger and trustworthy facts and may support arrest or certain searches under the server's RP procedure.",
+      "If the facts supporting detention disappear, do not keep a person handcuffed without a reason.",
+      "Before custodial questioning where the person is not free to leave, the SOP calls for Miranda warnings and questioning must stop if rights are invoked."
+    ]
+  },
+  {
+    id:"force",icon:"🛡️",titleFr:"7. Usage de la force",titleEn:"7. Use of force",
+    summaryFr:"Toujours rechercher le niveau de force nécessaire le plus bas compatible avec la menace.",summaryEn:"Always seek the lowest necessary level of force consistent with the threat.",
+    bodyFr:[
+      "Le continuum du SOP va de la présence et des ordres verbaux au contrôle à mains nues, aux moyens less-lethal puis à la force létale.",
+      "La force doit répondre à la menace et à la nécessité de reprendre le contrôle. La force létale est réservée aux situations de danger immédiat pour une vie.",
+      "Après un usage de force important, documente précisément le contexte, les ordres donnés, la menace, la force utilisée et les blessures éventuelles."
+    ],
+    bodyEn:[
+      "The SOP continuum runs from officer presence and verbal commands through empty-hand control, less-lethal options and lethal force.",
+      "Force must match the threat and the need to regain control. Lethal force is reserved for immediate threats to life.",
+      "After significant force, document the context, commands, threat, force used and any injuries precisely."
+    ]
+  },
+  {
+    id:"pursuit",icon:"🚨",titleFr:"8. Poursuites & BOLO",titleEn:"8. Pursuits & BOLO",
+    summaryFr:"Une poursuite est un exercice de coordination : sécurité, radio, rôles Primary/Secondary et supervision.",summaryEn:"A pursuit is a coordination exercise: safety, radio, Primary/Secondary roles and supervision.",
+    bodyFr:[
+      "Annonce immédiatement la poursuite avec localisation, direction, véhicule/plaque et occupants si possible.",
+      "Continue à fournir les éléments utiles comme vitesse, circulation et état de la route. Quand un Secondary est présent, il prend normalement les mises à jour radio afin que le Primary se concentre sur la conduite.",
+      "Un superviseur peut ordonner l'arrêt de la poursuite. Si elle est terminée sans interpellation, publie les informations utiles en BOLO.",
+      "Le SOP source encadre fortement le PIT et prévoit une autorisation/supervision ; suis toujours la politique Catena en vigueur avant de le tenter."
+    ],
+    bodyEn:[
+      "Immediately call the pursuit with location, direction, vehicle/plate and occupants when possible.",
+      "Continue providing useful information such as speed, traffic and road conditions. Once a Secondary is present, it normally handles radio updates so Primary can focus on driving.",
+      "A supervisor may order the pursuit terminated. If it ends without apprehension, publish the useful information as a BOLO.",
+      "The source SOP tightly controls PIT use and expects authorization/supervision; always follow current Catena policy before attempting it."
+    ]
+  },
+  {
+    id:"scene",icon:"🧭",titleFr:"9. Intervention & gestion de scène",titleEn:"9. Incident & scene management",
+    summaryFr:"Le premier officier influence toute l'enquête : arriver sainement, sauver des vies, sécuriser et documenter.",summaryEn:"The first officer shapes the whole investigation: arrive safely, preserve life, secure and document.",
+    bodyFr:[
+      "Arrive rapidement mais sans créer un second incident. Observe avant de modifier la scène et note ce que tu vois, entends et constates.",
+      "Neutralise les dangers immédiats, organise l'aide médicale, puis sécurise la scène et limite l'accès aux personnes autorisées.",
+      "Sur une scène importante, mets en place un périmètre, note les unités/postes et conserve un log des entrées/sorties lorsque nécessaire.",
+      "Demande les ressources adaptées : unités supplémentaires, superviseur, EMS, détective, technicien evidence ou autre unité spécialisée. Lors de la relève, fais un briefing clair au responsable qui reprend la scène."
+    ],
+    bodyEn:[
+      "Arrive quickly but without creating a second incident. Observe before altering the scene and note what you see, hear and discover.",
+      "Neutralize immediate dangers, arrange medical aid, then secure the scene and limit access to authorized personnel.",
+      "On major scenes, establish a perimeter, record unit posts and maintain an entry/exit log when needed.",
+      "Request the appropriate resources: additional units, supervisor, EMS, detective, evidence technician or another specialty unit. When relieved, brief the person taking command clearly."
+    ]
+  },
+  {
+    id:"mdt",icon:"💻",titleFr:"10. MDT / NCIC & confidentialité",titleEn:"10. MDT / NCIC & confidentiality",
+    summaryFr:"Les données policières sont sensibles : consulte uniquement ce qui est nécessaire à ton service et ne diffuse rien à l'extérieur.",summaryEn:"Police data is sensitive: access only what is needed for duty and never disclose it outside law enforcement.",
+    bodyFr:[
+      "Le MDT/NCIC sert notamment à consulter des antécédents, citations, arrestations, warrants, caution codes et informations véhicule.",
+      "Les informations du MDT sont confidentielles. Ne les transmet pas à un civil, une organisation criminelle ou une personne non autorisée.",
+      "Chaque consultation et chaque rapport doit rester cohérent avec ton action RP : ne cherche pas des informations que ton personnage n'a aucune raison opérationnelle de consulter."
+    ],
+    bodyEn:[
+      "The MDT/NCIC is used to check records, citations, arrests, warrants, caution codes and vehicle information.",
+      "MDT information is confidential. Do not disclose it to civilians, criminal groups or unauthorized persons.",
+      "Every lookup and report should match your RP action: do not search information your character has no operational reason to access."
+    ]
+  },
+  {
+    id:"equipment",icon:"🎒",titleFr:"11. Équipement & unités spécialisées",titleEn:"11. Equipment & specialty units",
+    summaryFr:"Utilise uniquement les véhicules, armes et équipements autorisés pour ton grade, ta mission et tes certifications.",summaryEn:"Use only vehicles, weapons and equipment authorized for your rank, assignment and certifications.",
+    bodyFr:[
+      "Le SOP liste l'équipement courant comme baton, lampe, Taser, arme de service, matériel de signalisation et premiers secours, avec certains équipements réservés aux personnels certifiés.",
+      "Les unités spécialisées décrites comprennent notamment Motor, CID, SWAT et Aviation. Elles ont des responsabilités et des exigences de formation spécifiques.",
+      "Vérifie toujours les certifications et la politique actuelle du département avant d'utiliser un équipement ou véhicule spécialisé."
+    ],
+    bodyEn:[
+      "The SOP lists common equipment such as baton, flashlight, Taser, service pistol, traffic equipment and first-aid supplies, with some equipment reserved for certified personnel.",
+      "Specialty units described include Motor, CID, SWAT and Aviation. They have specific responsibilities and training requirements.",
+      "Always check certifications and current department policy before using specialty equipment or vehicles."
+    ]
+  },
+  {
+    id:"firstShift",icon:"✅",titleFr:"12. Checklist première prise de service",titleEn:"12. First shift checklist",
+    summaryFr:"Le minimum à vérifier avant de partir en patrouille.",summaryEn:"The minimum to verify before going on patrol.",
+    checklistFr:[
+      "Je connais mon matricule, mon grade et mon supérieur direct.",
+      "Je sais rejoindre la bonne fréquence radio et utiliser les transmissions courtes.",
+      "Je connais les 10-codes Catena essentiels ou je garde le mémo ouvert.",
+      "Je sais créer/mettre à jour mon unité dans le CAD et indiquer mon statut.",
+      "Je sais effectuer un traffic stop simple et demander un renfort.",
+      "Je connais la différence entre suspicion raisonnable, probable cause, détention et arrestation.",
+      "Je connais le principe du use-of-force continuum.",
+      "Je sais où créer un Incident Report, un BOLO et consulter le MDT.",
+      "Je sais que les informations MDT/NCIC sont confidentielles.",
+      "Si je doute d'une procédure, je contacte mon FTO ou un superviseur."
+    ],
+    checklistEn:[
+      "I know my badge number, rank and direct supervisor.",
+      "I know how to join the correct radio channel and keep transmissions concise.",
+      "I know the essential Catena 10-codes or keep the reference open.",
+      "I know how to create/update my CAD unit and status.",
+      "I know how to conduct a basic traffic stop and request backup.",
+      "I understand reasonable suspicion, probable cause, detention and arrest.",
+      "I understand the use-of-force continuum.",
+      "I know where to create an Incident Report, BOLO and access the MDT.",
+      "I know MDT/NCIC information is confidential.",
+      "If I am unsure about a procedure, I contact my FTO or a supervisor."
+    ]
+  }
+];
+
+function handbook(){
+  if(!isInternal())return;
+  const lang=currentLang==="en"?"En":"Fr";
+  const title=s=>s[`title${lang}`]||s.titleFr;
+  const summary=s=>s[`summary${lang}`]||s.summaryFr;
+  const sectionCards=NEWCOMER_HANDBOOK.map((s,i)=>`<button class="handbook-toc-item" data-handbook-target="${s.id}" type="button"><span>${s.icon}</span><div><b>${esc(title(s))}</b><small>${esc(summary(s))}</small></div><i>›</i></button>`).join("");
+  const contentCards=NEWCOMER_HANDBOOK.map(s=>{
+    const body=s[`body${lang}`]||s.bodyFr||[];
+    const tips=s[`tips${lang}`]||s.tipsFr||[];
+    const checklist=s[`checklist${lang}`]||s.checklistFr||[];
+    if(s.id==="tenCodes"){
+      return `<section class="handbook-section card" id="hb-${s.id}" data-handbook-search="${esc((title(s)+" "+summary(s)+" "+CATENA_TEN_CODES.flat().join(" ")).toLowerCase())}">
+        <div class="handbook-section-head"><span>${s.icon}</span><div><h2>${esc(title(s))}</h2><p>${esc(summary(s))}</p></div></div>
+        <div class="handbook-policy-note"><b>⚠️ ${currentLang==="en"?"Catena note":"Note Catena"}</b><p>${currentLang==="en"?"The source SOP favors plain English/Darija and even states not to use 10-codes. This separate reference was added for Catena at the department's request. If a code is unclear, use plain language.":"Le SOP source privilégie le plain English/Darija et indique même de ne pas utiliser les 10-codes. Ce référentiel séparé a été ajouté pour Catena à la demande du département. Si un code prête à confusion, utilise le langage clair."}</p></div>
+        <div class="ten-code-tools"><input id="tenCodeSearch" type="search" placeholder="${currentLang==="en"?"Search a code or meaning...":"Rechercher un code ou une signification..."}"></div>
+        <div class="ten-code-grid" id="tenCodeGrid">${CATENA_TEN_CODES.map(c=>`<div class="ten-code-row" data-ten-code="${esc((c[0]+" "+c[1]+" "+c[2]).toLowerCase())}"><b>${c[0]}</b><span>${esc(currentLang==="en"?c[2]:c[1])}</span><button type="button" class="copy-ten-code" data-code="${c[0]}" title="Copier">⧉</button></div>`).join("")}</div>
+      </section>`;
+    }
+    return `<section class="handbook-section card" id="hb-${s.id}" data-handbook-search="${esc((title(s)+" "+summary(s)+" "+body.join(" ")+" "+tips.join(" ")+" "+checklist.join(" ")).toLowerCase())}">
+      <div class="handbook-section-head"><span>${s.icon}</span><div><h2>${esc(title(s))}</h2><p>${esc(summary(s))}</p></div></div>
+      ${body.length?`<div class="handbook-body">${body.map(x=>`<p>${esc(x)}</p>`).join("")}</div>`:""}
+      ${s.exampleFr?`<div class="handbook-radio-example"><span>📻</span><p>${esc(currentLang==="en"?s.exampleEn:s.exampleFr)}</p></div>`:""}
+      ${tips.length?`<div class="handbook-tips">${tips.map(x=>`<div><span>✓</span><p>${esc(x)}</p></div>`).join("")}</div>`:""}
+      ${checklist.length?`<div class="handbook-checklist">${checklist.map((x,i)=>`<label><input type="checkbox" data-handbook-check="${s.id}-${i}"><span>${esc(x)}</span></label>`).join("")}</div>`:""}
+    </section>`;
+  }).join("");
+
+  $("content").innerHTML=`<div class="handbook-hero card">
+    <div><span class="eyebrow">LSPD • NEW OFFICER ORIENTATION</span><h1>📘 ${esc(B("Handbook nouveaux arrivants","Newcomer Handbook"))}</h1><p>${esc(B("Guide opérationnel de prise de poste basé sur le SOP du département et adapté au Command Center Catena.","Operational onboarding guide based on department SOP and adapted to the Catena Command Center."))}</p></div>
+    <div class="handbook-hero-actions"><button class="btn" id="printHandbookBtn">🖨️ ${esc(B("Imprimer le handbook","Print handbook"))}</button></div>
+  </div>
+  <div class="handbook-quick-actions">
+    <button data-go-page="cad">📡 <span>${esc(B("Ouvrir le CAD","Open CAD"))}</span></button>
+    <button data-go-page="mdt">💻 <span>${esc(B("Ouvrir le MDT","Open MDT"))}</span></button>
+    <button data-go-page="trainingCenter">🎓 <span>${esc(B("Centre Formation","Training Center"))}</span></button>
+    <button data-go-page="grades">⭐ <span>${esc(B("Grades & responsabilités","Ranks & responsibilities"))}</span></button>
+  </div>
+  <div class="handbook-search card"><span>⌕</span><input id="handbookSearch" type="search" placeholder="${esc(B("Recherche dans le handbook...","Search the handbook..."))}"><button id="clearHandbookSearch" class="icon-btn" type="button">×</button></div>
+  <div class="handbook-layout">
+    <aside class="handbook-toc card"><div class="handbook-toc-title"><span>☰</span><div><b>${esc(B("Démarrage rapide","Quick start"))}</b><small>${NEWCOMER_HANDBOOK.length} ${esc(B("chapitres","chapters"))}</small></div></div>${sectionCards}</aside>
+    <main class="handbook-content" id="handbookContent">${contentCards}</main>
+  </div>`;
+
+  document.querySelectorAll("[data-handbook-target]").forEach(b=>b.onclick=()=>document.querySelector(`#hb-${b.dataset.handbookTarget}`)?.scrollIntoView({behavior:"smooth",block:"start"}));
+  document.querySelectorAll("[data-go-page]").forEach(b=>b.onclick=()=>render(b.dataset.goPage));
+  $("printHandbookBtn")?.addEventListener("click",()=>window.print());
+  const search=$("handbookSearch");
+  const applyFilter=()=>{
+    const q=(search?.value||"").trim().toLowerCase();
+    let visible=0;
+    document.querySelectorAll(".handbook-section").forEach(s=>{const show=!q||(s.dataset.handbookSearch||"").includes(q);s.classList.toggle("hidden",!show);if(show)visible++;});
+    document.querySelectorAll(".handbook-toc-item").forEach(b=>{const target=document.querySelector(`#hb-${b.dataset.handbookTarget}`);b.classList.toggle("hidden",!!target?.classList.contains("hidden"));});
+    const existing=$("handbookNoResult"); if(existing)existing.remove();
+    if(!visible)$("handbookContent")?.insertAdjacentHTML("afterbegin",`<div id="handbookNoResult" class="training-empty-state card"><span>⌕</span><b>${esc(B("Aucun chapitre trouvé","No chapter found"))}</b></div>`);
+  };
+  search?.addEventListener("input",applyFilter);
+  $("clearHandbookSearch")?.addEventListener("click",()=>{if(search){search.value="";applyFilter();search.focus();}});
+  $("tenCodeSearch")?.addEventListener("input",e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll(".ten-code-row").forEach(r=>r.classList.toggle("hidden",!!q&&!(r.dataset.tenCode||"").includes(q)));});
+  document.querySelectorAll(".copy-ten-code").forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(b.dataset.code);showToast(`${b.dataset.code} copié.`,"success");}catch{showToast(b.dataset.code,"info");}});
+  document.querySelectorAll("[data-handbook-check]").forEach(c=>{
+    const key=`lspd_handbook_${window.LSPD.user?.uid||"local"}_${c.dataset.handbookCheck}`;
+    c.checked=localStorage.getItem(key)==="1";
+    c.onchange=()=>localStorage.setItem(key,c.checked?"1":"0");
+  });
+}
+
+function recruitmentStatusClass(status){
+  if(["Recruté","Admission approuvée","Entretien réussi"].includes(status))return "green";
+  if(["Refusé","Retirée"].includes(status))return "red";
+  return "orange";
+}
+function normalizedRecruitmentStage(status){
+  if(status==="À convoquer")return "Pré-sélectionné";
+  if(status==="Entretien réussi")return "Admission approuvée";
+  return status;
+}
+function recruitmentStepState(current,step){
+  current=normalizedRecruitmentStage(current);
+  const order={"Dossier reçu":1,"En étude":2,"Pré-sélectionné":2,"Entretien planifié":3,"Entretien évalué":4,"Admission approuvée":5,"Recruté":6,"Refusé":0,"Retirée":0};
+  const n=order[current]||1;return n>step?"done":n===step?"active":"";
+}
+async function applicationPortal(){
+  if(!isApplicant())return;
+  try{
+    const snap=await getDoc(doc(db,"lspd_applications",window.LSPD.user.uid));
+    if(!snap.exists()){$("content").innerHTML='<div class="card"><p class="error">Aucun dossier de candidature trouvé. Contacte le Bureau du recrutement.</p></div>';return;}
+    const a={id:snap.id,...snap.data()},status=normalizedRecruitmentStage(a.status),finalState=["Refusé","Retirée"].includes(status);
+    $("content").innerHTML=`<div class="candidate-official-header card">
+      <div class="candidate-official-seal">LSPD</div><div><span class="eyebrow">BUREAU DU RECRUTEMENT</span><h2>Dossier candidat — ${esc(a.applicantName)}</h2><p>Référence <b>${esc(a.applicationNumber||"—")}</b> • Déposé ${formatDate(a.createdAt)}</p></div>
+      <span class="tag ${recruitmentStatusClass(status)} candidate-status-badge">${esc(status)}</span>
+    </div>
+    <div class="candidate-official-process ${finalState?"final":""}">
+      <div class="${recruitmentStepState(status,1)}"><i>1</i><b>Dossier</b><small>Candidature enregistrée</small></div><span>→</span>
+      <div class="${recruitmentStepState(status,2)}"><i>2</i><b>Étude</b><small>Présélection du dossier</small></div><span>→</span>
+      <div class="${recruitmentStepState(status,3)}"><i>3</i><b>Entretien</b><small>Oral obligatoire in-game</small></div><span>→</span>
+      <div class="${recruitmentStepState(status,4)}"><i>4</i><b>Décision</b><small>Décision du Commandement</small></div><span>→</span>
+      <div class="${recruitmentStepState(status,5)}"><i>5</i><b>Incorporation</b><small>Matricule & entrée au LSPD</small></div>
+    </div>
+    ${a.publicMessage?`<div class="candidate-public-message card"><span>INFORMATION DU BUREAU</span><p>${esc(a.publicMessage)}</p></div>`:""}
+    ${status==="Entretien planifié"?`<div class="candidate-interview-card card"><span>🎙️ CONVOCATION — ENTRETIEN ORAL IN-GAME</span><h3>${esc(a.interviewDate||"Date à confirmer")} • ${esc(a.interviewTime||"Heure à confirmer")}</h3><p>${esc(a.interviewLocation||"Lieu à confirmer")}</p><small>Recruteur : ${esc(a.interviewerName||"Bureau du recrutement")}</small><div class="candidate-interview-advice">Présente-toi quelques minutes avant l'heure prévue, avec un micro fonctionnel et disponible pour un échange RP.</div></div>`:""}
+    ${status==="Entretien évalué"?`<div class="candidate-decision-card pending"><h3>Entretien terminé</h3><p>Ton entretien a été enregistré. Ton dossier est maintenant transmis au Commandement pour décision finale.</p></div>`:""}
+    ${status==="Refusé"?`<div class="candidate-decision-card rejected"><h3>Candidature non retenue</h3><p>${esc(a.publicDecisionMessage||a.decisionReason||"Le Bureau du recrutement ne donnera pas suite à cette candidature.")}</p></div>`:""}
+    ${status==="Admission approuvée"?`<div class="candidate-decision-card passed"><h3>Admission approuvée</h3><p>Ta candidature est acceptée. Le Commandement finalise maintenant ton matricule, ton grade d'entrée et ton affectation.</p></div>`:""}
+    ${status==="Recruté"?`<div class="candidate-decision-card hired"><h3>Bienvenue au Los Santos Police Department</h3><p>Ton incorporation est finalisée. Reconnecte-toi si nécessaire pour accéder à ton espace membre.</p></div>`:""}
+    <div class="candidate-file-grid">
+      <section class="card"><span class="eyebrow">IDENTITÉ RP</span><h3>Présentation</h3><div class="row"><span>Nom</span><b>${esc(a.applicantName)}</b></div><div class="row"><span>Âge RP</span><b>${esc(a.ageRP)}</b></div><div class="row"><span>Téléphone RP</span><b>${esc(a.phoneRP||"—")}</b></div><div class="row"><span>Disponibilités</span><b>${esc(a.availability)}</b></div><p class="candidate-answer">${esc(a.presentation||a.experience||"—")}</p></section>
+      <section class="card"><span class="eyebrow">MOTIVATION</span><h3>Pourquoi le LSPD ?</h3><p class="candidate-answer">${esc(a.whyLspd)}</p><h4>Ce que je peux apporter</h4><p class="candidate-answer">${esc(a.contribution||"—")}</p></section>
+      <section class="card"><span class="eyebrow">PARCOURS</span><h3>Expérience RP</h3><p class="candidate-answer">${esc(a.experience)}</p><div class="row"><span>Expérience police</span><b>${esc(a.policeExperience)}</b></div><div class="row"><span>Permis RP</span><b>${esc(a.drivingLicense)}</b></div></section>
+      <section class="card"><span class="eyebrow">PROFIL</span><h3>Forces & progression</h3><h4>Qualités</h4><p class="candidate-answer">${esc(a.strengths)}</p><h4>Point à améliorer</h4><p class="candidate-answer">${esc(a.weakness)}</p></section>
+    </div>
+    <div class="candidate-portal-actions"><button class="btn secondary" id="refreshApplicationBtn">↻ Actualiser</button>${["Dossier reçu","En étude","Pré-sélectionné"].includes(status)?'<button class="btn danger" id="withdrawApplicationBtn">Retirer ma candidature</button>':""}<button class="btn secondary" id="candidateLogoutBtn">Se déconnecter</button></div>`;
+    $("refreshApplicationBtn").onclick=applicationPortal;$("candidateLogoutBtn").onclick=logout;$("withdrawApplicationBtn")?.addEventListener("click",()=>withdrawRecruitmentApplication(a.id));
+  }catch(err){$("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
+}
+async function withdrawRecruitmentApplication(id){
+  if(!isApplicant()||!confirm("Retirer définitivement ta candidature ?"))return;
+  try{await updateDoc(doc(db,"lspd_applications",id),{status:"Retirée",withdrawnAt:serverTimestamp(),updatedAt:serverTimestamp()});await applicationPortal();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+async function refreshRecruitmentBadge(){
+  if(!hasPerm("mdt_manage"))return;
+  try{
+    const snap=await getDocs(collection(db,"lspd_applications"));
+    const count=snap.docs.filter(d=>!["Refusé","Retirée","Recruté"].includes(normalizedRecruitmentStage(d.data().status))).length;
+    const el=$("recruitmentCount"); if(el){el.textContent=count?String(count):"";el.classList.toggle("hidden",!count);}
+  }catch{}
+}
 
 async function refreshRegistrationBadge(){
   if(!isChief()) return;
@@ -1856,6 +2315,16 @@ async function setTrainingAttendance(regId,status,eventId){
 }
 
 async function mdt(){
+  if(!isInternal())return;
+  window.LSPD.mdtTab??="cases";
+  $("content").innerHTML=`<div class="mdt-pro-header card"><div><span class="eyebrow">MOBILE DATA TERMINAL</span><h2>MDT LSPD</h2><p>Dossiers opérationnels et recrutement centralisés.</p></div></div>
+  <div class="mdt-tabs"><button class="${window.LSPD.mdtTab==="cases"?"active":""}" data-mdt-tab="cases">💻 Dossiers MDT</button>${hasPerm("mdt_manage")?`<button class="${window.LSPD.mdtTab==="recruitment"?"active":""}" data-mdt-tab="recruitment">🪪 Recrutement LSPD <span id="mdtRecruitmentInlineCount"></span></button>`:""}</div><div id="mdtTabContent"></div>`;
+  document.querySelectorAll("[data-mdt-tab]").forEach(b=>b.onclick=()=>{window.LSPD.mdtTab=b.dataset.mdtTab;mdt();});
+  if(window.LSPD.mdtTab==="recruitment"&&hasPerm("mdt_manage"))await renderRecruitmentDesk();
+  else await renderMdtCaseFiles();
+}
+
+async function renderMdtCaseFiles(){
   try{
     const [caseSnap,incidentSnap]=await Promise.all([
       getDocs(collection(db,"case_files")),
@@ -1864,7 +2333,7 @@ async function mdt(){
     const cases=caseSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     const incidentsData=incidentSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
 
-    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newCaseBtn">+ Nouveau dossier</button><input id="mdtSearch" class="search" placeholder="Recherche globale..."></div>
+    $("mdtTabContent").innerHTML=`<div class="toolbar"><button class="btn" id="newCaseBtn">+ Nouveau dossier</button><input id="mdtSearch" class="search" placeholder="Recherche globale..."></div>
       <div class="section-title">Dossiers d'enquête</div>
       <div class="card table-card"><table class="table"><thead><tr><th>Numéro</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th>${hasPerm("mdt_manage")?"<th>Action</th>":""}</tr></thead><tbody id="mdtCaseRows">${renderCaseRows(cases)}</tbody></table></div>
       <div class="section-title">Rapports accessibles</div>
@@ -1885,9 +2354,124 @@ async function mdt(){
       document.querySelectorAll(".close-case").forEach(b=>b.onclick=()=>closeCase(b.dataset.id));
     }
   }catch(err){
-    $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
+    $("mdtTabContent").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
   }
 }
+
+function recruitmentManagerStatusBadge(status){status=normalizedRecruitmentStage(status);return `<span class="tag ${recruitmentStatusClass(status)}">${esc(status)}</span>`;}
+function recruitmentScoreLabel(score,max){
+  const pct=max?Math.round(Number(score||0)/max*100):0;
+  return pct>=75?"Solide":pct>=55?"À approfondir":"Insuffisant";
+}
+function recruitmentScoreClass(score,max){const pct=max?Number(score||0)/max*100:0;return pct>=75?"green":pct>=55?"orange":"red";}
+async function getRecruitmentReview(applicationId){
+  try{const s=await getDoc(doc(db,"lspd_recruitment_reviews",applicationId));return s.exists()?{id:s.id,...s.data()}:null;}catch{return null;}
+}
+async function upsertRecruitmentReview(applicationId,patch){
+  const ref=doc(db,"lspd_recruitment_reviews",applicationId),existing=await getDoc(ref);
+  if(existing.exists())await updateDoc(ref,{...patch,updatedAt:serverTimestamp()});
+  else await setDoc(ref,{applicationId,...patch,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+}
+async function renderRecruitmentDesk(){
+  if(!hasPerm("mdt_manage"))return;
+  try{
+    const [snap,reviewSnap]=await Promise.all([getDocs(collection(db,"lspd_applications")),getDocs(collection(db,"lspd_recruitment_reviews"))]);
+    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const reviews=new Map(reviewSnap.docs.map(d=>[d.id,{id:d.id,...d.data()}]));window.LSPD.recruitmentApplications=data;window.LSPD.recruitmentReviews=reviews;
+    const statusCount=s=>data.filter(a=>normalizedRecruitmentStage(a.status)===s).length;
+    const active=data.filter(a=>!["Refusé","Retirée","Recruté"].includes(normalizedRecruitmentStage(a.status)));
+    $("mdtTabContent").innerHTML=`<div class="recruitment-bureau-header">
+      <div><span class="eyebrow">LSPD — RECRUITMENT BUREAU</span><h2>Gestion des candidatures</h2><p>Présélection documentée, entretien oral, recommandation du recruteur et décision du Commandement.</p></div>
+      <div class="recruitment-bureau-standard"><b>PROCESSUS OFFICIEL</b><span>Dossier → Étude → Entretien → Décision → Incorporation</span></div>
+    </div>
+    <div class="recruitment-desk-summary pro">
+      <div><span>Nouveaux dossiers</span><b>${statusCount("Dossier reçu")}</b></div><div><span>En étude / présélection</span><b>${statusCount("En étude")+statusCount("Pré-sélectionné")}</b></div><div><span>Entretiens planifiés</span><b>${statusCount("Entretien planifié")}</b></div><div><span>Décision Commandement</span><b>${statusCount("Entretien évalué")}</b></div><div><span>Admissions approuvées</span><b>${statusCount("Admission approuvée")}</b></div>
+    </div>
+    <div class="toolbar recruitment-toolbar"><input id="recruitmentSearch" class="search" placeholder="Rechercher candidat, référence, statut..."><select id="recruitmentFilter"><option value="active">Candidatures actives</option><option value="all">Toutes</option><option>Dossier reçu</option><option>En étude</option><option>Pré-sélectionné</option><option>Entretien planifié</option><option>Entretien évalué</option><option>Admission approuvée</option><option>Refusé</option><option>Recruté</option></select><button class="btn secondary" id="exportRecruitmentBtn">Exporter CSV</button></div>
+    <div id="recruitmentList" class="recruitment-list professional"></div>`;
+    const draw=()=>{
+      const q=$("recruitmentSearch").value.trim().toLowerCase(),filter=$("recruitmentFilter").value;
+      const rows=data.filter(a=>{const st=normalizedRecruitmentStage(a.status),statusOk=filter==="all"||filter==="active"?filter==="all"||!["Refusé","Retirée","Recruté"].includes(st):st===filter;const searchOk=!q||[a.applicationNumber,a.applicantName,a.email,st,a.availability,a.policeExperience].some(v=>String(v||"").toLowerCase().includes(q));return statusOk&&searchOk;});
+      $("recruitmentList").innerHTML=rows.length?rows.map(a=>{const r=reviews.get(a.id),st=normalizedRecruitmentStage(a.status);return `<article class="recruitment-application-card pro"><div class="recruitment-app-reference"><span>${esc(a.applicationNumber||"—")}</span><small>${formatDate(a.createdAt)}</small></div><div class="recruitment-app-main"><h3>${esc(a.applicantName)}</h3><p>${esc(a.ageRP)} ans RP • ${esc(a.availability)} • ${esc(a.policeExperience)}</p><small>${esc(a.email)}</small></div><div class="recruitment-score-mini">${r?.screeningTotal!=null?`<span>Dossier <b>${r.screeningTotal}/25</b></span>`:""}${r?.interviewTotal!=null?`<span>Entretien <b>${r.interviewTotal}/35</b></span>`:""}</div><div class="recruitment-app-status">${recruitmentManagerStatusBadge(st)}${st==="Entretien planifié"?`<small>${esc(a.interviewDate||"")} ${esc(a.interviewTime||"")}</small>`:""}</div><button class="btn recruitment-open" data-id="${a.id}">Ouvrir le dossier</button></article>`}).join(""):'<div class="card"><p class="muted">Aucune candidature dans ce filtre.</p></div>';
+      document.querySelectorAll(".recruitment-open").forEach(b=>b.onclick=()=>openRecruitmentApplication(b.dataset.id));
+    };
+    $("recruitmentSearch").oninput=draw;$("recruitmentFilter").onchange=draw;draw();
+    $("exportRecruitmentBtn").onclick=()=>csvDownload("candidatures_lspd.csv",data.map(a=>{const r=reviews.get(a.id)||{};return {numero:a.applicationNumber,nom:a.applicantName,email:a.email,ageRP:a.ageRP,disponibilite:a.availability,experience:a.policeExperience,statut:normalizedRecruitmentStage(a.status),scoreDossier:r.screeningTotal??"",scoreEntretien:r.interviewTotal??"",recommandation:r.interviewRecommendation||""};}));
+    const inline=$("mdtRecruitmentInlineCount");if(inline)inline.textContent=active.length?`(${active.length})`:"";refreshRecruitmentBadge().catch(()=>{});
+  }catch(err){$("mdtTabContent").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
+}
+async function openRecruitmentApplication(id){
+  if(!hasPerm("mdt_manage"))return;
+  const [snap,review]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!snap.exists())return;
+  const a={id:snap.id,...snap.data()},status=normalizedRecruitmentStage(a.status),screening=review?.screeningTotal,interview=review?.interviewTotal;
+  showModal(`<div class="recruitment-review-modal official"><div class="recruitment-review-head"><div><span class="eyebrow">${esc(a.applicationNumber||"CANDIDATURE")}</span><h2>${esc(a.applicantName)}</h2><p>${esc(a.email)} • ${esc(a.ageRP)} ans RP • Déposé ${formatDate(a.createdAt)}</p></div>${recruitmentManagerStatusBadge(status)}</div>
+    <div class="recruitment-internal-score-strip"><div><span>Présélection</span><b>${screening!=null?`${screening}/25`:'Non évalué'}</b>${screening!=null?`<small>${recruitmentScoreLabel(screening,25)}</small>`:""}</div><div><span>Entretien</span><b>${interview!=null?`${interview}/35`:'Non effectué'}</b>${review?.interviewRecommendation?`<small>${esc(review.interviewRecommendation)}</small>`:""}</div><div><span>Avis Commandement</span><b>${esc(review?.commandDecision||"En attente")}</b></div></div>
+    <div class="recruitment-review-grid official-grid">
+      <section><span class="eyebrow">PRÉSENTATION</span><h3>Identité & personnage</h3><div class="row"><span>Disponibilités</span><b>${esc(a.availability)}</b></div><div class="row"><span>Permis RP</span><b>${esc(a.drivingLicense)}</b></div><div class="row"><span>Expérience police</span><b>${esc(a.policeExperience)}</b></div><div class="row"><span>Casier RP</span><b>${esc(a.criminalRecord||"Non renseigné")}</b></div><h4>Présentation</h4><p>${esc(a.presentation||"—")}</p><h4>Background</h4><p>${esc(a.background||"—")}</p></section>
+      <section><span class="eyebrow">MOTIVATION</span><h3>Projet LSPD</h3><h4>Pourquoi le LSPD ?</h4><p>${esc(a.whyLspd)}</p><h4>Apport au département</h4><p>${esc(a.contribution||"—")}</p><h4>Expérience RP</h4><p>${esc(a.experience)}</p><h4>Forces / axe d'amélioration</h4><p><b>${esc(a.strengths)}</b><br>${esc(a.weakness)}</p></section>
+      <section><span class="eyebrow">JUGEMENT RP</span><h3>Mises en situation écrites</h3><h4>Citoyen provocateur</h4><p>${esc(a.citizenScenario||"Non renseigné (ancienne candidature)")}</p><h4>Collègue en difficulté</h4><p>${esc(a.colleagueScenario||"Non renseigné")}</p><h4>Chaîne de commandement</h4><p>${esc(a.teamScenario||"Non renseigné")}</p></section>
+      <section><span class="eyebrow">ENTRETIEN ORAL</span><h3>Convocation</h3><div class="row"><span>Statut</span><b>${esc(a.interviewStatus||"À planifier")}</b></div><div class="row"><span>Date</span><b>${esc(a.interviewDate||"—")}</b></div><div class="row"><span>Heure</span><b>${esc(a.interviewTime||"—")}</b></div><div class="row"><span>Lieu</span><b>${esc(a.interviewLocation||"—")}</b></div><div class="row"><span>Recruteur</span><b>${esc(a.interviewerName||"—")}</b></div>${review?.interviewSummary?`<div class="internal-review-note"><b>Compte rendu interne</b><p>${esc(review.interviewSummary)}</p></div>`:""}</section>
+    </div>
+    ${review?.screeningNotes||review?.interviewStrengths||review?.interviewConcerns?`<div class="recruitment-internal-notes"><span>🔒 NOTES INTERNES — NON VISIBLES PAR LE CANDIDAT</span>${review?.screeningNotes?`<p><b>Présélection :</b> ${esc(review.screeningNotes)}</p>`:""}${review?.interviewStrengths?`<p><b>Points forts entretien :</b> ${esc(review.interviewStrengths)}</p>`:""}${review?.interviewConcerns?`<p><b>Points de vigilance :</b> ${esc(review.interviewConcerns)}</p>`:""}</div>`:""}
+    <div class="recruitment-review-actions official-actions">
+      ${["Dossier reçu","En étude"].includes(status)?`<button class="btn recruitment-action" data-action="screen" data-id="${id}">📋 Évaluer le dossier</button>`:""}
+      ${status==="Pré-sélectionné"?`<button class="btn recruitment-action" data-action="schedule" data-id="${id}">🎙️ Planifier l'entretien</button>`:""}
+      ${status==="Entretien planifié"?`<button class="btn recruitment-action" data-action="conduct" data-id="${id}">🎙️ Conduire / noter l'entretien</button><button class="btn secondary recruitment-action" data-action="reschedule" data-id="${id}">Replanifier</button>`:""}
+      ${status==="Entretien évalué"?(isChief()||hasPerm("personnel_manage")?`<button class="btn recruitment-action" data-action="command" data-id="${id}">⚖️ Décision du Commandement</button>`:'<span class="recruitment-waiting-command">Entretien évalué — en attente du Commandement.</span>'):""}
+      ${status==="Admission approuvée"||status==="Entretien réussi"?(isChief()||hasPerm("personnel_manage")?`<button class="btn recruitment-action" data-action="hire" data-id="${id}">🪪 Finaliser l'incorporation</button>`:'<span class="recruitment-waiting-command">Admission approuvée — incorporation à finaliser.</span>'):""}
+      <button class="btn secondary" id="closeModal">Fermer</button>
+    </div></div>`);
+  document.querySelectorAll(".recruitment-action").forEach(b=>b.onclick=()=>handleRecruitmentAction(b.dataset.id,b.dataset.action));
+}
+async function handleRecruitmentAction(id,action){
+  if(!hasPerm("mdt_manage"))return;
+  if(action==="screen")return openRecruitmentScreeningForm(id);
+  if(action==="schedule"||action==="reschedule")return openRecruitmentInterviewForm(id);
+  if(action==="conduct")return openRecruitmentInterviewEvaluationForm(id);
+  if(action==="command")return openRecruitmentCommandDecisionForm(id);
+  if(action==="pass")return openRecruitmentDecisionForm(id,true); // legacy compatibility
+  if(action==="reject"||action==="rejectInterview")return openRecruitmentDecisionForm(id,false);
+  if(action==="hire")return openRecruitmentHireForm(id);
+}
+async function updateRecruitmentApplication(id,patch){try{await updateDoc(doc(db,"lspd_applications",id),{...patch,updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}}
+function recruitmentScoreInputs(prefix,criteria){return criteria.map((c,i)=>`<label class="recruitment-score-field"><span>${esc(c)}</span><select id="${prefix}${i}" required>${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===3?'selected':''}>${n} / 5</option>`).join('')}</select></label>`).join('');}
+function readRecruitmentScores(prefix,count){return Array.from({length:count},(_,i)=>Number($(prefix+i).value));}
+async function openRecruitmentScreeningForm(id){
+  const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data(),old=await getRecruitmentReview(id);
+  const crit=["Présentation & cohérence du personnage","Motivation LSPD","Expérience / maturité RP","Disponibilités & implication","Jugement dans les mises en situation"];
+  showModal(`<div class="recruitment-score-modal"><span class="eyebrow">PRÉSÉLECTION</span><h2>Évaluer le dossier — ${esc(a.applicantName)}</h2><p class="muted">Note chaque critère de 1 à 5. Le score aide la décision mais ne la remplace pas.</p><form id="screeningForm"><div class="recruitment-score-grid">${recruitmentScoreInputs('scr',crit)}</div><label class="field full"><span>Notes internes du recruteur</span><textarea id="screeningNotes" rows="5" required minlength="20" placeholder="Points forts, réserves, éléments à reprendre pendant l'entretien...">${esc(old?.screeningNotes||"")}</textarea></label><label class="field full"><span>Décision de présélection</span><select id="screeningOutcome"><option value="Pré-sélectionné">Retenir pour entretien</option><option value="En étude">Mettre en attente / réexaminer</option><option value="Refusé">Ne pas retenir le dossier</option></select></label><label class="field full" id="screeningPublicReasonWrap"><span>Message au candidat si refus</span><textarea id="screeningPublicReason" rows="3" placeholder="Message professionnel, sans notes internes."></textarea></label><div id="screeningError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer l'évaluation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("screeningPublicReasonWrap").classList.add("hidden");$("screeningOutcome").onchange=()=>$("screeningPublicReasonWrap").classList.toggle("hidden",$("screeningOutcome").value!=="Refusé");
+  $("screeningForm").onsubmit=async e=>{e.preventDefault();const scores=readRecruitmentScores('scr',crit.length),total=scores.reduce((a,b)=>a+b,0),outcome=$("screeningOutcome").value,publicReason=$("screeningPublicReason").value.trim();if(outcome==="Refusé"&&!publicReason)return $("screeningError").textContent="Ajoute un message professionnel pour le candidat.";try{await upsertRecruitmentReview(id,{screeningScores:scores,screeningCriteria:crit,screeningTotal:total,screeningNotes:$("screeningNotes").value.trim(),screeningOutcome:outcome,screenedById:window.LSPD.user.uid,screenedByName:window.LSPD.profile.name,screenedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:outcome,reviewedById:window.LSPD.user.uid,reviewedByName:window.LSPD.profile.name,reviewedAt:serverTimestamp(),publicMessage:outcome==="Pré-sélectionné"?"Ton dossier a été présélectionné. Le Bureau du recrutement va maintenant organiser ton entretien oral in-game.":outcome==="En étude"?"Ton dossier reste en cours d'étude par le Bureau du recrutement.":"Le Bureau du recrutement a rendu sa décision concernant ton dossier.",publicDecisionMessage:outcome==="Refusé"?publicReason:"",updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("screeningError").textContent="Erreur : "+(err.code||err.message);}};
+}
+async function openRecruitmentInterviewForm(id){
+  const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data();
+  showModal(`<div class="recruitment-schedule-modal"><span class="eyebrow">CONVOCATION OFFICIELLE</span><h2>Planifier l'entretien oral</h2><p class="muted">${esc(a.applicantName)} • rendez-vous in-game avec un recruteur LSPD.</p><form id="recruitmentInterviewForm"><div class="formgrid"><label class="field"><span>Date</span><input id="riDate" type="date" value="${esc(a.interviewDate||"")}" required></label><label class="field"><span>Heure</span><input id="riTime" type="time" value="${esc(a.interviewTime||"")}" required></label><label class="field full"><span>Lieu in-game</span><input id="riLocation" value="${esc(a.interviewLocation||"Mission Row — Bureau du recrutement")}" required></label></div><label class="field full"><span>Consigne visible par le candidat</span><textarea id="riPublic" rows="3" placeholder="Ex. Présente-toi 5 minutes avant l'heure, tenue correcte...">${esc(a.interviewPublicInstructions||"")}</textarea></label><div id="riError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Envoyer la convocation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("recruitmentInterviewForm").onsubmit=async e=>{e.preventDefault();try{await updateDoc(doc(db,"lspd_applications",id),{status:"Entretien planifié",interviewStatus:"Planifié",interviewDate:$("riDate").value,interviewTime:$("riTime").value,interviewLocation:$("riLocation").value.trim(),interviewPublicInstructions:$("riPublic").value.trim(),interviewerId:window.LSPD.user.uid,interviewerName:window.LSPD.profile.name,interviewScheduledAt:serverTimestamp(),publicMessage:`Tu es convoqué à un entretien oral in-game le ${$("riDate").value} à ${$("riTime").value}.`,updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("riError").textContent="Erreur : "+(err.code||err.message);}};
+}
+async function openRecruitmentInterviewEvaluationForm(id){
+  const [s,old]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!s.exists())return;const a=s.data();
+  const questions=["Présente ton personnage et son parcours.","Pourquoi le LSPD et pas un autre métier de service public ?","Qu'attends-tu du RP police au quotidien ?","Comment réagis-tu face à un citoyen agressif verbalement ?","Comment gères-tu un désaccord avec un collègue ?","Comment réagis-tu à un ordre d'un supérieur que tu ne comprends pas ?","Donne un exemple de scène RP où tu as privilégié le jeu des autres.","Quelles sont tes disponibilités réelles et ton niveau d'implication souhaité ?"];
+  const crit=["Présentation & aisance orale","Motivation","Communication","Maturité / maîtrise de soi","Jugement RP","Esprit d'équipe","Professionnalisme"];
+  showModal(`<div class="recruitment-interview-modal"><div class="recruitment-interview-title"><div><span class="eyebrow">ENTRETIEN ORAL IN-GAME</span><h2>${esc(a.applicantName)}</h2><p>Guide structuré pour garantir le même standard à tous les candidats.</p></div><span class="tag orange">Interne</span></div><div class="recruitment-interview-questions"><h3>Trame d'entretien</h3>${questions.map((q,i)=>`<div><i>${i+1}</i><span>${esc(q)}</span></div>`).join('')}</div><form id="interviewEvaluationForm"><label class="field full"><span>Notes prises pendant l'entretien</span><textarea id="interviewNotes" rows="8" required minlength="40" placeholder="Réponses importantes, comportement, cohérence, points à vérifier...">${esc(old?.interviewNotes||"")}</textarea></label><h3>Grille d'entretien</h3><div class="recruitment-score-grid">${recruitmentScoreInputs('int',crit)}</div><div class="formgrid"><label class="field full"><span>Points forts observés</span><textarea id="interviewStrengths" rows="3" required>${esc(old?.interviewStrengths||"")}</textarea></label><label class="field full"><span>Points de vigilance</span><textarea id="interviewConcerns" rows="3" required>${esc(old?.interviewConcerns||"")}</textarea></label><label class="field full"><span>Synthèse du recruteur</span><textarea id="interviewSummary" rows="4" required minlength="30">${esc(old?.interviewSummary||"")}</textarea></label><label class="field full"><span>Recommandation</span><select id="interviewRecommendation"><option>Avis favorable</option><option>Avis réservé</option><option>Avis défavorable</option></select></label></div><div id="interviewEvalError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Clôturer l'entretien et transmettre</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("interviewEvaluationForm").onsubmit=async e=>{e.preventDefault();const scores=readRecruitmentScores('int',crit.length),total=scores.reduce((a,b)=>a+b,0);try{await upsertRecruitmentReview(id,{interviewQuestions:questions,interviewNotes:$("interviewNotes").value.trim(),interviewScores:scores,interviewCriteria:crit,interviewTotal:total,interviewStrengths:$("interviewStrengths").value.trim(),interviewConcerns:$("interviewConcerns").value.trim(),interviewSummary:$("interviewSummary").value.trim(),interviewRecommendation:$("interviewRecommendation").value,interviewedById:window.LSPD.user.uid,interviewedByName:window.LSPD.profile.name,interviewCompletedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:"Entretien évalué",interviewStatus:"Effectué",publicMessage:"Ton entretien oral est terminé. Ton dossier a été transmis au Commandement pour décision finale.",updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("interviewEvalError").textContent="Erreur : "+(err.code||err.message);}};
+}
+async function openRecruitmentCommandDecisionForm(id){
+  if(!(isChief()||hasPerm("personnel_manage")))return;const [s,r]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!s.exists())return;const a=s.data();
+  showModal(`<div class="recruitment-command-decision"><span class="eyebrow">DÉCISION DU COMMANDEMENT</span><h2>${esc(a.applicantName)}</h2><div class="command-decision-summary"><div><span>Dossier</span><b>${r?.screeningTotal??'—'}/25</b></div><div><span>Entretien</span><b>${r?.interviewTotal??'—'}/35</b></div><div><span>Recommandation recruteur</span><b>${esc(r?.interviewRecommendation||"—")}</b></div></div><form id="commandDecisionForm"><label class="field full"><span>Décision</span><select id="commandDecision"><option value="Admission approuvée">Admission approuvée</option><option value="Refusé">Candidature refusée</option></select></label><label class="field full"><span>Justification interne</span><textarea id="commandDecisionNotes" rows="4" required minlength="20" placeholder="Motifs de la décision, réserves éventuelles..."></textarea></label><label class="field full"><span>Message communiqué au candidat</span><textarea id="commandPublicMessage" rows="3" required placeholder="Message professionnel et concis."></textarea></label><div id="commandDecisionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer la décision</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("commandDecisionForm").onsubmit=async e=>{e.preventDefault();const decision=$("commandDecision").value;try{await upsertRecruitmentReview(id,{commandDecision:decision,commandDecisionNotes:$("commandDecisionNotes").value.trim(),commandById:window.LSPD.user.uid,commandByName:window.LSPD.profile.name,commandDecisionAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:decision,publicDecisionMessage:$("commandPublicMessage").value.trim(),publicMessage:decision==="Admission approuvée"?"Le Commandement a approuvé ton admission. Ton incorporation administrative va maintenant être finalisée.":"Le Commandement a rendu sa décision finale concernant ta candidature.",decisionById:window.LSPD.user.uid,decisionByName:window.LSPD.profile.name,decisionAt:serverTimestamp(),updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("commandDecisionError").textContent="Erreur : "+(err.code||err.message);}};
+}
+// Legacy entry point kept for backward compatibility with older buttons/data.
+async function openRecruitmentDecisionForm(id,passed){
+  if(passed){if(isChief()||hasPerm("personnel_manage"))return openRecruitmentCommandDecisionForm(id);return openRecruitmentInterviewEvaluationForm(id);}
+  const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data();
+  showModal(`<h2>Refuser la candidature</h2><p class="muted">${esc(a.applicantName)}</p><form id="legacyRejectForm"><label class="field full"><span>Message au candidat</span><textarea id="legacyRejectReason" rows="4" required></textarea></label><div id="legacyRejectError" class="error"></div><div class="modal-actions"><button class="btn danger" type="submit">Confirmer le refus</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);$("legacyRejectForm").onsubmit=async e=>{e.preventDefault();try{await updateDoc(doc(db,"lspd_applications",id),{status:"Refusé",publicDecisionMessage:$("legacyRejectReason").value.trim(),publicMessage:"Le Bureau du recrutement a rendu sa décision concernant ton dossier.",decisionById:window.LSPD.user.uid,decisionByName:window.LSPD.profile.name,decisionAt:serverTimestamp(),updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("legacyRejectError").textContent="Erreur : "+(err.code||err.message);}};
+}
+async function openRecruitmentHireForm(id){
+  if(!(isChief()||hasPerm("personnel_manage")))return;const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data(),status=normalizedRecruitmentStage(a.status);if(!["Admission approuvée","Entretien réussi"].includes(status))return showToast("L'admission doit être approuvée avant l'incorporation.","warning");
+  showModal(`<div class="recruitment-hire-modal"><span class="eyebrow">INCORPORATION LSPD</span><h2>Finaliser l'admission de ${esc(a.applicantName)}</h2><p class="muted">Cette étape transforme le compte candidat en compte membre actif.</p><form id="recruitmentHireForm"><div class="formgrid"><label class="field"><span>Matricule</span><input id="hireBadge" required placeholder="Ex. 0421"></label><label class="field"><span>Grade d'entrée</span><select id="hireGrade">${gradeList.filter(g=>g[0]!=="Visiteur"&&g[0]!=="Candidat").map(g=>`<option ${g[0]==="Rookie"?"selected":""}>${g[0]}</option>`).join("")}</select></label><label class="field"><span>Division initiale</span><select id="hireDivision">${divisions.filter(d=>d!=="External"&&d!=="Recruitment").map(d=>`<option ${d==="Patrol"?"selected":""}>${d}</option>`).join("")}</select></label></div><label class="field full"><span>Note d'incorporation</span><textarea id="hireNote" rows="3" placeholder="Ex. Affectation Patrol, orientation Academy à planifier..."></textarea></label><div id="hireError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer le profil LSPD actif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
+  $("recruitmentHireForm").onsubmit=async e=>{e.preventDefault();const badge=$("hireBadge").value.trim();if(!badge)return $("hireError").textContent="Le matricule est obligatoire.";try{const grade=$("hireGrade").value,division=$("hireDivision").value;await updateDoc(doc(db,"users",a.applicantId),{badge,grade,role:"Officer",status:"Actif",division,recruitmentApplicant:false,recruitedAt:serverTimestamp(),recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:"Recruté",recruitmentBadge:badge,recruitmentGrade:grade,recruitmentDivision:division,recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,recruitedAt:serverTimestamp(),publicMessage:`Bienvenue au LSPD. Ton incorporation est finalisée avec le matricule ${badge}.`,updatedAt:serverTimestamp()});await upsertRecruitmentReview(id,{incorporationNote:$("hireNote").value.trim(),incorporatedById:window.LSPD.user.uid,incorporatedByName:window.LSPD.profile.name,incorporatedAt:serverTimestamp()});await addAudit("LSPD_RECRUITMENT",a.applicantId,`${a.applicantName} — ${badge} — ${grade}`);document.querySelector(".modal")?.remove();showToast("Incorporation finalisée.","success");await renderRecruitmentDesk();}catch(err){$("hireError").textContent="Erreur : "+(err.code||err.message);}};
+}
+
 function openCaseForm(){
   showModal(`<h2>Nouveau dossier MDT</h2><form id="caseForm"><div class="formgrid">
     <label class="field"><span>Titre</span><input id="caseTitle" required></label>
@@ -1914,7 +2498,7 @@ async function closeCase(id){
   try{
     await updateDoc(doc(db,"case_files",id),{status:"Clos",closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name,closedAt:serverTimestamp()});
     await addAudit("CASE_CLOSE",id,"Clos");
-    mdt();
+    window.LSPD.mdtTab="cases"; mdt();
   }catch(err){ alert("Erreur : "+(err.code||err.message)); }
 }
 
@@ -2219,7 +2803,7 @@ async function openStartWatch(){
   if(!hasPerm("watch_manage")) return;
   let users=[{uid:window.LSPD.user.uid,...window.LSPD.profile}];
   if(hasPerm("personnel_view")){
-    try{users=(await getUsers()).filter(u=>u.role!=="Visiteur" && !["Archivé","Refusé","En attente"].includes(u.status));}catch{}
+    try{users=(await getUsers()).filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Archivé","Refusé","En attente"].includes(u.status));}catch{}
   }
   showModal(`<h2>Démarrer un watch</h2><form id="watchStartForm"><label class="field"><span>Commander</span><select id="watchCommander">${users.map(u=>`<option value="${u.uid}" data-name="${esc(u.name)}">${esc(u.badge||"—")} — ${esc(u.name)}</option>`).join("")}</select></label><label class="field full"><span>Briefing</span><textarea id="watchBriefing" rows="7" required></textarea></label><div id="watchError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Démarrer le service</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("watchStartForm").onsubmit=saveWatch;
@@ -2828,7 +3412,7 @@ async function openTrainingModuleContext(code,traineeId=null){
 
 async function accessibleTrainees(){
   const users=await getUsers();
-  if(hasPerm("personnel_view")) return users.filter(u=>u.role!=="Visiteur" && !["Archivé","Refusé","En attente"].includes(u.status));
+  if(hasPerm("personnel_view")) return users.filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Archivé","Refusé","En attente"].includes(u.status));
   const snap=await getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid)));
   const ids=new Set(snap.docs.map(d=>d.data()).filter(x=>x.status==="Active").map(x=>x.traineeId));
   return users.filter(u=>ids.has(u.uid));
@@ -3022,7 +3606,7 @@ async function generateTrainingAlerts(){
 async function trainingAnalytics(){
   if(!hasPerm("academy_manage"))return;
   const [us,es,ss,fs,qs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"academy_quiz_attempts"))]);
-  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.role!=="Visiteur"),evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),finals=fs.docs.map(d=>d.data()),quizzes=qs.docs.map(d=>d.data());
+  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>!["Visiteur","Applicant"].includes(u.role)),evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),finals=fs.docs.map(d=>d.data()),quizzes=qs.docs.map(d=>d.data());
   const moduleRows=modules.map(m=>{const e=evals.filter(x=>x.moduleCode===m[0]),avg=e.length?Math.round(e.reduce((a,x)=>a+(Number(x.score)||0),0)/e.length):0,fail=e.filter(x=>x.result==="Échec").length,review=e.filter(x=>x.result==="À revoir").length;return {code:m[0],title:m[1],count:e.length,avg,fail,review};});
   const byFto={};for(const e of evals){const k=e.ftoId||e.ftoName||"—";byFto[k]??={name:e.ftoName||"—",count:0,total:0,trainees:new Set()};byFto[k].count++;byFto[k].total+=Number(e.score)||0;byFto[k].trainees.add(e.officerId);}const ftoRows=Object.values(byFto).map(x=>({...x,avg:x.count?Math.round(x.total/x.count):0})).sort((a,b)=>b.count-a.count);
   const validFinals=finals.filter(f=>f.status==="Validée").length,finalRate=finals.length?Math.round(validFinals/finals.length*100):0;
@@ -3176,7 +3760,7 @@ async function dashboard(){
       const pending=leaveSnap.docs.map(d=>d.data()).filter(x=>x.status==="En attente").length;
       const today=new Date().toISOString().slice(0,10);
       const todayShifts=shiftSnap.docs.map(d=>d.data()).filter(x=>x.date===today).length;
-      const active=users.filter(u=>u.role!=="Visiteur"&&u.status==="Actif").length;
+      const active=users.filter(u=>!["Visiteur","Applicant"].includes(u.role)&&u.status==="Actif").length;
       const evalCount=evalSnap.size;
       extra=`<div class="section-title">Command overview</div>
       <div class="grid stats-grid">
@@ -3256,7 +3840,7 @@ async function saveAnnouncement(e){
     await addDoc(collection(db,"announcements"),{title:$("anTitle").value.trim(),priority:$("anPriority").value,visibility:$("anVisibility").value,body:$("anBody").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,active:true,createdAt:serverTimestamp()});
     await addAudit("ANNOUNCEMENT_CREATE","announcement",$("anTitle").value.trim());
     try{
-      const users=(await getUsers()).filter(u=>u.uid!==window.LSPD.user.uid && u.role!=="Visiteur" && u.status!=="Archivé");
+      const users=(await getUsers()).filter(u=>u.uid!==window.LSPD.user.uid && !["Visiteur","Applicant"].includes(u.role) && u.status!=="Archivé");
       await Promise.all(users.map(u=>createNotification(
         u.uid,
         `Annonce LSPD : ${$("anTitle").value.trim()}`,
@@ -3470,7 +4054,7 @@ async function mailDirectory(){
     .map(d=>({uid:d.id,...d.data()}))
     .filter(u=>
       u.uid!==window.LSPD.user.uid &&
-      u.role!=="Visiteur" &&
+      !["Visiteur","Applicant"].includes(u.role) &&
       !["Archivé","Refusé","En attente"].includes(u.status)
     )
     .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
@@ -3657,7 +4241,7 @@ async function openMailComposer(mode="new",source=null){
       <section class="mail-compose-window group-mail-compose" role="dialog" aria-label="Nouveau message">
         <header class="mail-window-header">
           <div class="mail-window-title"><span>✉️</span><div><small>LSPD INTERNAL MAIL</small><h2>${mode==="reply"?"Répondre":mode==="forward"?"Transférer":"Nouveau message"}</h2></div></div>
-          <button class="mail-window-close" id="closeMailWindowBtn" type="button">✕</button>
+          <div class="mail-compose-header-actions"><button class="mail-send-header" id="sendMailHeaderBtn" type="button">➤ Envoyer</button><button class="mail-window-close" id="closeMailWindowBtn" type="button">✕</button></div>
         </header>
         <form id="messageForm" class="mail-compose-form group-mail-form">
           <input id="mMode" type="hidden" value="${esc(mode)}">
@@ -3676,6 +4260,7 @@ async function openMailComposer(mode="new",source=null){
 
     document.body.classList.add("mail-window-open");
     $("messageForm").onsubmit=saveMessage;
+    $("sendMailHeaderBtn")?.addEventListener("click",()=>$("messageForm")?.requestSubmit());
     $("closeMailWindowBtn").onclick=closeMailWindow;
     $("cancelMailCompose").onclick=closeMailWindow;
     root.querySelector(".mail-window-backdrop").onclick=closeMailWindow;
@@ -3838,7 +4423,7 @@ async function approvals(){
   try{
     const snap=await getDocs(collection(db,"incident_reports"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="En attente").sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="grid2">${data.length?data.map(r=>`<div class="card"><span class="number">${esc(r.type)}</span><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p><p class="muted">Par ${esc(r.authorName)} • ${formatDate(r.createdAt)}</p><div class="approval-box"><p>${esc(r.details)}</p>${(r.attachments||[]).length?`<div class="attachment-list">${r.attachments.map(a=>`<a class="attachment-link" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join("")}</div>`:""}</div><div class="modal-actions><button class="btn approve-incident" data-id="${r.id}" data-status="Approuvé">Approuver</button><button class="btn secondary approve-incident" data-id="${r.id}" data-status="Refusé">Refuser</button></div></div>`).join(""):'<div class="card">Aucune validation en attente.</div>'}</div>`;
+    $("content").innerHTML=`<div class="grid2">${data.length?data.map(r=>`<div class="card"><span class="number">${esc(r.type)}</span><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p><p class="muted">Par ${esc(r.authorName)} • ${formatDate(r.createdAt)}</p><div class="approval-box"><p>${esc(r.details)}</p>${(r.attachments||[]).length?`<div class="attachment-list">${r.attachments.map(a=>`<a class="attachment-link" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join("")}</div>`:""}</div><div class="modal-actions incident-approval-actions"><button class="btn approve-incident" data-id="${r.id}" data-status="Approuvé">✓ Approuver le rapport</button><button class="btn secondary approve-incident" data-id="${r.id}" data-status="Refusé">✕ Refuser le rapport</button></div></div>`).join(""):'<div class="card">Aucune validation en attente.</div>'}</div>`;
     document.querySelectorAll(".approve-incident").forEach(b=>b.onclick=()=>reviewIncident(b.dataset.id,b.dataset.status));
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
 }
@@ -4012,7 +4597,7 @@ async function evaluations(){
 
 async function openEvaluationForm(prefillOfficerId=null,prefillModuleCode=null,prefillTrainingEventId=null){
   if(!hasPerm("fto_tools"))return;
-  const officers=(await getUsers()).filter(o=>o.role!=="Visiteur" && !["Inactif","Archivé"].includes(o.status));
+  const officers=(await getUsers()).filter(o=>!["Visiteur","Applicant"].includes(o.role) && !["Inactif","Archivé"].includes(o.status));
   showModal(`<h2>Évaluer la formation</h2><form id="evalForm"><input id="eTrainingEventId" type="hidden" value="${esc(prefillTrainingEventId||"")}"><div class="formgrid">
   <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" ${o.uid===prefillOfficerId?"selected":""}>${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
   <label class="field"><span>Module</span><select id="eModule">${modules.map(m=>`<option value="${m[0]}" ${m[0]===prefillModuleCode?"selected":""}>${m[0]} — ${m[1]}</option>`).join("")}</select></label></div>
@@ -4189,7 +4774,7 @@ async function assignments(){
 }
 async function openAssignmentForm(){
   if(!hasPerm("fto_assignments_manage")) return;
-  const users=await getUsers(),ftos=users.filter(u=>["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(u.role)),trainees=users.filter(u=>u.role!=="Visiteur" && !["Inactif","Archivé"].includes(u.status));
+  const users=await getUsers(),ftos=users.filter(u=>["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(u.role)),trainees=users.filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Inactif","Archivé"].includes(u.status));
   showModal(`<h2>Nouvelle affectation FTO</h2><form id="assignmentForm"><div class="formgrid"><label class="field"><span>FTO</span><select id="aFto">${ftos.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Recrue</span><select id="aTrainee">${trainees.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label></div><label class="field full"><span>Commentaire</span><textarea id="aComment" rows="4"></textarea></label><div id="assignmentError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Affecter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("assignmentForm").onsubmit=saveAssignment;
 }
@@ -4217,7 +4802,7 @@ async function certifications(){
 }
 async function openCertificationForm(){
   if(!hasPerm("certifications_manage")) return;
-  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
+  const users=(await getUsers()).filter(u=>!["Visiteur","Applicant"].includes(u.role));
   showModal(`<h2>Ajouter une certification</h2><form id="certForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="cOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Certification</span><select id="cName">${certificationsCatalog.map(c=>`<option>${c}</option>`).join("")}</select></label></div><div id="certError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Attribuer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("certForm").onsubmit=saveCertification;
 }
@@ -4239,7 +4824,7 @@ async function records(){
 }
 async function openRecordForm(){
   if(!hasPerm("records_manage")) return;
-  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
+  const users=(await getUsers()).filter(u=>!["Visiteur","Applicant"].includes(u.role));
   showModal(`<h2>Nouvelle entrée au dossier</h2><form id="recordForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="rOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Type</span><select id="rType"><option>Commendation</option><option>Sanction</option></select></label><label class="field full"><span>Titre</span><input id="rTitle" required></label></div><label class="field full"><span>Détails</span><textarea id="rDetails" rows="5"></textarea></label><div id="recordError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("recordForm").onsubmit=saveRecord;
 }
@@ -4262,7 +4847,7 @@ async function shifts(){
 }
 async function openShiftForm(){
   if(!hasPerm("shifts_manage")) return;
-  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
+  const users=(await getUsers()).filter(u=>!["Visiteur","Applicant"].includes(u.role));
   showModal(`<h2>Ajouter un shift</h2><form id="shiftForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="sOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" data-division="${esc(o.division||"Patrol")}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Date</span><input id="sDate" type="date" required></label><label class="field"><span>Début</span><input id="sStart" type="time" required></label><label class="field"><span>Fin</span><input id="sEnd" type="time" required></label></div><div id="shiftError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("shiftForm").onsubmit=saveShift;
 }
@@ -4314,7 +4899,7 @@ async function loadTrainingInviteDirectory(){
   const users=snap.docs.map(d=>({uid:d.id,...d.data()}))
     .filter(u=>
       u.uid!==window.LSPD.user.uid &&
-      u.role!=="Visiteur" &&
+      !["Visiteur","Applicant"].includes(u.role) &&
       !["Archivé","Refusé","En attente","Inactif","Suspendu"].includes(u.status)
     )
     .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
@@ -4760,7 +5345,7 @@ async function saveTrainingEvent(e){
 async function requirements(){
   if(!hasPerm("analytics"))return;
   const [us,ev]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations"))]);
-  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.role!=="Visiteur" && !["Inactif","Archivé"].includes(u.status));
+  const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Inactif","Archivé"].includes(u.status));
   const evals=ev.docs.map(d=>d.data());
   const rows=users.map(o=>{
     const validated=[...new Set(evals.filter(e=>e.officerId===o.uid&&e.result==="Validé").map(e=>e.moduleCode))];
@@ -4777,7 +5362,7 @@ async function promotionAdvisor(){
   if(!hasPerm("analytics"))return;
   const [us,ev,rs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"personnel_records"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})),evals=ev.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data());
-  const rows=users.filter(o=>o.role!=="Visiteur"&&o.status!=="Archivé").map(o=>{
+  const rows=users.filter(o=>!["Visiteur","Applicant"].includes(o.role)&&o.status!=="Archivé").map(o=>{
     const oe=evals.filter(e=>e.officerId===o.uid),valid=[...new Set(oe.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=oe.length?Math.round(oe.reduce((s,e)=>s+(Number(e.score)||0),0)/oe.length):0;
     const sanctions=recordsData.filter(r=>r.officerId===o.uid&&r.type==="Sanction").length;
     let readiness=Math.max(0,Math.min(100,Math.min(50,Math.round(valid.length/modules.length*50))+Math.min(40,Math.round(avg*0.4))-sanctions*10));
@@ -4796,7 +5381,7 @@ async function promotions(){
 }
 async function openPromotionForm(){
   if(!hasPerm("promotions_manage")) return;
-  const users=(await getUsers()).filter(u=>u.role!=="Visiteur");
+  const users=(await getUsers()).filter(u=>!["Visiteur","Applicant"].includes(u.role));
   showModal(`<h2>Enregistrer une promotion</h2><form id="promotionForm"><div class="formgrid"><label class="field"><span>Officier</span><select id="pOfficer">${users.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" data-grade="${esc(o.grade)}">${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label><label class="field"><span>Nouveau grade</span><select id="pNewGrade">${gradeList.map(g=>`<option>${g[0]}</option>`).join("")}</select></label></div><label class="field full"><span>Motif</span><textarea id="pComment" rows="4"></textarea></label><div id="promotionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Valider</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("promotionForm").onsubmit=savePromotion;
 }
@@ -4818,7 +5403,7 @@ async function stats(){
     getDocs(collection(db,"personnel_records")),getDocs(collection(db,"leave_requests")),
     getDocs(collection(db,"shifts"))
   ]);
-  const users=us.docs.map(d=>d.data()).filter(u=>u.role!=="Visiteur"),evals=ev.docs.map(d=>d.data()),assign=as.docs.map(d=>d.data()),certs=cs.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data()),leaves=lv.docs.map(d=>d.data()),shiftsData=sh.docs.map(d=>d.data());
+  const users=us.docs.map(d=>d.data()).filter(u=>!["Visiteur","Applicant"].includes(u.role)),evals=ev.docs.map(d=>d.data()),assign=as.docs.map(d=>d.data()),certs=cs.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data()),leaves=lv.docs.map(d=>d.data()),shiftsData=sh.docs.map(d=>d.data());
   const avg=evals.length?Math.round(evals.reduce((s,e)=>s+(Number(e.score)||0),0)/evals.length):0;
 
   $("content").innerHTML=`<div class="grid stats-grid">
@@ -4867,6 +5452,7 @@ async function history(){
 }
 
 async function globalSearch(term){
+  if(isApplicant())return;
   term=term.trim().toLowerCase();
   if(term.length<2) return;
   try{
@@ -4935,8 +5521,11 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   $("loginForm")?.addEventListener("submit",handleLogin);
   $("signupForm")?.addEventListener("submit",handleSignup);
+  $("applicationForm")?.addEventListener("submit",handleRecruitmentApplication);
+  initRecruitmentPublicWizard();
   $("showLoginBtn")?.addEventListener("click",()=>toggleAuthMode("login"));
   $("showSignupBtn")?.addEventListener("click",()=>toggleAuthMode("signup"));
+  $("showApplicationBtn")?.addEventListener("click",()=>toggleAuthMode("apply"));
   $("approvalLogoutBtn")?.addEventListener("click",logout);
   $("passwordChangeForm")?.addEventListener("submit",handleImportedPasswordChange);
   $("passwordChangeLogoutBtn")?.addEventListener("click",logout);

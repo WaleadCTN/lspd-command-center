@@ -998,3 +998,267 @@ Firebase :
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=177
+
+
+================================================
+PHASE 17.8 — MAIL / INCIDENT APPROVALS / RECRUTEMENT LSPD
+================================================
+
+1) MAILBOX
+- Ajout d'un bouton "Envoyer" permanent dans l'en-tête de la fenêtre de rédaction.
+- Le bouton du bas reste également présent.
+- Le footer devient sticky pour rester visible même avec beaucoup de destinataires.
+- Le formulaire de mail peut défiler verticalement.
+- Les comptes Applicant/Candidat sont exclus du carnet d'adresses interne.
+
+2) INCIDENT APPROVALS
+- Correction d'une erreur HTML dans la zone d'actions qui empêchait l'affichage correct des boutons.
+- Boutons visibles :
+  ✓ Approuver le rapport
+  ✕ Refuser le rapport
+- Le workflow Firestore existant reste inchangé : permission incident_review obligatoire.
+
+3) RECRUTEMENT LSPD
+PUBLIC / CANDIDAT
+Depuis l'écran de connexion : nouvel onglet "Postuler au LSPD".
+Le candidat remplit :
+- nom RP
+- âge RP
+- e-mail
+- téléphone RP / Discord optionnels
+- disponibilités
+- permis de conduire RP
+- expérience police RP
+- motivation
+- expérience RP
+- qualités
+- point à améliorer
+- mot de passe
+- acceptation de l'entretien oral obligatoire
+
+Le système crée :
+users/{uid}
+  role: Applicant
+  grade: Candidat
+  status: Candidature
+  division: Recruitment
+
+lspd_applications/{uid}
+  dossier complet de candidature
+
+Le compte Applicant n'est PAS considéré comme personnel interne.
+Il n'a pas accès au MDT, mails, personnel, CAD, FTO, etc.
+Il voit uniquement "Ma candidature LSPD".
+
+PORTAIL CANDIDAT
+Étapes visibles :
+1. Dossier reçu
+2. Pré-sélection
+3. Entretien oral in-game
+4. Décision
+
+Si un entretien est programmé, date / heure / lieu / interviewer sont affichés.
+Le candidat peut retirer sa candidature uniquement avant l'entretien.
+
+MDT → RECRUTEMENT LSPD
+Accessible avec mdt_manage.
+Tableau de bord :
+- nouveaux dossiers
+- à convoquer
+- entretiens planifiés
+- recrutements à finaliser
+
+Workflow :
+Dossier reçu
+→ Pré-sélectionner
+→ Planifier entretien oral in-game
+→ Entretien réussi / non concluant
+→ Finalisation recrutement
+
+Finaliser le recrutement nécessite Chief ou personnel_manage.
+Le responsable attribue :
+- matricule
+- grade d'entrée (Rookie par défaut)
+- division (Patrol par défaut)
+
+Le compte Applicant devient alors :
+role Officer
+status Actif
+et accède normalement au Command Center.
+
+FIRESTORE
+⚠️ Publier obligatoirement le nouveau firestore.rules.
+La sécurité a été durcie : Applicant est explicitement exclu de isInternal().
+
+INSTALLATION
+GitHub : index.html + app.js + style.css
+Firebase : Firestore Database → Règles → coller firestore.rules → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=178
+
+
+================================================
+PHASE 17.9 — LSPD RECRUITMENT BUREAU PRO
+================================================
+
+OBJECTIF
+Le recrutement devient un vrai processus officiel et pédagogique, avec une séparation stricte entre :
+- le dossier visible par le candidat
+- les évaluations internes du Bureau du recrutement
+
+PARCOURS CANDIDAT
+Le formulaire public devient un assistant en 4 étapes :
+1. Présentation
+   - identité RP
+   - présentation du personnage
+   - background RP
+2. Motivation & expérience
+   - pourquoi le LSPD
+   - ce que le candidat peut apporter
+   - expérience RP
+   - disponibilités
+   - qualités / point à améliorer
+3. Jugement & mise en situation
+   - casier RP
+   - citoyen provocateur
+   - collègue en difficulté
+   - chaîne de commandement
+4. Engagement
+   - entretien oral obligatoire
+   - règles / chaîne de commandement
+   - engagement RP
+   - création du compte candidat
+
+Le candidat suit ensuite :
+Dossier → Étude → Entretien → Décision → Incorporation
+
+PRÉSÉLECTION INTERNE
+Le recruteur note le dossier sur 25 :
+- Présentation & cohérence
+- Motivation
+- Expérience / maturité RP
+- Disponibilités
+- Jugement dans les scénarios
+
+Il choisit :
+- Retenir pour entretien
+- Réexaminer
+- Ne pas retenir
+
+ENTRETIEN ORAL IN-GAME
+Le système fournit une trame officielle de 8 questions.
+Le recruteur saisit ses notes et note 7 critères sur 35 :
+- Présentation / aisance
+- Motivation
+- Communication
+- Maturité / maîtrise de soi
+- Jugement RP
+- Esprit d'équipe
+- Professionnalisme
+
+Il rend une recommandation :
+- Avis favorable
+- Avis réservé
+- Avis défavorable
+
+DÉCISION DU COMMANDEMENT
+Après l'entretien, seul Chief / personnel_manage peut rendre la décision finale :
+- Admission approuvée
+- Refus
+
+Le message public communiqué au candidat est distinct de la justification interne.
+
+INCORPORATION
+Après admission :
+- matricule
+- grade d'entrée
+- division initiale
+- conversion automatique Applicant → Officer Actif
+
+SÉCURITÉ / CONFIDENTIALITÉ
+Nouvelle collection :
+lspd_recruitment_reviews/{applicationId}
+
+Elle contient :
+- scores de présélection
+- notes internes
+- scores entretien
+- compte rendu entretien
+- recommandations
+- justification du Commandement
+
+Cette collection n'est JAMAIS lisible par le candidat.
+Le candidat ne lit que lspd_applications, qui contient les informations publiques de son dossier et son statut.
+
+FIRESTORE
+⚠️ Publier le nouveau firestore.rules.
+Sans cette étape, la séparation des notes internes n'est pas appliquée.
+
+INSTALLATION
+GitHub :
+- index.html
+- app.js
+- style.css
+
+Firebase :
+- firestore.rules → Firestore Database → Règles → Publier
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=179
+
+
+================================================
+PHASE 17.10 — HANDBOOK NOUVEAUX ARRIVANTS
+================================================
+
+NOUVELLE PAGE
+Formation & FTO → Handbook nouveaux arrivants
+
+Objectif : permettre à un nouvel officier de prendre en main rapidement les bases du département sans parcourir tout le SOP de 33 pages.
+
+Le handbook reprend et reformule les principes du SOP fourni :
+- mission et professionnalisme
+- code de conduite / chaîne de commandement
+- radio et communications
+- traffic stops
+- suspicion raisonnable / probable cause
+- détention / arrestation / Miranda
+- use of force
+- poursuites / BOLO
+- intervention et gestion de scène
+- MDT / NCIC et confidentialité
+- équipement et unités spécialisées
+- checklist première prise de service
+
+10-CODES CATENA
+Le SOP source indique que les communications doivent privilégier le plain English/Darija et dit de ne pas utiliser les 10-codes, malgré l'emploi de « 10-4 » dans un exemple.
+À la demande du département, Phase 17.10 ajoute donc un référentiel Catena séparé et clairement signalé comme tel.
+
+Codes intégrés :
+10-4, 10-6, 10-7, 10-8, 10-9, 10-11, 10-15, 10-19, 10-20, 10-22, 10-23, 10-27, 10-28, 10-29, 10-31, 10-32, 10-33, 10-41, 10-42, 10-50, 10-52, 10-76, 10-78, 10-80.
+
+ERGONOMIE
+- recherche globale dans le handbook
+- recherche dédiée dans les 10-codes
+- sommaire cliquable
+- boutons rapides vers CAD / MDT / Centre Formation / Grades
+- copie rapide d'un code
+- checklist personnelle mémorisée dans le navigateur
+- bouton Imprimer le handbook
+- compatible FR / EN
+- responsive FiveM / desktop / mobile
+
+AUCUNE NOUVELLE COLLECTION FIRESTORE.
+AUCUNE MODIFICATION DES FIRESTORE RULES N'EST NÉCESSAIRE POUR CETTE PHASE.
+
+INSTALLATION
+Remplacer sur GitHub :
+- index.html
+- app.js
+- style.css
+
+Le firestore.rules de la Phase 17.9 peut être conservé tel quel.
+
+TEST
+https://waleadctn.github.io/lspd-command-center/?v=1710

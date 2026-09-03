@@ -16,7 +16,8 @@ service cloud.firestore {
     function myProfile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
     function myRole() { return signedIn() ? myProfile().data.role : null; }
     function isVisitor() { return hasSiteAccess() && myRole() == "Visiteur"; }
-    function isInternal() { return hasSiteAccess() && myRole() != "Visiteur"; }
+    function isApplicant() { return hasSiteAccess() && myRole() == "Applicant"; }
+    function isInternal() { return hasSiteAccess() && myRole() != "Visiteur" && myRole() != "Applicant"; }
 
     function isFTO() {
       return hasSiteAccess() && (
@@ -93,18 +94,39 @@ service cloud.firestore {
         && request.resource.data.name.size() >= 3
         && request.resource.data.name.size() <= 60
         && request.resource.data.badge == "—"
-        && request.resource.data.grade == "PO1"
-        && request.resource.data.role == "Officer"
-        && request.resource.data.status == "En attente"
-        && request.resource.data.division == "Patrol"
         && request.resource.data.selfRegistered == true
-        && request.resource.data.registeredEmail == request.auth.token.email;
+        && request.resource.data.registeredEmail == request.auth.token.email
+        && (
+          (
+            request.resource.data.grade == "PO1"
+            && request.resource.data.role == "Officer"
+            && request.resource.data.status == "En attente"
+            && request.resource.data.division == "Patrol"
+          ) || (
+            request.resource.data.grade == "Candidat"
+            && request.resource.data.role == "Applicant"
+            && request.resource.data.status == "Candidature"
+            && request.resource.data.division == "Recruitment"
+            && request.resource.data.recruitmentApplicant == true
+          )
+        );
 
       // Personnel managers may edit officer data but cannot change roles.
       // Chief remains the only role that can alter the role field itself.
       allow update: if isChief() || (
         hasPerm("personnel_manage")
         && request.resource.data.role == resource.data.role
+      ) || (
+        hasPerm("personnel_manage")
+        && resource.data.role == "Applicant"
+        && resource.data.status == "Candidature"
+        && request.resource.data.role == "Officer"
+        && request.resource.data.status == "Actif"
+        && request.resource.data.recruitmentApplicant == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "badge","grade","role","status","division","recruitmentApplicant",
+          "recruitedAt","recruitedById","recruitedByName","updatedAt"
+        ])
       ) || (
         signedIn()
         && request.auth.uid == userId
@@ -370,6 +392,68 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+
+    match /lspd_applications/{id} {
+      allow create: if signedIn()
+        && request.auth.uid == id
+        && request.resource.data.applicantId == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.status == "Dossier reçu"
+        && request.resource.data.interviewStatus == "À planifier";
+
+      // Applicant can read their public application document. Internal notes/scores
+      // are stored separately in lspd_recruitment_reviews and are never applicant-readable.
+      allow read: if signedIn() && (
+        resource.data.applicantId == request.auth.uid || hasPerm("mdt_manage")
+      );
+
+      allow update: if (
+        signedIn()
+        && resource.data.applicantId == request.auth.uid
+        && resource.data.status in ["Dossier reçu","En étude","Pré-sélectionné","À convoquer"]
+        && request.resource.data.status == "Retirée"
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","withdrawnAt","updatedAt"
+        ])
+      ) || (
+        hasPerm("mdt_manage")
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status","interviewStatus","interviewDate","interviewTime","interviewLocation",
+          "interviewPublicInstructions","interviewerId","interviewerName","interviewScheduledAt",
+          "publicMessage","publicDecisionMessage","decisionReason","decisionById","decisionByName","decisionAt",
+          "reviewedById","reviewedByName","reviewedAt","recruitmentBadge","recruitmentGrade",
+          "recruitmentDivision","recruitedById","recruitedByName","recruitedAt","updatedAt"
+        ])
+      );
+
+      allow delete: if false;
+    }
+
+    match /lspd_recruitment_reviews/{id} {
+      // Internal recruitment file. Applicants and Visitors never have access.
+      allow read: if hasPerm("mdt_manage");
+      allow create: if hasPerm("mdt_manage")
+        && request.resource.data.applicationId == id;
+
+      allow update: if (
+        hasPerm("mdt_manage")
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "screeningScores","screeningCriteria","screeningTotal","screeningNotes","screeningOutcome",
+          "screenedById","screenedByName","screenedAt",
+          "interviewQuestions","interviewNotes","interviewScores","interviewCriteria","interviewTotal",
+          "interviewStrengths","interviewConcerns","interviewSummary","interviewRecommendation",
+          "interviewedById","interviewedByName","interviewCompletedAt",
+          "incorporationNote","incorporatedById","incorporatedByName","incorporatedAt","updatedAt"
+        ])
+      ) || (
+        hasPerm("personnel_manage")
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "commandDecision","commandDecisionNotes","commandById","commandByName","commandDecisionAt","updatedAt"
+        ])
+      );
+
+      allow delete: if false;
+    }
 
     match /settings/{settingId} {
       allow read: if isInternal();

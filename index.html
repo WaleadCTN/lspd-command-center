@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LSPD Command Center</title>
-  <link rel="stylesheet" href="style.css?v=17.7">
+  <link rel="stylesheet" href="style.css?v=17.10">
 </head>
 <body>
 
@@ -19,9 +19,10 @@
     <div class="eyebrow">LOS SANTOS POLICE DEPARTMENT</div>
     <h1>Command Center</h1>
     <p class="muted">Training • Personnel • Operations • Communication</p>
-    <div class="auth-tabs">
+    <div class="auth-tabs auth-tabs-three">
       <button id="showLoginBtn" class="auth-tab active" type="button">Connexion</button>
       <button id="showSignupBtn" class="auth-tab" type="button">Créer un compte</button>
+      <button id="showApplicationBtn" class="auth-tab" type="button">Postuler au LSPD</button>
     </div>
 
     <form id="loginForm">
@@ -39,6 +40,81 @@
       <button class="btn full" type="submit">Créer ma demande d'inscription</button>
       <p class="muted signup-note">Le compte Firebase est créé automatiquement. L'accès LSPD reste bloqué jusqu'à validation par le Chief.</p>
       <p id="signupError" class="error"></p>
+    </form>
+
+    <form id="applicationForm" class="hidden recruitment-public-form recruitment-official-form">
+      <div class="recruitment-public-intro official">
+        <div class="recruitment-seal">LSPD</div>
+        <div><span>BUREAU DU RECRUTEMENT</span><b>Dossier officiel de candidature</b><small>Présente ton personnage, tes motivations et ta manière d'aborder le RP police. Les candidats présélectionnés passent ensuite un entretien oral obligatoire in-game.</small></div>
+      </div>
+
+      <div class="application-progress" id="applicationProgress">
+        <div class="active" data-app-step-indicator="1"><i>1</i><span>Présentation</span></div><b></b>
+        <div data-app-step-indicator="2"><i>2</i><span>Motivation</span></div><b></b>
+        <div data-app-step-indicator="3"><i>3</i><span>Mise en situation</span></div><b></b>
+        <div data-app-step-indicator="4"><i>4</i><span>Engagement</span></div>
+      </div>
+
+      <section class="application-step active" data-application-step="1">
+        <div class="application-step-head"><span>ÉTAPE 1 / 4</span><h3>Présentation du candidat</h3><p>Le Bureau du recrutement doit d'abord comprendre qui est ton personnage et ton parcours RP.</p></div>
+        <div class="recruitment-public-grid">
+          <label class="field"><span>Nom et prénom RP</span><input id="applicationName" required maxlength="60" placeholder="Ex. John Smith"></label>
+          <label class="field"><span>Âge RP</span><input id="applicationAge" type="number" min="18" max="80" required placeholder="24"></label>
+          <label class="field"><span>Adresse e-mail</span><input id="applicationEmail" type="email" required autocomplete="email"></label>
+          <label class="field"><span>Téléphone RP</span><input id="applicationPhone" maxlength="30" required placeholder="Ex. 555-0123"></label>
+          <label class="field"><span>Discord / contact</span><input id="applicationDiscord" maxlength="60" placeholder="Optionnel"></label>
+          <label class="field"><span>Permis de conduire RP</span><select id="applicationDriving" required><option value="Oui">Oui</option><option value="Non">Non</option></select></label>
+          <label class="field full"><span>Présente ton personnage</span><textarea id="applicationPresentation" rows="5" required minlength="80" maxlength="1400" placeholder="Qui est ton personnage ? Son caractère, son parcours, sa situation actuelle, ce qui le définit... (80 caractères minimum)"></textarea><small class="field-help">Une présentation RP claire et personnelle est attendue.</small></label>
+          <label class="field full"><span>Parcours / background RP</span><textarea id="applicationBackground" rows="4" required minlength="60" maxlength="1200" placeholder="Résume les éléments importants de son histoire et de son parcours avant cette candidature."></textarea></label>
+        </div>
+      </section>
+
+      <section class="application-step" data-application-step="2">
+        <div class="application-step-head"><span>ÉTAPE 2 / 4</span><h3>Motivation & expérience</h3><p>Nous cherchons surtout une motivation cohérente, un bon état d'esprit et une envie de créer du RP avec les autres.</p></div>
+        <div class="recruitment-public-grid">
+          <label class="field"><span>Disponibilités générales</span><select id="applicationAvailability" required><option value="Flexible">Flexible</option><option value="Soirs de semaine">Soirs de semaine</option><option value="Week-end">Week-end</option><option value="Journée">Journée</option></select></label>
+          <label class="field"><span>Expérience forces de l'ordre RP</span><select id="applicationPoliceExperience" required><option value="Aucune">Aucune</option><option value="Débutant">Débutant</option><option value="Expérience précédente">Expérience précédente</option></select></label>
+          <label class="field full"><span>Précise tes disponibilités</span><input id="applicationScheduleDetails" required maxlength="220" placeholder="Ex. lundi-jeudi après 20h, week-end variable..."></label>
+          <label class="field full"><span>Pourquoi souhaites-tu rejoindre le LSPD ?</span><textarea id="applicationWhy" rows="5" required minlength="100" maxlength="1600" placeholder="Explique ce qui t'attire dans le RP police et pourquoi le LSPD correspond à ton personnage."></textarea></label>
+          <label class="field full"><span>Qu'est-ce que tu peux apporter au département ?</span><textarea id="applicationContribution" rows="4" required minlength="60" maxlength="1200" placeholder="RP, esprit d'équipe, disponibilité, idées, attitude..."></textarea></label>
+          <label class="field full"><span>Expérience RP / parcours joueur utile</span><textarea id="applicationExperience" rows="4" required minlength="60" maxlength="1200" placeholder="Présente brièvement ton expérience RP, sans avoir besoin d'avoir déjà joué policier."></textarea></label>
+          <label class="field full"><span>Qualités principales</span><input id="applicationStrengths" required maxlength="220" placeholder="Ex. calme, communication, écoute, esprit d'équipe"></label>
+          <label class="field full"><span>Un point que tu dois encore améliorer</span><input id="applicationWeakness" required maxlength="220" placeholder="Réponse honnête et constructive"></label>
+        </div>
+      </section>
+
+      <section class="application-step" data-application-step="3">
+        <div class="application-step-head"><span>ÉTAPE 3 / 4</span><h3>Jugement & mise en situation RP</h3><p>Il ne s'agit pas d'un examen de procédures. Nous voulons voir ta logique, ton calme et ta capacité à créer une scène RP propre.</p></div>
+        <div class="recruitment-public-grid">
+          <label class="field"><span>Casier judiciaire RP</span><select id="applicationCriminalRecord" required><option value="Non">Non</option><option value="Oui">Oui</option></select></label>
+          <label class="field"><span>Si oui, situation</span><input id="applicationCriminalRecordDetails" maxlength="260" placeholder="Explique brièvement, sinon laisse vide"></label>
+          <label class="field full"><span>Mise en situation 1 — Citoyen provocateur</span><textarea id="applicationCitizenScenario" rows="5" required minlength="80" maxlength="1400" placeholder="Lors d'un contrôle, un citoyen t'insulte et cherche clairement à te provoquer. Comment réagis-tu et quel RP cherches-tu à créer ?"></textarea></label>
+          <label class="field full"><span>Mise en situation 2 — Collègue en difficulté</span><textarea id="applicationColleagueScenario" rows="5" required minlength="80" maxlength="1400" placeholder="Un collègue prend une mauvaise décision pendant une intervention. Comment gères-tu la situation sur le moment puis après la scène ?"></textarea></label>
+          <label class="field full"><span>Chaîne de commandement & travail d'équipe</span><textarea id="applicationTeamScenario" rows="4" required minlength="60" maxlength="1200" placeholder="Comment réagis-tu lorsqu'un supérieur donne une consigne avec laquelle tu n'es pas d'accord ?"></textarea></label>
+        </div>
+      </section>
+
+      <section class="application-step" data-application-step="4">
+        <div class="application-step-head"><span>ÉTAPE 4 / 4</span><h3>Engagement & création du compte candidat</h3><p>Relis tes réponses. Elles serviront de base à la présélection et pourront être évoquées pendant l'entretien oral.</p></div>
+        <div class="application-commitments">
+          <label><input id="applicationConsentInterview" type="checkbox" required><span>Je comprends qu'un <b>entretien oral in-game est obligatoire</b> avant toute admission.</span></label>
+          <label><input id="applicationConsentRules" type="checkbox" required><span>Je m'engage à respecter les règles du serveur, les procédures RP du département et la chaîne de commandement.</span></label>
+          <label><input id="applicationConsentRoleplay" type="checkbox" required><span>Je comprends que l'objectif est de produire un RP sérieux et intéressant pour tous, pas simplement de « gagner » les scènes.</span></label>
+        </div>
+        <div class="recruitment-public-grid account-grid">
+          <label class="field"><span>Mot de passe du compte candidat</span><input id="applicationPassword" type="password" required minlength="8" autocomplete="new-password"></label>
+          <label class="field"><span>Confirmer le mot de passe</span><input id="applicationPassword2" type="password" required minlength="8" autocomplete="new-password"></label>
+        </div>
+        <div class="application-final-notice"><b>Après l'envoi</b><span>Tu recevras une référence de dossier et tu pourras suivre son avancement depuis ton espace candidat. L'envoi d'une candidature ne garantit pas un recrutement.</span></div>
+      </section>
+
+      <div class="application-wizard-footer">
+        <button class="btn secondary hidden" id="applicationBackBtn" type="button">← Retour</button>
+        <span id="applicationStepHint">Présentation du candidat</span>
+        <button class="btn" id="applicationNextBtn" type="button">Continuer →</button>
+        <button class="btn hidden" id="applicationSubmitBtn" type="submit">Envoyer officiellement ma candidature</button>
+      </div>
+      <p id="applicationError" class="error"></p>
     </form>
     <div class="login-credit"><span>Développé par</span> <strong>Walead</strong></div>
   </div>
@@ -91,6 +167,7 @@
         <div class="nav-group-items">
         <button data-page="dashboard" class="active"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span> </button>
         <button data-page="visitorPortal"><span class="nav-icon">🏛️</span><span class="nav-label">Portail visiteur</span> </button>
+        <button data-page="applicationPortal"><span class="nav-icon">📋</span><span class="nav-label">Ma candidature LSPD</span> </button>
         <button data-page="profile"><span class="nav-icon">🙍</span><span class="nav-label">Mon profil</span> </button>
         <button data-page="mySpace"><span class="nav-icon">🪪</span><span class="nav-label">Mon espace opérationnel</span> </button>
 </div>
@@ -116,6 +193,7 @@
           <span class="nav-group-chevron">⌄</span>
         </button>
         <div class="nav-group-items">
+        <button data-page="handbook"><span class="nav-icon">📘</span><span class="nav-label">Handbook nouveaux arrivants</span> </button>
         <button data-page="trainingCenter"><span class="nav-icon">🎓</span><span class="nav-label">Centre Formation</span> </button>
         <button data-page="evaluations"><span class="nav-icon">✅</span><span class="nav-label">Évaluations</span> </button>
         <button data-page="academyManager"><span class="nav-icon">⚙️</span><span class="nav-label">Configuration formation</span> </button>
@@ -151,7 +229,7 @@
         <button data-page="cad"><span class="nav-icon">📡</span><span class="nav-label">CAD / Dispatch</span> </button>
         <button data-page="watchCommand"><span class="nav-icon">🛡️</span><span class="nav-label">Watch Commander</span> </button>
         <button data-page="bolos"><span class="nav-icon">🚨</span><span class="nav-label">BOLO / Avis</span> </button>
-        <button data-page="mdt"><span class="nav-icon">💻</span><span class="nav-label">MDT / Dossiers</span> </button>
+        <button data-page="mdt"><span class="nav-icon">💻</span><span class="nav-label">MDT / Dossiers</span> <span id="recruitmentCount" class="nav-badge hidden"></span></button>
         </div>
       </section>
       <section class="nav-group" data-nav-group="administration">
@@ -216,6 +294,6 @@
 
 <div id="mailOverlayRoot" class="mail-overlay-root"></div>
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
-<script type="module" src="app.js?v=17.7"></script>
+<script type="module" src="app.js?v=17.10"></script>
 </body>
 </html>
