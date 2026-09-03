@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.11.4 GRADE PERMISSIONS & CLEAN RANKS — Phase 17.11.3 fully preserved
+// LSPD Command Center — Phase 17.11.6 PERMISSION AUDIT + FTO ASSIGNMENTS + REPORT VIEWER — based on Phase 17.11.6
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -38,7 +38,7 @@ const I18N_FR = {"Command Center":"Centre de commandement","Training & Operation
 Object.assign(I18N_EN,{"Mon espace opérationnel":"My operational space","Tableau de service":"Duty board","Inscriptions formations":"Training enrollment","MDT / Dossiers":"MDT / Case files","Divisions & candidatures":"Divisions & applications","Mes prochains shifts":"My upcoming shifts","Mes formations":"My training sessions","Mes certifications":"My certifications","Mon dossier RH":"My personnel record","Mes congés":"My leave","Aucun shift à venir.":"No upcoming shifts.","Aucune formation inscrite.":"No training registration.","Aucun élément au dossier.":"No personnel record entries.","Pointer l'entrée":"Check in","Pointer la sortie":"Check out","En service":"On duty","Terminé":"Completed","Annulé":"Cancelled","Absent / non pointé":"Absent / no check-in","À venir":"Upcoming","Aujourd'hui":"Today","Service en cours":"Currently on duty","Absences / non pointés":"Absences / no-shows","En congé":"On leave","En formation aujourd'hui":"In training today","Modifier shift":"Edit shift","Annuler shift":"Cancel shift","Modifier le shift":"Edit shift","Nouveau début":"New start","Nouvelle fin":"New end","Enregistrer les modifications":"Save changes","Capacité":"Capacity","Places":"Spots","S'inscrire":"Register","Annuler mon inscription":"Cancel my registration","Gérer les présences":"Manage attendance","Inscrit":"Registered","Présent":"Present","Absent":"Absent","Inscription annulée":"Registration cancelled","Complet":"Full","Participants":"Participants","Marquer présent":"Mark present","Marquer absent":"Mark absent","Aucun participant.":"No participants.","Rappel de shift":"Shift reminder","Rappel de formation":"Training reminder","Ton shift commence bientôt.":"Your shift starts soon.","Ta formation commence bientôt.":"Your training starts soon.","Dossiers d'enquête":"Case files","+ Nouveau dossier":"+ New case file","Numéro":"Number","Catégorie":"Category","Ouvert":"Open","Clos":"Closed","Enquête":"Investigation","Intervention":"Incident","Renseignement":"Intelligence","Administration":"Administration","Nouveau dossier MDT":"New MDT case file","Créer le dossier":"Create case file","Clôturer le dossier":"Close case file","Aucun dossier MDT.":"No MDT case files.","Rapports accessibles":"Accessible incident reports","Mesure":"Measure","Effectif actuel":"Current personnel","Ma division actuelle":"My current division","Candidater":"Apply","Candidature division":"Division application","Division souhaitée":"Requested division","Motivation":"Motivation","Envoyer ma candidature":"Submit application","Mes candidatures":"My applications","Candidatures en attente":"Pending applications","Aucune candidature.":"No applications.","Candidature approuvée":"Application approved","Candidature refusée":"Application rejected","Approuver la candidature":"Approve application","Refuser la candidature":"Reject application","Ta division a été mise à jour.":"Your division has been updated.","Patrouille générale et réponse aux appels.":"General patrol and response to calls.","Circulation, contrôles routiers et poursuites.":"Traffic enforcement, traffic stops, and pursuits.","Enquêtes, preuves et dossiers criminels.":"Investigations, evidence, and criminal cases.","Interventions tactiques à haut risque.":"High-risk tactical operations.","Support aérien et coordination aérienne.":"Air support and aerial coordination.","Formation, FTO et développement des officiers.":"Training, FTO, and officer development.","Commandement et supervision du département.":"Department command and supervision.","La capacité doit être comprise entre 1 et 100.":"Capacity must be between 1 and 100.","Tu es déjà inscrit à cette formation.":"You are already registered for this training.","Formation complète.":"Training session is full.","Ton inscription est enregistrée.":"Your registration is confirmed.","Présence mise à jour.":"Attendance updated.","Shift annulé.":"Shift cancelled."});
 Object.assign(I18N_FR,{"Roster & shifts":"Planning & services","Duty board":"Tableau de service","My operational space":"Mon espace opérationnel","Training enrollment":"Inscriptions formations","MDT / Case files":"MDT / Dossiers","Divisions & applications":"Divisions & candidatures"});
 
-Object.assign(I18N_EN,{"BOLO / Avis":"BOLO / Alerts","CAD / Dispatch":"CAD / Dispatch","Watch Commander":"Watch Commander","Permissions":"Permissions","Réduire le menu":"Collapse menu","Navigation rapide":"Quick navigation","Accès refusé":"Access denied","Cette fonction n'est pas autorisée pour ton rôle.":"This feature is not allowed for your role.","Permissions par grade":"Permissions & roles","Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.":"Permissions are stored in Firestore. The Chief can edit them here without changing code.","Enregistrer les permissions":"Save permissions","Réinitialiser les valeurs par défaut":"Reset defaults","Permission":"Permission","Lecture / gestion FTO":"FTO tools","Voir tous les officiers":"View all officers","Modifier les profils officiers":"Manage officer profiles","Voir les affectations FTO":"View FTO assignments","Gérer les affectations FTO":"Manage FTO assignments","Voir les certifications":"View certifications","Gérer les certifications":"Manage certifications","Voir les dossiers RH":"View personnel records","Gérer les dossiers RH":"Manage personnel records","Voir tous les shifts":"View all shifts","Gérer les shifts":"Manage shifts","Voir le tableau de service":"View duty board","Valider les congés":"Review leave","Gérer les formations":"Manage training","Valider les incidents":"Review incidents","Gérer le MDT":"Manage MDT","Valider les candidatures divisions":"Review division applications","Voir les promotions":"View promotions","Gérer les promotions":"Manage promotions","Statistiques & Promotion Advisor":"Statistics & Promotion Advisor","Voir l'historique audit":"View audit history","Publier des annonces":"Publish announcements","Valider les inscriptions":"Review registrations","Gérer toutes les unités CAD":"Manage all CAD units","Gérer les BOLO":"Manage BOLOs","Gérer Watch Commander":"Manage Watch Commander","Permissions enregistrées.":"Permissions saved.","Valeurs par défaut restaurées.":"Default values restored.","Le Chief conserve toujours tous les droits.":"The Chief always keeps all permissions.","Unité CAD":"CAD unit","Mon unité":"My unit","Toutes les unités":"All units","Indicatif":"Call sign","Partenaire":"Partner","Localisation":"Location","État":"Status","Note opérationnelle":"Operational note","Disponible":"Available","En intervention":"On call","Transport":"Transport","Pause":"Break","Hors service":"Off duty","Créer mon unité":"Create my unit","Mettre à jour":"Update","Actualisé":"Updated","Aucune unité active.":"No active units.","BOLO actifs":"Active BOLOs","+ Nouveau BOLO":"+ New BOLO","Personne":"Person","Véhicule":"Vehicle","Plaque":"Plate","Description":"Description","Actif":"Active","Clôturé":"Closed","Clôturer le BOLO":"Close BOLO","Aucun BOLO actif.":"No active BOLO.","Nouveau BOLO":"New BOLO","Publier le BOLO":"Publish BOLO","Priorité":"Priority","Critique":"Critical","Watch en cours":"Current watch","Aucun Watch Commander actif.":"No active Watch Commander.","Démarrer un watch":"Start a watch","Commander":"Commander","Briefing":"Briefing","Démarrer le service":"Start watch","Clôturer le watch":"Close watch","Note de passation":"Pass-down note","Historique des watches":"Watch history","Service actif":"Active watch","Service clôturé":"Closed watch","Tape une page...":"Type a page...","Aucune page trouvée.":"No page found.","Interface améliorée":"Improved interface","En direct":"Live"});
+Object.assign(I18N_EN,{"BOLO / Avis":"BOLO / Alerts","CAD / Dispatch":"CAD / Dispatch","Watch Commander":"Watch Commander","Permissions":"Permissions","Réduire le menu":"Collapse menu","Navigation rapide":"Quick navigation","Accès refusé":"Access denied","Cette fonction n'est pas autorisée pour ton grade / tes permissions.":"This feature is not allowed for your role.","Permissions par grade":"Permissions & roles","Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.":"Permissions are stored in Firestore. The Chief can edit them here without changing code.","Enregistrer les permissions":"Save permissions","Réinitialiser les valeurs par défaut":"Reset defaults","Permission":"Permission","Lecture / gestion FTO":"FTO tools","Voir tous les officiers":"View all officers","Modifier les profils officiers":"Manage officer profiles","Voir les affectations FTO":"View FTO assignments","Gérer les affectations FTO":"Manage FTO assignments","Voir les certifications":"View certifications","Gérer les certifications":"Manage certifications","Voir les dossiers RH":"View personnel records","Gérer les dossiers RH":"Manage personnel records","Voir tous les shifts":"View all shifts","Gérer les shifts":"Manage shifts","Voir le tableau de service":"View duty board","Valider les congés":"Review leave","Gérer les formations":"Manage training","Valider les incidents":"Review incidents","Gérer le MDT":"Manage MDT","Valider les candidatures divisions":"Review division applications","Voir les promotions":"View promotions","Gérer les promotions":"Manage promotions","Statistiques & Promotion Advisor":"Statistics & Promotion Advisor","Voir l'historique audit":"View audit history","Publier des annonces":"Publish announcements","Valider les inscriptions":"Review registrations","Gérer toutes les unités CAD":"Manage all CAD units","Gérer les BOLO":"Manage BOLOs","Gérer Watch Commander":"Manage Watch Commander","Permissions enregistrées.":"Permissions saved.","Valeurs par défaut restaurées.":"Default values restored.","Le Chief conserve toujours tous les droits.":"The Chief always keeps all permissions.","Unité CAD":"CAD unit","Mon unité":"My unit","Toutes les unités":"All units","Indicatif":"Call sign","Partenaire":"Partner","Localisation":"Location","État":"Status","Note opérationnelle":"Operational note","Disponible":"Available","En intervention":"On call","Transport":"Transport","Pause":"Break","Hors service":"Off duty","Créer mon unité":"Create my unit","Mettre à jour":"Update","Actualisé":"Updated","Aucune unité active.":"No active units.","BOLO actifs":"Active BOLOs","+ Nouveau BOLO":"+ New BOLO","Personne":"Person","Véhicule":"Vehicle","Plaque":"Plate","Description":"Description","Actif":"Active","Clôturé":"Closed","Clôturer le BOLO":"Close BOLO","Aucun BOLO actif.":"No active BOLO.","Nouveau BOLO":"New BOLO","Publier le BOLO":"Publish BOLO","Priorité":"Priority","Critique":"Critical","Watch en cours":"Current watch","Aucun Watch Commander actif.":"No active Watch Commander.","Démarrer un watch":"Start a watch","Commander":"Commander","Briefing":"Briefing","Démarrer le service":"Start watch","Clôturer le watch":"Close watch","Note de passation":"Pass-down note","Historique des watches":"Watch history","Service actif":"Active watch","Service clôturé":"Closed watch","Tape une page...":"Type a page...","Aucune page trouvée.":"No page found.","Interface améliorée":"Improved interface","En direct":"Live"});
 Object.assign(I18N_FR,{"Command Center":"Centre de commandement","Training & Operations":"Formation & opérations"});
 
 Object.assign(I18N_EN,{"Journal FTO":"FTO Journal","Évaluation finale FTO":"Final FTO Evaluation","Programme guidé":"Guided program","Bibliothèque pédagogique":"Training library","Recommandations FTO":"FTO recommendations","Session guidée":"Guided session","Objectifs de la recrue":"Trainee objectives","Commencer une session":"Start session","Continuer":"Continue","Terminer la session":"Finish session","Ajouter un objectif":"Add objective","Objectif":"Objective","Faible":"Low","Moyenne":"Medium","Haute":"High","Atteint":"Achieved","Objectif pédagogique":"Training objective","Ce que le FTO doit faire":"What the FTO should do","Exemple RP":"RP example","Variantes":"Variants","Erreurs fréquentes":"Common mistakes","Erreurs critiques":"Critical errors","Questions à poser":"Questions to ask","Réponses attendues":"Expected answers","Action corrective":"Corrective action","Durée conseillée":"Suggested duration","Prérequis":"Prerequisites","Checklist live":"Live checklist","Démonstration":"Demonstration","Pratique":"Practice","Observation":"Observation","Débrief":"Debrief","Validation":"Validation","Générer un scénario":"Generate scenario","Nouveau scénario":"New scenario","Difficulté":"Difficulty","Facile":"Easy","Difficile":"Hard","Stress test":"Stress test","Situation":"Situation","Contraintes":"Constraints","Réussite attendue":"Expected success criteria","Voir le guide":"View guide","Créer une session":"Create session","Phase FTO":"FTO phase","Phase 1 — Observation":"Phase 1 — Observation","Phase 2 — Assistance":"Phase 2 — Assistance","Phase 3 — Autonomie supervisée":"Phase 3 — Supervised autonomy","Phase 4 — Évaluation finale":"Phase 4 — Final evaluation","Points forts":"Strengths","Points à améliorer":"Areas to improve","Objectifs prochaine session":"Next-session goals","Résumé de session":"Session summary","Aucune session.":"No sessions.","Aucun objectif.":"No objectives.","Module faible":"Weak module","Prochaine priorité":"Next priority","Sessions terminées":"Completed sessions","Prochaine formation conseillée":"Recommended next training","Évaluation finale":"Final evaluation","Recommandation finale":"Final recommendation","Validation FTO":"FTO pass","Prolongation FTO":"Extend FTO","Échec FTO":"FTO fail","Créer l'évaluation finale":"Create final evaluation","Décision":"Decision","Commentaire final":"Final comments","Modules validés":"Validated modules","Moyenne globale":"Overall average","Historique pédagogique":"Training history","Exemples radio":"Radio examples","Exemples de rapports":"Report examples","Bon exemple":"Good example","Mauvais exemple":"Bad example","Pourquoi":"Why","Session créée.":"Session created.","Journal enregistré.":"Journal saved.","Objectif ajouté.":"Objective added.","Évaluation finale enregistrée.":"Final evaluation saved.","Sélectionner une recrue":"Select a trainee","FTO Academy":"FTO Academy"});
@@ -284,39 +284,120 @@ const divisions = ["External","Patrol","Traffic","Detective","SWAT","Air Support
 const certificationsCatalog = ["FTO","Pursuit","Traffic","Detective","SWAT","Air Support","Supervisor"];
 const incidentTypes = ["Use of Force","Vehicle Pursuit","Arrestation sensible","Accident service","Plainte citoyen","Incident interne","Autre"];
 
-const PERMISSION_CATALOG = [
-  ["fto_tools","Lecture / gestion FTO"],
-  ["personnel_view","Voir tous les officiers"],
-  ["personnel_manage","Modifier les profils officiers"],
-  ["provisional_credentials_view","Voir les codes provisoires d’activation"],
-  ["fto_assignments_view","Voir les affectations FTO"],
-  ["fto_assignments_manage","Gérer les affectations FTO"],
-  ["certifications_view","Voir les certifications"],
-  ["certifications_manage","Gérer les certifications"],
-  ["records_view","Voir les dossiers RH"],
-  ["records_manage","Gérer les dossiers RH"],
-  ["shifts_view","Voir tous les shifts"],
-  ["shifts_manage","Gérer les shifts"],
-  ["duty_board","Voir le tableau de service"],
-  ["leave_review","Valider les congés"],
-  ["training_manage","Gérer les formations"],
-  ["incident_review","Valider les incidents"],
-  ["mdt_manage","Gérer le MDT"],
-  ["division_review","Valider les candidatures divisions"],
-  ["promotions_view","Voir les promotions"],
-  ["promotions_manage","Gérer les promotions"],
-  ["analytics","Statistiques & Promotion Advisor"],
-  ["audit","Voir l'historique audit"],
-  ["announcements_manage","Publier des annonces"],
-  ["registrations_manage","Valider les inscriptions"],
-  ["recruitment_settings_manage","Ouvrir / fermer les candidatures LSPD"],
-  ["cad_manage","Gérer toutes les unités CAD"],
-  ["bolo_manage","Gérer les BOLO"],
-  ["watch_manage","Gérer Watch Commander"],
-  ["academy_manage","FTO Academy"],
-  ["academy_content_manage","Gérer le contenu FTO Academy"],
-  ["academy_final_review","Valider les fins de parcours FTO"]
+const PERMISSION_GROUPS = [
+  {key:"accounts",label:"Comptes & inscriptions",description:"Validation des accès, création/suppression de profils et codes provisoires.",permissions:[
+    ["registrations_manage","Voir le module Inscriptions","Afficher et consulter les demandes d'inscription en attente."],
+    ["registrations_approve","Approuver une inscription","Valider une inscription et définir matricule, grade, rôle et unité."],
+    ["registrations_reject","Refuser une inscription","Refuser ou réexaminer une demande d'inscription."],
+    ["personnel_create","Créer un officier","Créer un compte Firebase + profil LSPD depuis la gestion des officiers."],
+    ["personnel_delete","Supprimer un officier","Supprimer le profil LSPD d'un officier (hors compte actuel)."],
+    ["provisional_credentials_view","Voir les codes provisoires","Afficher/copier le mot de passe provisoire d'un compte à activer."]
+  ]},
+  {key:"recruitment",label:"Recrutement",description:"Sépare chaque étape du Bureau du recrutement et la décision finale du Commandement.",permissions:[
+    ["recruitment_view","Voir les candidatures","Accéder au Bureau du recrutement et ouvrir les dossiers candidats."],
+    ["recruitment_screening","Évaluer les dossiers","Remplir la grille de présélection /25."],
+    ["recruitment_interview_schedule","Planifier les entretiens","Créer ou modifier une convocation d'entretien oral."],
+    ["recruitment_interview_evaluate","Noter les entretiens","Compléter la grille d'entretien /35 et la recommandation."],
+    ["recruitment_command_decision","Décision finale Command","Approuver/refuser définitivement une candidature après entretien."],
+    ["recruitment_incorporate","Finaliser l'incorporation","Transformer un candidat admis en officier actif."],
+    ["recruitment_settings_manage","Ouvrir / fermer les candidatures","Piloter le bouton public de candidature LSPD."]
+  ]},
+  {key:"personnel",label:"Personnel & carrière",description:"Consultation et modification des profils, certifications, dossiers RH et promotions.",permissions:[
+    ["personnel_view","Voir tous les officiers","Accéder au roster complet et aux dossiers officier."],
+    ["personnel_manage","Modifier identité / rôle / unité","Modifier matricule, nom RP, rôle technique et division."],
+    ["personnel_grade_manage","Modifier les grades","Changer le grade d'un officier."],
+    ["personnel_status_manage","Modifier les statuts","Activer, suspendre, rendre inactif ou archiver un officier."],
+    ["leave_request_create","Créer une demande de congé","Créer et consulter ses propres demandes de congé."],
+    ["leave_review","Valider les congés","Approuver/refuser les demandes de congé de l'effectif."],
+    ["certifications_view","Voir les certifications","Consulter les certifications internes."],
+    ["certifications_manage","Gérer les certifications","Attribuer des certifications."],
+    ["records_view","Voir les dossiers RH","Consulter distinctions, sanctions et dossiers RH."],
+    ["records_manage","Gérer les dossiers RH","Ajouter distinctions, sanctions et entrées RH."],
+    ["division_review","Valider les candidatures divisions","Approuver/refuser les demandes de division."],
+    ["promotions_view","Voir les promotions","Consulter l'historique et les propositions de promotion."],
+    ["promotions_manage","Gérer les promotions","Créer/valider une promotion."]
+  ]},
+  {key:"fto",label:"FTO & suivi des recrues",description:"Outils pédagogiques, affectations et validation du parcours FTO.",permissions:[
+    ["fto_tools","Accès FTO / Mes recrues","Accéder aux outils FTO et au suivi des recrues assignées."],
+    ["fto_evaluations_create","Créer des évaluations FTO","Évaluer une formation/module pour une recrue."],
+    ["fto_assignments_view","Voir les affectations FTO","Consulter toutes les affectations FTO."],
+    ["fto_assignments_manage","Gérer les affectations FTO (Lieutenant+)","Créer, affecter en groupe et clôturer les affectations. Sécurité minimale: Lieutenant+."],
+    ["fto_sessions_manage","Gérer les sessions FTO","Créer et clôturer les anciennes sessions FTO. S'utilise avec l'accès FTO / Academy."],
+    ["fto_objectives_manage","Gérer les objectifs FTO","Créer et suivre les objectifs pédagogiques. S'utilise avec l'accès FTO / Academy."],
+    ["fto_handoffs_manage","Gérer les passations FTO","Ajouter les notes de passation entre FTO. S'utilise avec l'accès FTO / Academy."],
+    ["academy_manage","Gérer le parcours Academy","Accès aux outils avancés Academy / dossiers FTO."],
+    ["academy_content_manage","Modifier le contenu Academy","Modifier modules, scénarios et contenu pédagogique."],
+    ["academy_final_review","Valider la fin de parcours FTO","Approuver/refuser la validation finale FTO."]
+  ]},
+  {key:"training",label:"Formations & calendrier",description:"Accès au Centre Formation, inscriptions, création, invitations et présences.",permissions:[
+    ["training_access","Accéder au Centre Formation","Voir le planning, les modules et les formations accessibles."],
+    ["training_self_register","S'inscrire / se désinscrire","S'inscrire soi-même à une formation ouverte ou annuler son inscription."],
+    ["training_manage","Créer / gérer les formations","Créer et administrer les événements de formation."],
+    ["training_invites_manage","Inviter des participants","Envoyer des invitations individuelles/groupées aux formations."],
+    ["training_attendance_manage","Gérer les présences","Marquer les présences et statuts des participants."]
+  ]},
+  {key:"reports",label:"Communication, rapports & validations",description:"Messagerie, rapports d'incident, validations, corrections et annonces.",permissions:[
+    ["messages_access","Utiliser la messagerie interne","Lire, envoyer, répondre et transférer des messages LSPD."],
+    ["incident_create","Créer ses rapports d'incident","Rédiger et soumettre un nouveau rapport d'incident."],
+    ["incident_view_all","Voir tous les rapports","Voir les rapports de tous les membres, pas seulement les siens."],
+    ["incident_review","Approuver / refuser les rapports","Traiter la file des validations de rapports."],
+    ["incident_export","Exporter les rapports","Exporter les rapports d'incident en CSV."],
+    ["corrections_create","Demander une correction / addendum","Créer une demande de correction sur un rapport ou une évaluation accessible."],
+    ["corrections_review","Valider corrections & addenda","Approuver/refuser les demandes de correction et créer les addenda."],
+    ["announcements_manage","Publier des annonces","Créer et gérer les annonces LSPD."]
+  ]},
+  {key:"operations",label:"Opérations, MDT & CAD",description:"Dossiers MDT, service, CAD, BOLO et Watch Commander.",permissions:[
+    ["mdt_manage","Accéder au MDT opérationnel","Accéder à l'onglet Dossiers MDT et à ses recherches."],
+    ["mdt_case_create","Créer un dossier MDT","Créer un nouveau dossier d'enquête MDT."],
+    ["mdt_case_close","Clôturer un dossier MDT","Clôturer les dossiers d'enquête."],
+    ["shifts_view","Voir tous les shifts","Consulter les shifts de tous les officiers."],
+    ["shifts_manage","Gérer les shifts","Créer, modifier ou annuler les shifts."],
+    ["duty_board","Voir le tableau de service","Accéder au Duty Board."],
+    ["cad_access","Accéder au CAD","Voir le CAD et gérer sa propre unité opérationnelle."],
+    ["cad_manage","Gérer toutes les unités CAD","Modifier les unités CAD autres que sa propre unité."],
+    ["bolo_view","Voir les BOLO","Consulter les BOLO actifs et leur historique."],
+    ["bolo_manage","Gérer les BOLO","Créer, modifier et clôturer les BOLO."],
+    ["watch_view","Voir Watch Commander","Consulter le Watch Commander actif et l'historique."],
+    ["watch_manage","Gérer Watch Commander","Créer et administrer les sessions Watch Commander."]
+  ]},
+  {key:"command",label:"Commandement & contrôle",description:"Outils de pilotage, statistiques et audit.",permissions:[
+    ["analytics","Statistiques & Promotion Advisor","Accéder aux statistiques et outils d'aide à la promotion."],
+    ["audit","Voir l'historique audit","Consulter les actions enregistrées dans l'audit."]
+  ]}
 ];
+const PERMISSION_CATALOG = PERMISSION_GROUPS.flatMap(group=>group.permissions.map(([key,label])=>[key,label]));
+const PERMISSION_DETAILS = Object.fromEntries(PERMISSION_GROUPS.flatMap(group=>group.permissions.map(([key,label,description])=>[key,{label,description,group:group.key}])));
+const PERMISSION_MIN_GRADE = {fto_assignments_manage:"Lieutenant"};
+const PERMISSION_EXPANSIONS = {
+  registrations_manage:["registrations_approve","registrations_reject"],
+  personnel_manage:["personnel_grade_manage","personnel_status_manage","recruitment_command_decision","recruitment_incorporate"],
+  fto_tools:["fto_evaluations_create","fto_sessions_manage","fto_objectives_manage","fto_handoffs_manage"],
+  training_manage:["training_invites_manage","training_attendance_manage"],
+  incident_review:["incident_view_all","incident_export","corrections_review"],
+  mdt_manage:["mdt_case_create","mdt_case_close","recruitment_view","recruitment_screening","recruitment_interview_schedule","recruitment_interview_evaluate"]
+};
+function permissionMinimumAllows(permission,grade){
+  const min=PERMISSION_MIN_GRADE[permission];
+  if(!min)return true;
+  return gradeIndex(canonicalGrade(grade))>=gradeIndex(min);
+}
+function expandPermissionSet(list,grade,{legacy=false,assignmentDefault=false}={}){
+  const out=new Set(Array.isArray(list)?list:[]);
+  // Broad permissions from Phase 17.11.6 are expanded only during migration.
+  // Once catalog v22 is saved, every checkbox remains independent.
+  if(legacy){
+    for(const [oldPermission,extras] of Object.entries(PERMISSION_EXPANSIONS)){
+      if(out.has(oldPermission)) extras.forEach(p=>out.add(p));
+    }
+  }
+  // Lieutenant+ is a hard minimum to manage assignments; the checkbox still
+  // remains revocable by the Chief for any Lieutenant+ grade.
+  if(assignmentDefault && isLieutenantPlusGrade(grade)){
+    out.add("fto_assignments_view");
+    out.add("fto_assignments_manage");
+  }
+  return [...out].filter(p=>PERMISSION_CATALOG.some(x=>x[0]===p) && permissionMinimumAllows(p,grade));
+}
 
 const DEFAULT_PERMISSIONS = {
   Visiteur: [],
@@ -343,11 +424,22 @@ function buildGradePermissionsFromRoleConfig(roleMap=DEFAULT_PERMISSIONS){
   };
   for(const [grade] of gradeList){
     const sourceRole=roleForGrade[grade]||"Officer";
-    byGrade[grade]=grade==="Chief of Police"?PERMISSION_CATALOG.map(x=>x[0]):grade==="Visiteur"?[]:permissionsForLegacyRole(sourceRole,roleMap);
+    byGrade[grade]=grade==="Chief of Police"?PERMISSION_CATALOG.map(x=>x[0]):grade==="Visiteur"?[]:expandPermissionSet(permissionsForLegacyRole(sourceRole,roleMap),grade,{legacy:true,assignmentDefault:true});
   }
   return byGrade;
 }
 const DEFAULT_GRADE_PERMISSIONS = buildGradePermissionsFromRoleConfig(DEFAULT_PERMISSIONS);
+const BASE_SELF_SERVICE_PERMISSIONS = ["messages_access","incident_create","corrections_create","training_access","training_self_register","leave_request_create","cad_access","bolo_view"];
+function migrationDefaultsForGrade(grade){
+  const g=canonicalGrade(grade),out=[...BASE_SELF_SERVICE_PERMISSIONS];
+  if(gradeIndex(g)>=gradeIndex("Sergeant1"))out.push("watch_view");
+  return g==="Visiteur"?[]:out;
+}
+for(const [g] of gradeList){
+  if(g==="Visiteur")DEFAULT_GRADE_PERMISSIONS[g]=[];
+  else if(g==="Chief of Police")DEFAULT_GRADE_PERMISSIONS[g]=PERMISSION_CATALOG.map(x=>x[0]);
+  else DEFAULT_GRADE_PERMISSIONS[g]=[...new Set([...(DEFAULT_GRADE_PERMISSIONS[g]||[]),...migrationDefaultsForGrade(g)])];
+}
 
 const PAGE_PERMISSIONS = {
   registrations:"registrations_manage",
@@ -870,7 +962,7 @@ const NAV_PAGE_GROUP = {
   dashboard:"main",profile:"main",mySpace:"main",visitorPortal:"main",applicationPortal:"main",
   announcements:"communication",messages:"communication",incidents:"communication",approvals:"communication",corrections:"communication",
   handbook:"training",trainingCenter:"training",evaluations:"training",academyManager:"training",trainingWorkspace:"training",ftoAcademy:"training",ftoJournal:"training",ftoFinal:"training",ftoDossier:"training",trainingAnalytics:"training",trainingQuiz:"training",myTrainingFeedback:"training",modules:"training",assignments:"training",calendar:"training",trainingHub:"training",scenarios:"training",manual:"training",
-  officers:"personnel",certifications:"personnel",records:"personnel",leave:"personnel",requirements:"personnel",promotionAdvisor:"personnel",promotions:"personnel",divisionsPage:"personnel",grades:"personnel",trainees:"personnel",
+  officers:"personnel",certifications:"personnel",records:"personnel",leave:"personnel",requirements:"personnel",promotionAdvisor:"personnel",promotions:"personnel",divisionsPage:"personnel",grades:"personnel",trainees:"training",
   shifts:"operations",dutyBoard:"operations",cad:"operations",watchCommand:"operations",bolos:"operations",mdt:"operations",
   registrations:"administration",recruitmentControl:"administration",stats:"administration",admin:"administration",permissionsAdmin:"administration",navigationAdmin:"administration",history:"administration"
 };
@@ -893,7 +985,7 @@ function isPageCategoryAllowed(page){
 
 function role(){ return window.LSPD.profile?.role; }
 function currentGrade(){ return canonicalGrade(window.LSPD.profile?.grade); }
-function isChief(){ return currentGrade()==="Chief of Police" || role()==="Chief"; }
+function isChief(){ return currentGrade()==="Chief of Police"; }
 function isVisitor(){ return role()==="Visiteur" || currentGrade()==="Visiteur"; }
 function isApplicant(){ return role()==="Applicant"; }
 function isInactive(){ return window.LSPD.profile?.status==="Inactif"; }
@@ -909,21 +1001,47 @@ function permissionRoles(){ return window.LSPD.permissionConfig?.grades || DEFAU
 function permissionGrades(){ return permissionRoles(); }
 function hasPerm(permission){
   if(!isInternal()) return false;
+  // Chief bypass is absolute. Navigation visibility or an incomplete migrated matrix
+  // can never remove a Chief of Police permission.
   if(isChief()) return true;
   const grade=currentGrade();
   const list=permissionGrades()[grade] || DEFAULT_GRADE_PERMISSIONS[grade] || [];
-  return Array.isArray(list) && list.includes(permission);
+  return permissionMinimumAllows(permission,grade) && Array.isArray(list) && list.includes(permission);
 }
+function hasAnyPerm(...permissions){ return permissions.some(p=>hasPerm(p)); }
+function canAccessRegistrations(){ return hasAnyPerm("registrations_manage","registrations_approve","registrations_reject"); }
+function canAccessRecruitmentDesk(){ return hasAnyPerm("recruitment_view","recruitment_screening","recruitment_interview_schedule","recruitment_interview_evaluate","recruitment_command_decision","recruitment_incorporate"); }
+function canAccessOfficerDirectory(){ return hasAnyPerm("personnel_view","personnel_manage","personnel_grade_manage","personnel_status_manage","personnel_create","personnel_delete","provisional_credentials_view"); }
+function canAccessMdtCases(){ return hasAnyPerm("mdt_manage","mdt_case_create","mdt_case_close"); }
 function canAccessPage(page){
   if(isApplicant()) return page==="applicationPortal";
   if(isVisitor()) return ["visitorPortal","profile","announcements"].includes(page);
   if(isInactive()) return ["profile","handbook","announcements"].includes(page);
   if(page==="applicationPortal") return false;
+  if(isChief()) return true;
   if(!isPageCategoryAllowed(page)) return false;
-  if(page==="messages" || page==="trainingCenter") return isInternal();
+  if(page==="registrations") return canAccessRegistrations();
+  if(page==="officers") return canAccessOfficerDirectory();
+  if(page==="assignments") return hasPerm("fto_assignments_view") || canManageFtoAssignments();
+  if(page==="certifications") return hasAnyPerm("certifications_view","certifications_manage");
+  if(page==="records") return hasAnyPerm("records_view","records_manage");
+  if(page==="shifts") return hasAnyPerm("shifts_view","shifts_manage");
+  if(page==="promotions") return hasAnyPerm("promotions_view","promotions_manage");
+  if(page==="messages") return hasPerm("messages_access");
+  if(page==="incidents") return hasAnyPerm("incident_create","incident_view_all","incident_review","incident_export");
+  if(page==="corrections") return hasPerm("corrections_create") || hasPerm("corrections_review");
+  if(page==="trainingCenter" || page==="trainingHub" || page==="calendar") return hasPerm("training_access") || hasPerm("training_manage") || hasPerm("training_invites_manage") || hasPerm("training_attendance_manage");
+  if(page==="leave") return hasPerm("leave_request_create") || hasPerm("leave_review");
+  if(page==="cad") return hasPerm("cad_access") || hasPerm("cad_manage");
+  if(page==="bolos") return hasPerm("bolo_view") || hasPerm("bolo_manage");
+  if(page==="watchCommand") return hasPerm("watch_view") || hasPerm("watch_manage");
   if(page==="trainingWorkspace") return hasPerm("academy_manage") || hasPerm("fto_tools");
+  if(page==="ftoJournal") return hasAnyPerm("academy_manage","fto_sessions_manage","fto_objectives_manage");
+  if(page==="ftoFinal") return hasPerm("academy_manage") || hasPerm("academy_final_review");
+  if(page==="trainingQuiz" || page==="myTrainingFeedback") return hasPerm("training_access");
   if(page==="visitorPortal") return false;
   if(page==="permissionsAdmin" || page==="navigationAdmin" || page==="admin") return isChief();
+  if(page==="mdt") return canAccessMdtCases() || canAccessRecruitmentDesk();
   const needed=PAGE_PERMISSIONS[page];
   return needed ? hasPerm(needed) : true;
 }
@@ -940,7 +1058,7 @@ const PHASE17_PERMISSION_DEFAULTS={
 async function migrateLegacyOfficerGrades(){
   if(!isChief()) return 0;
   try{
-    const snap=await getDocs(collection(db,"users"));
+    const snap=await getDocs(query(collection(db,"users"),where("role","!=","Visiteur")));
     let changed=0;
     for(const d of snap.docs){
       const raw=d.data().grade;
@@ -981,48 +1099,54 @@ async function loadNavigationConfig(){
 
 async function loadPermissionsConfig(){
   if(isVisitor() || isApplicant() || isInactive()){
-    window.LSPD.permissionConfig={grades:{Visiteur:[]},catalogVersion:19};
+    window.LSPD.permissionConfig={grades:{Visiteur:[]},catalogVersion:22};
     return;
   }
   try{
     const ref=doc(db,"settings","permissions");
     const snap=await getDoc(ref);
+    let gradesMap=JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS));
+    let migrated=false;
+    let oldVersion=0;
     if(snap.exists()){
-      const cfg=snap.data();
-      let gradesMap;
-      let migrated=false;
+      const cfg=snap.data();oldVersion=Number(cfg.catalogVersion||0);
       if(cfg?.grades){
         gradesMap={};
-        for(const [grade] of gradeList){ gradesMap[grade]=Array.isArray(cfg.grades[grade])?[...cfg.grades[grade]]:[]; }
-        // Migrate any legacy grade keys that may already exist in a grade-based document.
-        for(const [legacy,canonical] of Object.entries(LEGACY_GRADE_ALIASES)){
-          if(Array.isArray(cfg.grades[legacy])){
-            gradesMap[canonical]=[...new Set([...(gradesMap[canonical]||[]),...cfg.grades[legacy]])];
+        const legacyMigration=oldVersion<22;
+        for(const [grade] of gradeList){
+          gradesMap[grade]=expandPermissionSet(Array.isArray(cfg.grades[grade])?[...cfg.grades[grade]]:[],grade,{legacy:legacyMigration,assignmentDefault:legacyMigration});
+        }
+        for(const [legacyGrade,canonical] of Object.entries(LEGACY_GRADE_ALIASES)){
+          if(Array.isArray(cfg.grades[legacyGrade])){
+            gradesMap[canonical]=expandPermissionSet([...(gradesMap[canonical]||[]),...cfg.grades[legacyGrade]],canonical,{legacy:true,assignmentDefault:true});
             migrated=true;
           }
         }
       }else if(cfg?.roles){
-        gradesMap=buildGradePermissionsFromRoleConfig(cfg.roles);
-        migrated=true;
-      }else{
-        gradesMap=JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS));
-        migrated=true;
+        gradesMap=buildGradePermissionsFromRoleConfig(cfg.roles);migrated=true;
+      }else migrated=true;
+      if(oldVersion<22)migrated=true;
+    }else migrated=true;
+    // New self-service permissions introduced in v22 are granted once during migration.
+    // After v22 is saved, the Chief can remove them and they stay removed.
+    if(oldVersion<22){
+      for(const [grade] of gradeList){
+        gradesMap[grade]=[...new Set([...(gradesMap[grade]||[]),...migrationDefaultsForGrade(grade)])];
       }
-      gradesMap.Visiteur=[];
-      gradesMap["Chief of Police"]=PERMISSION_CATALOG.map(x=>x[0]);
-      window.LSPD.permissionConfig={...cfg,grades:gradesMap,catalogVersion:19};
-      if(isChief() && (migrated || (cfg.catalogVersion||0)<19)){
-        await setDoc(ref,{grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19});
-      }
-      return;
     }
-    window.LSPD.permissionConfig={grades:JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS)),catalogVersion:19};
-    if(isChief()){
-      await setDoc(ref,{grades:JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS)),updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19});
+    // From v22 onward, do not silently re-add a permission the Chief unchecked.
+    for(const [grade] of gradeList) gradesMap[grade]=expandPermissionSet(gradesMap[grade]||[],grade);
+    gradesMap.Visiteur=[];
+    gradesMap["Chief of Police"]=PERMISSION_CATALOG.map(x=>x[0]);
+    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:22};
+    if(isChief() && migrated){
+      await setDoc(ref,{grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:22});
     }
   }catch(err){
     console.warn("Permission configuration fallback",err);
-    window.LSPD.permissionConfig={grades:JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS)),catalogVersion:19};
+    const fallback=JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS));
+    fallback["Chief of Police"]=PERMISSION_CATALOG.map(x=>x[0]);
+    window.LSPD.permissionConfig={grades:fallback,catalogVersion:22};
   }
 }
 
@@ -1062,7 +1186,7 @@ async function handleImportedPasswordChange(e){
     console.error("Imported account activation failed",err);
     if(error){
       if(err.code==="auth/requires-recent-login") error.textContent="Reconnecte-toi puis réessaie.";
-      else if(err.code==="permission-denied" || err.code==="firestore/permission-denied") error.textContent="Le mot de passe Firebase a pu être modifié, mais l’activation du profil a été refusée par Firestore. Publie les règles 17.11.5 puis reconnecte-toi avec le NOUVEAU mot de passe et valide à nouveau.";
+      else if(err.code==="permission-denied" || err.code==="firestore/permission-denied") error.textContent="Le mot de passe Firebase a pu être modifié, mais l’activation du profil a été refusée par Firestore. Publie les règles 17.11.6 puis reconnecte-toi avec le NOUVEAU mot de passe et valide à nouveau.";
       else error.textContent="Erreur : "+(err.code||err.message);
     }
   }
@@ -1128,9 +1252,9 @@ async function loadProfile(user){
   applyRoleVisibility();
   if(isInternal()){
     startNotificationListener();
-    startMailListener();
+    if(hasPerm("messages_access")) startMailListener();
     refreshNotificationBadge().catch(()=>{});
-    refreshMailBadge().catch(()=>{});
+    if(hasPerm("messages_access")) refreshMailBadge().catch(()=>{});
     refreshRegistrationBadge().catch(()=>{});
     refreshRecruitmentBadge().catch(()=>{});
     generateUpcomingReminders().catch(()=>{});
@@ -1442,7 +1566,7 @@ function render(page){
   closeNotificationDropdown();
   closeMailWindow();
   if(!canAccessPage(page)){
-    showToast("Cette fonction n'est pas autorisée pour ton rôle.","error");
+    showToast("Cette fonction n'est pas autorisée pour ton grade / tes permissions.","error");
     page=isApplicant()?"applicationPortal":isVisitor()?"visitorPortal":isInactive()?"profile":canAccessPage("dashboard")?"dashboard":"profile";
   }
   if(window.LSPD.pageCleanup){
@@ -1471,7 +1595,7 @@ async function getUser(uid){
   return s.exists()?{uid,...s.data(),grade:canonicalGrade(s.data().grade)}:null;
 }
 async function getUsers(){
-  const s=await getDocs(collection(db,"users"));
+  const s=await getDocs(query(collection(db,"users"),where("role","!=","Visiteur")));
   return s.docs.map(d=>({uid:d.id,...d.data(),grade:canonicalGrade(d.data().grade)})).filter(u=>u.role!=="Applicant");
 }
 async function getMyEvaluations(){
@@ -1712,7 +1836,7 @@ const NEWCOMER_HANDBOOK=[
 ];
 
 function handbook(){
-  if(!isInternal())return;
+  if(!(isInternal()||isInactive()))return;
   const lang=currentLang==="en"?"En":"Fr";
   const title=s=>s[`title${lang}`]||s.titleFr;
   const summary=s=>s[`summary${lang}`]||s.summaryFr;
@@ -1830,7 +1954,7 @@ async function withdrawRecruitmentApplication(id){
   try{await updateDoc(doc(db,"lspd_applications",id),{status:"Retirée",withdrawnAt:serverTimestamp(),updatedAt:serverTimestamp()});await applicationPortal();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 async function refreshRecruitmentBadge(){
-  if(!hasPerm("mdt_manage"))return;
+  if(!canAccessRecruitmentDesk())return;
   try{
     const snap=await getDocs(collection(db,"lspd_applications"));
     const count=snap.docs.filter(d=>!["Refusé","Retirée","Recruté"].includes(normalizedRecruitmentStage(d.data().status))).length;
@@ -1839,7 +1963,7 @@ async function refreshRecruitmentBadge(){
 }
 
 async function refreshRegistrationBadge(){
-  if(!isChief()) return;
+  if(!canAccessRegistrations()) return;
   try{
     const snap=await getDocs(query(collection(db,"users"),where("status","==","En attente")));
     const count=snap.size;
@@ -1852,9 +1976,9 @@ async function refreshRegistrationBadge(){
 }
 
 async function registrations(){
-  if(!hasPerm("registrations_manage")) return;
+  if(!canAccessRegistrations()) return;
   try{
-    const snap=await getDocs(collection(db,"users"));
+    const snap=await getDocs(query(collection(db,"users"),where("role","!=","Visiteur")));
     const data=snap.docs
       .map(d=>({uid:d.id,...d.data()}))
       .filter(u=>u.status==="En attente" || u.status==="Refusé")
@@ -1873,10 +1997,10 @@ async function registrations(){
         <td><b>${esc(u.name)}</b></td>
         <td>${esc(u.registeredEmail||"—")}</td>
         <td><span class="tag ${u.status==="Refusé"?"red":"orange"}">${esc(u.status)}</span></td>
-        <td>${esccanonicalGrade(u.grade||"Rookie")} • ${esc(u.role||"Officer")} • ${esc(u.division||"Patrol")}</td>
+        <td>${esc(canonicalGrade(u.grade||"Rookie"))} • ${esc(u.role||"Officer")} • ${esc(u.division||"Patrol")}</td>
         <td>
-          <button class="btn approve-registration" data-uid="${u.uid}">${u.status==="Refusé"?"Réexaminer":"Approuver"}</button>
-          ${u.status==="En attente"?`<button class="btn secondary reject-registration" data-uid="${u.uid}">Refuser</button>`:""}
+          ${hasPerm("registrations_approve")?`<button class="btn approve-registration" data-uid="${u.uid}">${u.status==="Refusé"?"Réexaminer":"Approuver"}</button>`:""}
+          ${u.status==="En attente"&&hasPerm("registrations_reject")?`<button class="btn secondary reject-registration" data-uid="${u.uid}">Refuser</button>`:""}
         </td>
       </tr>`).join(""):'<tr><td colspan="6">Aucune demande en attente.</td></tr>'}
       </tbody></table>
@@ -1890,7 +2014,7 @@ async function registrations(){
 }
 
 async function openRegistrationApproval(uid){
-  if(!hasPerm("registrations_manage")) return;
+  if(!hasPerm("registrations_approve")) return;
   const u=await getUser(uid);
   if(!u) return;
 
@@ -1927,7 +2051,7 @@ async function openRegistrationApproval(uid){
 
 async function approveRegistration(e){
   e.preventDefault();
-  if(!hasPerm("registrations_manage")) return;
+  if(!hasPerm("registrations_approve")) return;
   const uid=$("regUid").value;
   const visitor=$("regRole").value==="Visiteur" || $("regGrade").value==="Visiteur";
   if(visitor){$("regRole").value="Visiteur";$("regGrade").value="Visiteur";$("regDivision").value="External";}
@@ -1977,7 +2101,7 @@ async function approveRegistration(e){
 }
 
 async function rejectRegistration(uid){
-  if(!hasPerm("registrations_manage")) return;
+  if(!hasPerm("registrations_reject")) return;
   const u=await getUser(uid);
   if(!u) return;
   if(!confirm(`Refuser la demande de ${u.name} ?`)) return;
@@ -2260,13 +2384,15 @@ async function mySpace(){
     const operationsVisible=isNavGroupAllowed("operations");
     const personnelVisible=isNavGroupAllowed("personnel");
     const trainingVisible=isNavGroupAllowed("training");
+    const canSeeLeave=hasPerm("leave_request_create")||hasPerm("leave_review");
+    const canSeeTraining=hasPerm("training_access")||hasPerm("training_self_register")||hasPerm("training_manage")||hasPerm("training_invites_manage")||hasPerm("training_attendance_manage");
     const [shiftSnap,certSnap,recordSnap,leaveSnap,regSnap,eventSnap]=await Promise.all([
       operationsVisible?getDocs(query(collection(db,"shifts"),where("officerId","==",uid))):Promise.resolve(emptySnap),
       personnelVisible?getDocs(query(collection(db,"certifications"),where("officerId","==",uid))):Promise.resolve(emptySnap),
       personnelVisible?getDocs(query(collection(db,"personnel_records"),where("officerId","==",uid))):Promise.resolve(emptySnap),
-      personnelVisible?getDocs(query(collection(db,"leave_requests"),where("officerId","==",uid))):Promise.resolve(emptySnap),
-      trainingVisible?getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid))):Promise.resolve(emptySnap),
-      trainingVisible?getDocs(collection(db,"training_events")):Promise.resolve(emptySnap)
+      personnelVisible&&canSeeLeave?getDocs(query(collection(db,"leave_requests"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      trainingVisible&&canSeeTraining?getDocs(query(collection(db,"training_registrations"),where("officerId","==",uid))):Promise.resolve(emptySnap),
+      trainingVisible&&canSeeTraining?getDocs(collection(db,"training_events")):Promise.resolve(emptySnap)
     ]);
     const today=todayISO();
     const shiftsData=shiftSnap.docs.map(d=>({id:d.id,...d.data()}))
@@ -2408,7 +2534,7 @@ async function trainingHub(){
   try{
     const [eventSnap,regSnap]=await Promise.all([
       getDocs(collection(db,"training_events")),
-      hasPerm("training_manage")||hasPerm("fto_tools")
+      hasAnyPerm("training_manage","training_invites_manage","training_attendance_manage")
         ? getDocs(collection(db,"training_registrations"))
         : getDocs(query(collection(db,"training_registrations"),where("officerId","==",window.LSPD.user.uid)))
     ]);
@@ -2430,7 +2556,7 @@ async function trainingHub(){
           ?`<span class="tag orange">Invité</span> <button class="btn training-invite-response" data-reg="${mine.id}" data-event="${e.id}" data-response="accept">Accepter</button> <button class="btn secondary training-invite-response" data-reg="${mine.id}" data-event="${e.id}" data-response="decline">Refuser</button>`
           :`<span class="tag ${mine.status==="Refusé"?"red":"green"}">${esc(mine.attendanceStatus||mine.status||"Inscrit")}</span> ${mine.status==="Inscrit"?`<button class="btn secondary training-cancel" data-reg="${mine.id}">Annuler mon inscription</button>`:""}`:
           `<button class="btn ${full?"secondary":""} training-register" data-event="${e.id}" data-title="${esc(e.title)}" ${full?"disabled":""}>${full?"Complet":"S'inscrire"}</button>`}
-          ${hasPerm("training_manage")?`<button class="btn secondary training-attendance" data-event="${e.id}">Gérer les présences</button>`:""}
+          ${hasPerm("training_attendance_manage")?`<button class="btn secondary training-attendance" data-event="${e.id}">Gérer les présences</button>`:""}
         </div>
       </div>`;
     }).join(""):'<div class="card">Aucune formation planifiée.</div>'}</div>`;
@@ -2445,6 +2571,7 @@ async function trainingHub(){
 }
 
 async function registerTraining(eventId,title){
+  if(!hasPerm("training_self_register"))return;
   try{
     const existing=await getDocs(query(collection(db,"training_registrations"),where("officerId","==",window.LSPD.user.uid)));
     if(existing.docs.some(d=>d.data().eventId===eventId && d.data().status!=="Annulée")){
@@ -2469,6 +2596,7 @@ async function registerTraining(eventId,title){
 }
 
 async function cancelTrainingRegistration(regId){
+  if(!hasPerm("training_self_register"))return;
   try{
     await updateDoc(doc(db,"training_registrations",regId),{status:"Annulée",attendanceStatus:"Inscription annulée",cancelledAt:serverTimestamp()});
     await addAudit("TRAINING_CANCEL_REGISTRATION",regId,window.LSPD.profile.name);
@@ -2477,7 +2605,7 @@ async function cancelTrainingRegistration(regId){
 }
 
 async function openTrainingAttendance(eventId){
-  if(!hasPerm("training_manage")) return;
+  if(!hasPerm("training_attendance_manage")) return;
   const [eventSnap,regSnap]=await Promise.all([
     getDoc(doc(db,"training_events",eventId)),
     getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId)))
@@ -2494,6 +2622,7 @@ async function openTrainingAttendance(eventId){
   document.querySelectorAll(".attendance-set").forEach(b=>b.onclick=()=>setTrainingAttendance(b.dataset.id,b.dataset.status,eventId));
 }
 async function setTrainingAttendance(regId,status,eventId){
+  if(!hasPerm("training_attendance_manage"))return;
   try{
     await updateDoc(doc(db,"training_registrations",regId),{
       attendanceStatus:status,attendanceMarkedById:window.LSPD.user.uid,
@@ -2507,47 +2636,26 @@ async function setTrainingAttendance(regId,status,eventId){
 }
 
 async function mdt(){
-  if(!isInternal())return;
-  window.LSPD.mdtTab??="cases";
-  $("content").innerHTML=`<div class="mdt-pro-header card"><div><span class="eyebrow">MOBILE DATA TERMINAL</span><h2>MDT LSPD</h2><p>Dossiers opérationnels et recrutement centralisés.</p></div></div>
-  <div class="mdt-tabs"><button class="${window.LSPD.mdtTab==="cases"?"active":""}" data-mdt-tab="cases">💻 Dossiers MDT</button>${hasPerm("mdt_manage")?`<button class="${window.LSPD.mdtTab==="recruitment"?"active":""}" data-mdt-tab="recruitment">🪪 Recrutement LSPD <span id="mdtRecruitmentInlineCount"></span></button>`:""}</div><div id="mdtTabContent"></div>`;
-  document.querySelectorAll("[data-mdt-tab]").forEach(b=>b.onclick=()=>{window.LSPD.mdtTab=b.dataset.mdtTab;mdt();});
-  if(window.LSPD.mdtTab==="recruitment"&&hasPerm("mdt_manage"))await renderRecruitmentDesk();
-  else await renderMdtCaseFiles();
+  if(!isInternal())return;const canCases=canAccessMdtCases(),canRecruitment=canAccessRecruitmentDesk();if(!canCases&&!canRecruitment)return;
+  if(!window.LSPD.mdtTab || (window.LSPD.mdtTab==="cases"&&!canCases) || (window.LSPD.mdtTab==="recruitment"&&!canRecruitment))window.LSPD.mdtTab=canCases?"cases":"recruitment";
+  $("content").innerHTML=`<div class="mdt-pro-header card"><div><span class="eyebrow">MOBILE DATA TERMINAL</span><h2>MDT LSPD</h2><p>Dossiers opérationnels et recrutement centralisés.</p></div></div><div class="mdt-tabs">${canCases?`<button class="${window.LSPD.mdtTab==="cases"?"active":""}" data-mdt-tab="cases">💻 Dossiers MDT</button>`:""}${canRecruitment?`<button class="${window.LSPD.mdtTab==="recruitment"?"active":""}" data-mdt-tab="recruitment">🪪 Recrutement LSPD <span id="mdtRecruitmentInlineCount"></span></button>`:""}</div><div id="mdtTabContent"></div>`;
+  document.querySelectorAll("[data-mdt-tab]").forEach(b=>b.onclick=()=>{window.LSPD.mdtTab=b.dataset.mdtTab;mdt();});if(window.LSPD.mdtTab==="recruitment")await renderRecruitmentDesk();else await renderMdtCaseFiles();
 }
 
 async function renderMdtCaseFiles(){
+  if(!canAccessMdtCases())return;
   try{
+    const incidentAccessAll=hasPerm("incident_view_all")||hasPerm("incident_review")||hasPerm("incident_export");
+    const incidentOwn=hasPerm("incident_create");
     const [caseSnap,incidentSnap]=await Promise.all([
       getDocs(collection(db,"case_files")),
-      hasPerm("incident_review")?getDocs(collection(db,"incident_reports")):getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)))
+      incidentAccessAll?getDocs(collection(db,"incident_reports")):incidentOwn?getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid))):Promise.resolve({docs:[]})
     ]);
-    const cases=caseSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    const incidentsData=incidentSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-
-    $("mdtTabContent").innerHTML=`<div class="toolbar"><button class="btn" id="newCaseBtn">+ Nouveau dossier</button><input id="mdtSearch" class="search" placeholder="Recherche globale..."></div>
-      <div class="section-title">Dossiers d'enquête</div>
-      <div class="card table-card"><table class="table"><thead><tr><th>Numéro</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th>${hasPerm("mdt_manage")?"<th>Action</th>":""}</tr></thead><tbody id="mdtCaseRows">${renderCaseRows(cases)}</tbody></table></div>
-      <div class="section-title">Rapports accessibles</div>
-      <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Statut</th></tr></thead><tbody>${incidentsData.length?incidentsData.slice(0,30).map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${esc(r.status)}</td></tr>`).join(""):'<tr><td colspan="5">Aucun rapport.</td></tr>'}</tbody></table></div>`;
-
-    $("newCaseBtn").onclick=openCaseForm;
-    $("mdtSearch").oninput=e=>{
-      const q=e.target.value.toLowerCase();
-      $("mdtCaseRows").innerHTML=renderCaseRows(cases.filter(c=>[c.caseNumber,c.title,c.category,c.createdByName,c.status,c.summary].some(v=>String(v||"").toLowerCase().includes(q))));
-      bindCaseButtons();
-    };
-    bindCaseButtons();
-
-    function renderCaseRows(rows){
-      return rows.length?rows.map(c=>`<tr><td>${esc(c.caseNumber)}</td><td><b>${esc(c.title)}</b><div class="muted">${esc(c.summary||"")}</div></td><td>${esc(c.category)}</td><td>${esc(c.createdByName)}</td><td><span class="tag ${c.status==="Clos"?"green":"orange"}">${esc(c.status)}</span></td>${hasPerm("mdt_manage")?`<td>${c.status!=="Clos"?`<button class="btn secondary close-case" data-id="${c.id}">Clôturer le dossier</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucun dossier MDT.</td></tr>';
-    }
-    function bindCaseButtons(){
-      document.querySelectorAll(".close-case").forEach(b=>b.onclick=()=>closeCase(b.dataset.id));
-    }
-  }catch(err){
-    $("mdtTabContent").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
-  }
+    const cases=caseSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),incidentsData=incidentSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    $("mdtTabContent").innerHTML=`<div class="toolbar">${hasPerm("mdt_case_create")?'<button class="btn" id="newCaseBtn">+ Nouveau dossier</button>':""}<input id="mdtSearch" class="search" placeholder="Recherche globale..."></div><div class="section-title">Dossiers d'enquête</div><div class="card table-card"><table class="table"><thead><tr><th>Numéro</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th>${hasPerm("mdt_case_close")?"<th>Action</th>":""}</tr></thead><tbody id="mdtCaseRows"></tbody></table></div><div class="section-title">Rapports accessibles</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Statut</th><th></th></tr></thead><tbody>${incidentsData.length?incidentsData.slice(0,30).map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${esc(r.status)}</td><td><button class="icon-btn incident-eye" data-id="${r.id}" title="Voir le rapport">👁</button></td></tr>`).join(""):'<tr><td colspan="6">Aucun rapport.</td></tr>'}</tbody></table></div>`;
+    function renderCaseRows(rows){return rows.length?rows.map(c=>`<tr><td>${esc(c.caseNumber)}</td><td><b>${esc(c.title)}</b><div class="muted">${esc(c.summary||"")}</div></td><td>${esc(c.category)}</td><td>${esc(c.createdByName)}</td><td><span class="tag ${c.status==="Clos"?"green":"orange"}">${esc(c.status)}</span></td>${hasPerm("mdt_case_close")?`<td>${c.status!=="Clos"?`<button class="btn secondary close-case" data-id="${c.id}">Clôturer le dossier</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucun dossier MDT.</td></tr>';}
+    function bindCaseButtons(){document.querySelectorAll(".close-case").forEach(b=>b.onclick=()=>closeCase(b.dataset.id));document.querySelectorAll(".incident-eye").forEach(b=>b.onclick=()=>openIncidentViewer(b.dataset.id));}$("mdtCaseRows").innerHTML=renderCaseRows(cases);bindCaseButtons();$("newCaseBtn")?.addEventListener("click",openCaseForm);$("mdtSearch").oninput=e=>{const q=e.target.value.toLowerCase();$("mdtCaseRows").innerHTML=renderCaseRows(cases.filter(c=>[c.caseNumber,c.title,c.category,c.createdByName,c.status,c.summary].some(v=>String(v||"").toLowerCase().includes(q))));bindCaseButtons();};
+  }catch(err){$("mdtTabContent").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
 }
 
 function recruitmentManagerStatusBadge(status){status=normalizedRecruitmentStage(status);return `<span class="tag ${recruitmentStatusClass(status)}">${esc(status)}</span>`;}
@@ -2565,7 +2673,7 @@ async function upsertRecruitmentReview(applicationId,patch){
   else await setDoc(ref,{applicationId,...patch,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
 }
 async function renderRecruitmentDesk(){
-  if(!hasPerm("mdt_manage"))return;
+  if(!canAccessRecruitmentDesk())return;
   try{
     const [snap,reviewSnap,recruitmentSettings]=await Promise.all([getDocs(collection(db,"lspd_applications")),getDocs(collection(db,"lspd_recruitment_reviews")),getRecruitmentSettings()]);
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -2594,7 +2702,7 @@ async function renderRecruitmentDesk(){
   }catch(err){$("mdtTabContent").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
 }
 async function openRecruitmentApplication(id){
-  if(!hasPerm("mdt_manage"))return;
+  if(!hasPerm("recruitment_view"))return;
   const [snap,review]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!snap.exists())return;
   const a={id:snap.id,...snap.data()},status=normalizedRecruitmentStage(a.status),screening=review?.screeningTotal,interview=review?.interviewTotal;
   showModal(`<div class="recruitment-review-modal official"><div class="recruitment-review-head"><div><span class="eyebrow">${esc(a.applicationNumber||"CANDIDATURE")}</span><h2>${esc(a.applicantName)}</h2><p>${esc(a.email)} • ${esc(a.ageRP)} ans RP • Déposé ${formatDate(a.createdAt)}</p></div>${recruitmentManagerStatusBadge(status)}</div>
@@ -2607,29 +2715,25 @@ async function openRecruitmentApplication(id){
     </div>
     ${review?.screeningNotes||review?.interviewStrengths||review?.interviewConcerns?`<div class="recruitment-internal-notes"><span>🔒 NOTES INTERNES — NON VISIBLES PAR LE CANDIDAT</span>${review?.screeningNotes?`<p><b>Présélection :</b> ${esc(review.screeningNotes)}</p>`:""}${review?.interviewStrengths?`<p><b>Points forts entretien :</b> ${esc(review.interviewStrengths)}</p>`:""}${review?.interviewConcerns?`<p><b>Points de vigilance :</b> ${esc(review.interviewConcerns)}</p>`:""}</div>`:""}
     <div class="recruitment-review-actions official-actions">
-      ${["Dossier reçu","En étude"].includes(status)?`<button class="btn recruitment-action" data-action="screen" data-id="${id}">📋 Évaluer le dossier</button>`:""}
-      ${status==="Pré-sélectionné"?`<button class="btn recruitment-action" data-action="schedule" data-id="${id}">🎙️ Planifier l'entretien</button>`:""}
-      ${status==="Entretien planifié"?`<button class="btn recruitment-action" data-action="conduct" data-id="${id}">🎙️ Conduire / noter l'entretien</button><button class="btn secondary recruitment-action" data-action="reschedule" data-id="${id}">Replanifier</button>`:""}
-      ${status==="Entretien évalué"?(isChief()||hasPerm("personnel_manage")?`<button class="btn recruitment-action" data-action="command" data-id="${id}">⚖️ Décision du Commandement</button>`:'<span class="recruitment-waiting-command">Entretien évalué — en attente du Commandement.</span>'):""}
-      ${status==="Admission approuvée"||status==="Entretien réussi"?(isChief()||hasPerm("personnel_manage")?`<button class="btn recruitment-action" data-action="hire" data-id="${id}">🪪 Finaliser l'incorporation</button>`:'<span class="recruitment-waiting-command">Admission approuvée — incorporation à finaliser.</span>'):""}
+      ${["Dossier reçu","En étude"].includes(status)&&hasPerm("recruitment_screening")?`<button class="btn recruitment-action" data-action="screen" data-id="${id}">📋 Évaluer le dossier</button>`:""}
+      ${status==="Pré-sélectionné"&&hasPerm("recruitment_interview_schedule")?`<button class="btn recruitment-action" data-action="schedule" data-id="${id}">🎙️ Planifier l'entretien</button>`:""}
+      ${status==="Entretien planifié"?`${hasPerm("recruitment_interview_evaluate")?`<button class="btn recruitment-action" data-action="conduct" data-id="${id}">🎙️ Conduire / noter l'entretien</button>`:""}${hasPerm("recruitment_interview_schedule")?`<button class="btn secondary recruitment-action" data-action="reschedule" data-id="${id}">Replanifier</button>`:""}`:""}
+      ${status==="Entretien évalué"?(hasPerm("recruitment_command_decision")?`<button class="btn recruitment-action" data-action="command" data-id="${id}">⚖️ Décision du Commandement</button>`:'<span class="recruitment-waiting-command">Entretien évalué — en attente du Commandement.</span>'):""}
+      ${status==="Admission approuvée"||status==="Entretien réussi"?(hasPerm("recruitment_incorporate")?`<button class="btn recruitment-action" data-action="hire" data-id="${id}">🪪 Finaliser l'incorporation</button>`:'<span class="recruitment-waiting-command">Admission approuvée — incorporation à finaliser.</span>'):""}
       <button class="btn secondary" id="closeModal">Fermer</button>
     </div></div>`);
   document.querySelectorAll(".recruitment-action").forEach(b=>b.onclick=()=>handleRecruitmentAction(b.dataset.id,b.dataset.action));
 }
 async function handleRecruitmentAction(id,action){
-  if(!hasPerm("mdt_manage"))return;
-  if(action==="screen")return openRecruitmentScreeningForm(id);
-  if(action==="schedule"||action==="reschedule")return openRecruitmentInterviewForm(id);
-  if(action==="conduct")return openRecruitmentInterviewEvaluationForm(id);
-  if(action==="command")return openRecruitmentCommandDecisionForm(id);
-  if(action==="pass")return openRecruitmentDecisionForm(id,true); // legacy compatibility
-  if(action==="reject"||action==="rejectInterview")return openRecruitmentDecisionForm(id,false);
-  if(action==="hire")return openRecruitmentHireForm(id);
+  const permission={screen:"recruitment_screening",schedule:"recruitment_interview_schedule",reschedule:"recruitment_interview_schedule",conduct:"recruitment_interview_evaluate",command:"recruitment_command_decision",hire:"recruitment_incorporate",pass:"recruitment_command_decision",reject:"recruitment_screening",rejectInterview:"recruitment_interview_evaluate"}[action];
+  if(permission&&!hasPerm(permission))return showToast("Permission insuffisante pour cette étape du recrutement.","error");
+  if(action==="screen")return openRecruitmentScreeningForm(id);if(action==="schedule"||action==="reschedule")return openRecruitmentInterviewForm(id);if(action==="conduct")return openRecruitmentInterviewEvaluationForm(id);if(action==="command")return openRecruitmentCommandDecisionForm(id);if(action==="pass")return openRecruitmentDecisionForm(id,true);if(action==="reject"||action==="rejectInterview")return openRecruitmentDecisionForm(id,false);if(action==="hire")return openRecruitmentHireForm(id);
 }
 async function updateRecruitmentApplication(id,patch){try{await updateDoc(doc(db,"lspd_applications",id),{...patch,updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}}
 function recruitmentScoreInputs(prefix,criteria){return criteria.map((c,i)=>`<label class="recruitment-score-field"><span>${esc(c)}</span><select id="${prefix}${i}" required>${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===3?'selected':''}>${n} / 5</option>`).join('')}</select></label>`).join('');}
 function readRecruitmentScores(prefix,count){return Array.from({length:count},(_,i)=>Number($(prefix+i).value));}
 async function openRecruitmentScreeningForm(id){
+  if(!hasPerm("recruitment_screening"))return;
   const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data(),old=await getRecruitmentReview(id);
   const crit=["Présentation & cohérence du personnage","Motivation LSPD","Expérience / maturité RP","Disponibilités & implication","Jugement dans les mises en situation"];
   showModal(`<div class="recruitment-score-modal"><span class="eyebrow">PRÉSÉLECTION</span><h2>Évaluer le dossier — ${esc(a.applicantName)}</h2><p class="muted">Note chaque critère de 1 à 5. Le score aide la décision mais ne la remplace pas.</p><form id="screeningForm"><div class="recruitment-score-grid">${recruitmentScoreInputs('scr',crit)}</div><label class="field full"><span>Notes internes du recruteur</span><textarea id="screeningNotes" rows="5" required minlength="20" placeholder="Points forts, réserves, éléments à reprendre pendant l'entretien...">${esc(old?.screeningNotes||"")}</textarea></label><label class="field full"><span>Décision de présélection</span><select id="screeningOutcome"><option value="Pré-sélectionné">Retenir pour entretien</option><option value="En étude">Mettre en attente / réexaminer</option><option value="Refusé">Ne pas retenir le dossier</option></select></label><label class="field full" id="screeningPublicReasonWrap"><span>Message au candidat si refus</span><textarea id="screeningPublicReason" rows="3" placeholder="Message professionnel, sans notes internes."></textarea></label><div id="screeningError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer l'évaluation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
@@ -2637,11 +2741,13 @@ async function openRecruitmentScreeningForm(id){
   $("screeningForm").onsubmit=async e=>{e.preventDefault();const scores=readRecruitmentScores('scr',crit.length),total=scores.reduce((a,b)=>a+b,0),outcome=$("screeningOutcome").value,publicReason=$("screeningPublicReason").value.trim();if(outcome==="Refusé"&&!publicReason)return $("screeningError").textContent="Ajoute un message professionnel pour le candidat.";try{await upsertRecruitmentReview(id,{screeningScores:scores,screeningCriteria:crit,screeningTotal:total,screeningNotes:$("screeningNotes").value.trim(),screeningOutcome:outcome,screenedById:window.LSPD.user.uid,screenedByName:window.LSPD.profile.name,screenedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:outcome,reviewedById:window.LSPD.user.uid,reviewedByName:window.LSPD.profile.name,reviewedAt:serverTimestamp(),publicMessage:outcome==="Pré-sélectionné"?"Ton dossier a été présélectionné. Le Bureau du recrutement va maintenant organiser ton entretien oral in-game.":outcome==="En étude"?"Ton dossier reste en cours d'étude par le Bureau du recrutement.":"Le Bureau du recrutement a rendu sa décision concernant ton dossier.",publicDecisionMessage:outcome==="Refusé"?publicReason:"",updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("screeningError").textContent="Erreur : "+(err.code||err.message);}};
 }
 async function openRecruitmentInterviewForm(id){
+  if(!hasPerm("recruitment_interview_schedule"))return;
   const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data();
   showModal(`<div class="recruitment-schedule-modal"><span class="eyebrow">CONVOCATION OFFICIELLE</span><h2>Planifier l'entretien oral</h2><p class="muted">${esc(a.applicantName)} • rendez-vous in-game avec un recruteur LSPD.</p><form id="recruitmentInterviewForm"><div class="formgrid"><label class="field"><span>Date</span><input id="riDate" type="date" value="${esc(a.interviewDate||"")}" required></label><label class="field"><span>Heure</span><input id="riTime" type="time" value="${esc(a.interviewTime||"")}" required></label><label class="field full"><span>Lieu in-game</span><input id="riLocation" value="${esc(a.interviewLocation||"Mission Row — Bureau du recrutement")}" required></label></div><label class="field full"><span>Consigne visible par le candidat</span><textarea id="riPublic" rows="3" placeholder="Ex. Présente-toi 5 minutes avant l'heure, tenue correcte...">${esc(a.interviewPublicInstructions||"")}</textarea></label><div id="riError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Envoyer la convocation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
   $("recruitmentInterviewForm").onsubmit=async e=>{e.preventDefault();try{await updateDoc(doc(db,"lspd_applications",id),{status:"Entretien planifié",interviewStatus:"Planifié",interviewDate:$("riDate").value,interviewTime:$("riTime").value,interviewLocation:$("riLocation").value.trim(),interviewPublicInstructions:$("riPublic").value.trim(),interviewerId:window.LSPD.user.uid,interviewerName:window.LSPD.profile.name,interviewScheduledAt:serverTimestamp(),publicMessage:`Tu es convoqué à un entretien oral in-game le ${$("riDate").value} à ${$("riTime").value}.`,updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("riError").textContent="Erreur : "+(err.code||err.message);}};
 }
 async function openRecruitmentInterviewEvaluationForm(id){
+  if(!hasPerm("recruitment_interview_evaluate"))return;
   const [s,old]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!s.exists())return;const a=s.data();
   const questions=["Présente ton personnage et son parcours.","Pourquoi le LSPD et pas un autre métier de service public ?","Qu'attends-tu du RP police au quotidien ?","Comment réagis-tu face à un citoyen agressif verbalement ?","Comment gères-tu un désaccord avec un collègue ?","Comment réagis-tu à un ordre d'un supérieur que tu ne comprends pas ?","Donne un exemple de scène RP où tu as privilégié le jeu des autres.","Quelles sont tes disponibilités réelles et ton niveau d'implication souhaité ?"];
   const crit=["Présentation & aisance orale","Motivation","Communication","Maturité / maîtrise de soi","Jugement RP","Esprit d'équipe","Professionnalisme"];
@@ -2649,23 +2755,27 @@ async function openRecruitmentInterviewEvaluationForm(id){
   $("interviewEvaluationForm").onsubmit=async e=>{e.preventDefault();const scores=readRecruitmentScores('int',crit.length),total=scores.reduce((a,b)=>a+b,0);try{await upsertRecruitmentReview(id,{interviewQuestions:questions,interviewNotes:$("interviewNotes").value.trim(),interviewScores:scores,interviewCriteria:crit,interviewTotal:total,interviewStrengths:$("interviewStrengths").value.trim(),interviewConcerns:$("interviewConcerns").value.trim(),interviewSummary:$("interviewSummary").value.trim(),interviewRecommendation:$("interviewRecommendation").value,interviewedById:window.LSPD.user.uid,interviewedByName:window.LSPD.profile.name,interviewCompletedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:"Entretien évalué",interviewStatus:"Effectué",publicMessage:"Ton entretien oral est terminé. Ton dossier a été transmis au Commandement pour décision finale.",updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("interviewEvalError").textContent="Erreur : "+(err.code||err.message);}};
 }
 async function openRecruitmentCommandDecisionForm(id){
-  if(!(isChief()||hasPerm("personnel_manage")))return;const [s,r]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!s.exists())return;const a=s.data();
+  if(!hasPerm("recruitment_command_decision"))return;
+  const [s,r]=await Promise.all([getDoc(doc(db,"lspd_applications",id)),getRecruitmentReview(id)]);if(!s.exists())return;const a=s.data();
   showModal(`<div class="recruitment-command-decision"><span class="eyebrow">DÉCISION DU COMMANDEMENT</span><h2>${esc(a.applicantName)}</h2><div class="command-decision-summary"><div><span>Dossier</span><b>${r?.screeningTotal??'—'}/25</b></div><div><span>Entretien</span><b>${r?.interviewTotal??'—'}/35</b></div><div><span>Recommandation recruteur</span><b>${esc(r?.interviewRecommendation||"—")}</b></div></div><form id="commandDecisionForm"><label class="field full"><span>Décision</span><select id="commandDecision"><option value="Admission approuvée">Admission approuvée</option><option value="Refusé">Candidature refusée</option></select></label><label class="field full"><span>Justification interne</span><textarea id="commandDecisionNotes" rows="4" required minlength="20" placeholder="Motifs de la décision, réserves éventuelles..."></textarea></label><label class="field full"><span>Message communiqué au candidat</span><textarea id="commandPublicMessage" rows="3" required placeholder="Message professionnel et concis."></textarea></label><div id="commandDecisionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer la décision</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
   $("commandDecisionForm").onsubmit=async e=>{e.preventDefault();const decision=$("commandDecision").value;try{await upsertRecruitmentReview(id,{commandDecision:decision,commandDecisionNotes:$("commandDecisionNotes").value.trim(),commandById:window.LSPD.user.uid,commandByName:window.LSPD.profile.name,commandDecisionAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:decision,publicDecisionMessage:$("commandPublicMessage").value.trim(),publicMessage:decision==="Admission approuvée"?"Le Commandement a approuvé ton admission. Ton incorporation administrative va maintenant être finalisée.":"Le Commandement a rendu sa décision finale concernant ta candidature.",decisionById:window.LSPD.user.uid,decisionByName:window.LSPD.profile.name,decisionAt:serverTimestamp(),updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("commandDecisionError").textContent="Erreur : "+(err.code||err.message);}};
 }
 // Legacy entry point kept for backward compatibility with older buttons/data.
 async function openRecruitmentDecisionForm(id,passed){
-  if(passed){if(isChief()||hasPerm("personnel_manage"))return openRecruitmentCommandDecisionForm(id);return openRecruitmentInterviewEvaluationForm(id);}
+  if(!hasPerm("recruitment_command_decision"))return;
+  if(passed)return openRecruitmentCommandDecisionForm(id);
   const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data();
   showModal(`<h2>Refuser la candidature</h2><p class="muted">${esc(a.applicantName)}</p><form id="legacyRejectForm"><label class="field full"><span>Message au candidat</span><textarea id="legacyRejectReason" rows="4" required></textarea></label><div id="legacyRejectError" class="error"></div><div class="modal-actions"><button class="btn danger" type="submit">Confirmer le refus</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);$("legacyRejectForm").onsubmit=async e=>{e.preventDefault();try{await updateDoc(doc(db,"lspd_applications",id),{status:"Refusé",publicDecisionMessage:$("legacyRejectReason").value.trim(),publicMessage:"Le Bureau du recrutement a rendu sa décision concernant ton dossier.",decisionById:window.LSPD.user.uid,decisionByName:window.LSPD.profile.name,decisionAt:serverTimestamp(),updatedAt:serverTimestamp()});document.querySelector(".modal")?.remove();await renderRecruitmentDesk();}catch(err){$("legacyRejectError").textContent="Erreur : "+(err.code||err.message);}};
 }
 async function openRecruitmentHireForm(id){
-  if(!(isChief()||hasPerm("personnel_manage")))return;const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data(),status=normalizedRecruitmentStage(a.status);if(!["Admission approuvée","Entretien réussi"].includes(status))return showToast("L'admission doit être approuvée avant l'incorporation.","warning");
+  if(!hasPerm("recruitment_incorporate"))return;
+  const s=await getDoc(doc(db,"lspd_applications",id));if(!s.exists())return;const a=s.data(),status=normalizedRecruitmentStage(a.status);if(!["Admission approuvée","Entretien réussi"].includes(status))return showToast("L'admission doit être approuvée avant l'incorporation.","warning");
   showModal(`<div class="recruitment-hire-modal"><span class="eyebrow">INCORPORATION LSPD</span><h2>Finaliser l'admission de ${esc(a.applicantName)}</h2><p class="muted">Cette étape transforme le compte candidat en compte membre actif.</p><form id="recruitmentHireForm"><div class="formgrid"><label class="field"><span>Matricule</span><input id="hireBadge" required placeholder="Ex. 0421"></label><label class="field"><span>Grade d'entrée</span><select id="hireGrade">${gradeList.filter(g=>g[0]!=="Visiteur"&&g[0]!=="Candidat").map(g=>`<option ${g[0]==="Rookie"?"selected":""}>${g[0]}</option>`).join("")}</select></label><label class="field"><span>Division initiale</span><select id="hireDivision">${divisions.filter(d=>d!=="External"&&d!=="Recruitment").map(d=>`<option ${d==="Patrol"?"selected":""}>${d}</option>`).join("")}</select></label></div><label class="field full"><span>Note d'incorporation</span><textarea id="hireNote" rows="3" placeholder="Ex. Affectation Patrol, orientation Academy à planifier..."></textarea></label><div id="hireError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer le profil LSPD actif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form></div>`);
   $("recruitmentHireForm").onsubmit=async e=>{e.preventDefault();const badge=$("hireBadge").value.trim();if(!badge)return $("hireError").textContent="Le matricule est obligatoire.";try{const grade=$("hireGrade").value,division=$("hireDivision").value;await updateDoc(doc(db,"users",a.applicantId),{badge,grade,role:"Officer",status:"Actif",division,recruitmentApplicant:false,recruitedAt:serverTimestamp(),recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});await updateDoc(doc(db,"lspd_applications",id),{status:"Recruté",recruitmentBadge:badge,recruitmentGrade:grade,recruitmentDivision:division,recruitedById:window.LSPD.user.uid,recruitedByName:window.LSPD.profile.name,recruitedAt:serverTimestamp(),publicMessage:`Bienvenue au LSPD. Ton incorporation est finalisée avec le matricule ${badge}.`,updatedAt:serverTimestamp()});await upsertRecruitmentReview(id,{incorporationNote:$("hireNote").value.trim(),incorporatedById:window.LSPD.user.uid,incorporatedByName:window.LSPD.profile.name,incorporatedAt:serverTimestamp()});await addAudit("LSPD_RECRUITMENT",a.applicantId,`${a.applicantName} — ${badge} — ${grade}`);document.querySelector(".modal")?.remove();showToast("Incorporation finalisée.","success");await renderRecruitmentDesk();}catch(err){$("hireError").textContent="Erreur : "+(err.code||err.message);}};
 }
 
 function openCaseForm(){
+  if(!hasPerm("mdt_case_create"))return;
   showModal(`<h2>Nouveau dossier MDT</h2><form id="caseForm"><div class="formgrid">
     <label class="field"><span>Titre</span><input id="caseTitle" required></label>
     <label class="field"><span>Catégorie</span><select id="caseCategory">${caseCategories.map(c=>`<option>${c}</option>`).join("")}</select></label>
@@ -2674,7 +2784,7 @@ function openCaseForm(){
   $("caseForm").onsubmit=saveCase;
 }
 async function saveCase(e){
-  e.preventDefault();
+  e.preventDefault();if(!hasPerm("mdt_case_create"))return;
   try{
     const caseNumber=`LSPD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
     const ref=await addDoc(collection(db,"case_files"),{
@@ -2687,7 +2797,7 @@ async function saveCase(e){
   }catch(err){ $("caseError").textContent="Erreur : "+(err.code||err.message); }
 }
 async function closeCase(id){
-  if(!hasPerm("mdt_manage")) return;
+  if(!hasPerm("mdt_case_close")) return;
   try{
     await updateDoc(doc(db,"case_files",id),{status:"Clos",closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name,closedAt:serverTimestamp()});
     await addAudit("CASE_CLOSE",id,"Clos");
@@ -2812,42 +2922,39 @@ async function permissionsAdmin(){
   await loadPermissionsConfig();
   const gradesMap=permissionGrades();
   const permissionGradeList=gradeList.map(g=>g[0]);
-  $("content").innerHTML=`<div class="card permission-hero">
-    <div><span class="eyebrow">SECURITY & ACCESS</span><h2>Permissions par grade</h2>
-    <p class="muted">Chaque droit est maintenant attribué au <b>grade exact</b> de l'officier. Les rôles restent uniquement une couche technique et ne pilotent plus cette matrice.</p></div>
-    <div class="shield-mark">🔐</div>
-  </div>
-  <div class="toolbar permission-toolbar">
-    <button class="btn" id="savePermissionsBtn">Enregistrer les permissions</button>
-    <button class="btn secondary" id="resetPermissionsBtn">Réinitialiser les valeurs par défaut</button>
-    <span class="muted">Chief of Police conserve toujours tous les droits.</span>
-  </div>
-  <div class="card security-note"><b>Grades nettoyés</b><span>PO1 / PO2 / PO3, Sergent et Deputy Chief ne sont plus proposés comme grades séparés. Les anciens profils sont automatiquement interprétés comme Police Officer1 / 2 / 3, Sergeant1 et Deputy Chief of Police.</span></div>
-  <div class="card table-card permission-table-card"><table class="table permission-table"><thead><tr><th>Permission</th>${permissionGradeList.map(g=>`<th>${esc(g)}</th>`).join("")}</tr></thead><tbody>
-  ${PERMISSION_CATALOG.map(([key,label])=>`<tr><td><b>${esc(label)}</b><small>${esc(key)}</small></td>${permissionGradeList.map(g=>{
-    const locked=g==="Chief of Police" || g==="Visiteur";
-    const checked=g==="Chief of Police" || (!locked && (gradesMap[g]||[]).includes(key));
-    return `<td><label class="permission-check"><input type="checkbox" data-grade="${esc(g)}" data-permission="${esc(key)}" ${checked?"checked":""} ${locked?"disabled":""}><span></span></label></td>`;
-  }).join("")}</tr>`).join("")}
-  </tbody></table></div>`;
+  const renderGroup=group=>`<section class="permission-category-card card" data-permission-group="${esc(group.key)}">
+    <div class="permission-category-head"><div><span class="eyebrow">${esc(group.label)}</span><h3>${esc(group.label)}</h3><p>${esc(group.description||"")}</p></div><div class="permission-category-actions"><span class="permission-count">${group.permissions.length} droits</span><button class="btn tiny secondary permission-group-grant" type="button" data-group="${esc(group.key)}">Autoriser catégorie</button><button class="btn tiny secondary permission-group-clear" type="button" data-group="${esc(group.key)}">Retirer catégorie</button></div></div>
+    <div class="table-card permission-table-card"><table class="table permission-table"><thead><tr><th>Permission</th>${permissionGradeList.map(g=>`<th>${esc(g)}</th>`).join("")}</tr></thead><tbody>
+    ${group.permissions.map(([key,label,description])=>`<tr><td class="permission-name"><b>${esc(label)}</b><small>${esc(description||key)}</small><code>${esc(key)}</code></td>${permissionGradeList.map(g=>{
+      const minBlocked=!permissionMinimumAllows(key,g);
+      const locked=g==="Chief of Police" || g==="Visiteur" || minBlocked;
+      const checked=g==="Chief of Police" || (!locked && (gradesMap[g]||[]).includes(key));
+      return `<td><label class="permission-check ${minBlocked?"minimum-blocked":""}" title="${minBlocked?`Réservé à ${PERMISSION_MIN_GRADE[key]} et plus`:""}"><input type="checkbox" data-grade="${esc(g)}" data-permission="${esc(key)}" ${checked?"checked":""} ${locked?"disabled":""}><span></span></label></td>`;
+    }).join("")}</tr>`).join("")}
+    </tbody></table></div></section>`;
+  $("content").innerHTML=`<div class="card permission-hero"><div><span class="eyebrow">SECURITY & ACCESS — 17.11.6</span><h2>Centre de permissions par grade</h2><p class="muted">Les permissions sont séparées par action. <b>Chief of Police possède toujours un bypass complet</b>, même si une catégorie de menu est masquée.</p></div><div class="shield-mark">🔐</div></div>
+  <div class="card permission-audit-banner"><b>Audit sécurité appliqué</b><span>Inscriptions, recrutement, personnel, FTO, rapports et MDT utilisent maintenant des droits dédiés. Les anciennes permissions ont été migrées automatiquement.</span></div>
+  <div class="toolbar permission-toolbar"><button class="btn" id="savePermissionsBtn">Enregistrer les permissions</button><button class="btn secondary" id="resetPermissionsBtn">Réinitialiser les valeurs par défaut</button><select id="permissionBulkGrade" class="search">${permissionGradeList.filter(g=>!["Visiteur","Chief of Police"].includes(g)).map(g=>`<option>${esc(g)}</option>`).join("")}</select><button class="btn secondary" id="permissionGrantAll">Tout autoriser au grade</button><button class="btn secondary" id="permissionClearAll">Tout retirer du grade</button></div>
+  <div class="permission-categories">${PERMISSION_GROUPS.map(renderGroup).join("")}</div>`;
   $("savePermissionsBtn").onclick=savePermissions;
   $("resetPermissionsBtn").onclick=resetPermissionsDefaults;
+  $("permissionGrantAll").onclick=()=>{const g=$("permissionBulkGrade").value;document.querySelectorAll(`input[data-grade="${CSS.escape(g)}"][data-permission]`).forEach(x=>{if(!x.disabled)x.checked=true;});};
+  $("permissionClearAll").onclick=()=>{const g=$("permissionBulkGrade").value;document.querySelectorAll(`input[data-grade="${CSS.escape(g)}"][data-permission]`).forEach(x=>{if(!x.disabled)x.checked=false;});};
+  document.querySelectorAll(".permission-group-grant").forEach(btn=>btn.onclick=()=>{const g=$("permissionBulkGrade").value;const keys=PERMISSION_GROUPS.find(x=>x.key===btn.dataset.group)?.permissions.map(x=>x[0])||[];keys.forEach(key=>{const box=document.querySelector(`input[data-grade="${CSS.escape(g)}"][data-permission="${CSS.escape(key)}"]`);if(box&&!box.disabled)box.checked=true;});});
+  document.querySelectorAll(".permission-group-clear").forEach(btn=>btn.onclick=()=>{const g=$("permissionBulkGrade").value;const keys=PERMISSION_GROUPS.find(x=>x.key===btn.dataset.group)?.permissions.map(x=>x[0])||[];keys.forEach(key=>{const box=document.querySelector(`input[data-grade="${CSS.escape(g)}"][data-permission="${CSS.escape(key)}"]`);if(box&&!box.disabled)box.checked=false;});});
 }
 async function savePermissions(){
   if(!isChief()) return;
   const gradesMap={};
   for(const [g] of gradeList){
     gradesMap[g]=g==="Chief of Police"?PERMISSION_CATALOG.map(x=>x[0]):g==="Visiteur"?[]:
-      [...document.querySelectorAll(`input[data-grade="${CSS.escape(g)}"][data-permission]:checked`)].map(x=>x.dataset.permission);
+      [...document.querySelectorAll(`input[data-grade="${CSS.escape(g)}"][data-permission]:checked`)].map(x=>x.dataset.permission).filter(p=>permissionMinimumAllows(p,g));
   }
   try{
-    await setDoc(doc(db,"settings","permissions"),{
-      grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19
-    });
-    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:19};
-    await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions par grade");
-    applyRoleVisibility();
-    showToast("Permissions par grade enregistrées.","success");
+    await setDoc(doc(db,"settings","permissions"),{grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:22});
+    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:22};
+    await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions détaillées par grade — catalog v22");
+    applyRoleVisibility();showToast("Permissions par grade enregistrées.","success");
   }catch(err){ showToast("Erreur : "+(err.code||err.message),"error"); }
 }
 async function resetPermissionsDefaults(){
@@ -2855,16 +2962,15 @@ async function resetPermissionsDefaults(){
   if(!confirm("Réinitialiser les permissions par grade aux valeurs par défaut ?")) return;
   try{
     const gradesMap=JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS));
-    await setDoc(doc(db,"settings","permissions"),{
-      grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19
-    });
-    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:19};
-    showToast("Valeurs par défaut restaurées.","success");
-    permissionsAdmin();
+    for(const [g] of gradeList)gradesMap[g]=expandPermissionSet(gradesMap[g]||[],g);
+    gradesMap["Chief of Police"]=PERMISSION_CATALOG.map(x=>x[0]);gradesMap.Visiteur=[];
+    await setDoc(doc(db,"settings","permissions"),{grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:22});
+    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:22};showToast("Valeurs par défaut restaurées.","success");permissionsAdmin();
   }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 
 async function cad(){
+  if(!(hasPerm("cad_access")||hasPerm("cad_manage")))return;
   $("content").innerHTML=`<div class="cad-topline"><div><span class="eyebrow">COMPUTER AIDED DISPATCH</span><h2>CAD / Dispatch <span class="live-pill">● En direct</span></h2></div><button class="btn secondary" id="editMyCadBtn">Mon unité</button></div>
     <div id="cadUnitsGrid" class="cad-grid"><div class="card skeleton-card"></div><div class="card skeleton-card"></div></div>`;
   $("editMyCadBtn").onclick=()=>openMyCadUnit();
@@ -2942,6 +3048,7 @@ async function saveCadUnit(e){
 }
 
 async function bolos(){
+  if(!(hasPerm("bolo_view")||hasPerm("bolo_manage")))return;
   try{
     const snap=await getDocs(collection(db,"bolos"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -2984,6 +3091,7 @@ async function closeBolo(id){
 }
 
 async function watchCommand(){
+  if(!(hasPerm("watch_view")||hasPerm("watch_manage")))return;
   try{
     const snap=await getDocs(collection(db,"watch_sessions"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.startedAt?.seconds||0)-(a.startedAt?.seconds||0));
@@ -3222,7 +3330,7 @@ async function renderTrainingOverview(data){
       <div class="card training-shortcuts"><h3>Raccourcis</h3>
         <button data-action="quiz">🧠 Quiz & connaissances</button>
         <button data-action="feedback">💬 Donner un feedback</button>
-        ${hasPerm("fto_tools")?'<button data-action="eval">✅ Nouvelle évaluation</button>':""}
+        ${hasPerm("fto_evaluations_create")?'<button data-action="eval">✅ Nouvelle évaluation</button>':""}
         ${hasPerm("academy_manage")?'<button data-action="academy">📚 Guide FTO / Academy</button>':""}
       </div>
     </aside>
@@ -3358,7 +3466,7 @@ async function renderTrainingManagementTab(){
 }
 
 async function trainingCenter(){
-  if(!isInternal())return;
+  if(!isInternal() || !(hasPerm("training_access")||hasPerm("training_manage")||hasPerm("training_invites_manage")||hasPerm("training_attendance_manage")))return;
   await loadAcademyOverrides();
   window.LSPD.trainingCenterTab??="overview";
 
@@ -3591,7 +3699,7 @@ async function openTrainingModuleContext(code,traineeId=null){
     <div class="modal-actions training-module-actions">
       ${hasPerm("academy_manage")?`<button class="btn secondary" id="moduleGuideBtn">📚 Guide complet</button><button class="btn secondary" id="moduleScenarioBtn">🎲 Scénario</button>`:""}
       ${hasPerm("training_manage")&&targetId!==window.LSPD.user.uid?`<button class="btn" id="modulePlanBtn">🗓️ Planifier cette formation</button>`:""}
-      ${hasPerm("fto_tools")&&targetId!==window.LSPD.user.uid?`<button class="btn secondary" id="moduleEvalBtn">✅ Évaluer cette formation</button>`:""}
+      ${hasPerm("fto_evaluations_create")&&targetId!==window.LSPD.user.uid?`<button class="btn secondary" id="moduleEvalBtn">✅ Évaluer cette formation</button>`:""}
       ${targetId===window.LSPD.user.uid?`<button class="btn" id="moduleQuizBtn">🧠 Faire le quiz</button><button class="btn secondary" id="modulePlanningBtn">🗓️ Mes formations</button>`:""}
       <button class="btn secondary" id="closeModal">Fermer</button>
     </div>
@@ -3605,12 +3713,18 @@ async function openTrainingModuleContext(code,traineeId=null){
   $("modulePlanningBtn")?.addEventListener("click",()=>{document.querySelector(".modal")?.remove();window.LSPD.trainingCenterTab="myTraining";render("trainingCenter");});
 }
 
-async function accessibleTrainees(){
+async function accessibleTrainees(scope="assigned"){
   const users=await getUsers();
-  if(hasPerm("personnel_view")) return users.filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Archivé","Refusé","En attente"].includes(u.status));
+  // A global trainee list is reserved for Lieutenant+ command workflows.
+  // "Mes recrues" and FTO creation tools always remain limited to active
+  // assignments belonging to the current FTO and respect grade hierarchy.
+  if(scope==="all" && (isChief() || isLieutenantPlusGrade())){
+    return users.filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Archivé","Refusé","En attente","Inactif","Suspendu"].includes(u.status));
+  }
+  const me=users.find(u=>u.uid===window.LSPD.user.uid)||{uid:window.LSPD.user.uid,grade:currentGrade(),role:role(),status:window.LSPD.profile?.status};
   const snap=await getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid)));
   const ids=new Set(snap.docs.map(d=>d.data()).filter(x=>x.status==="Active").map(x=>x.traineeId));
-  return users.filter(u=>ids.has(u.uid));
+  return users.filter(u=>ids.has(u.uid) && validTraineeForFto(u,me));
 }
 function academyModuleTitle(code){
   const m=modules.find(x=>x[0]===code);
@@ -3620,7 +3734,7 @@ function academyModuleTitle(code){
 async function ftoAcademy(){
   if(!hasPerm("academy_manage"))return;
   await Promise.all([loadAcademyOverrides(),loadCustomAcademyScenarios()]);
-  const trainees=await accessibleTrainees();
+  const trainees=await accessibleTrainees("all");
   let rec="";
   try{
     const s=await getDocs(collection(db,"evaluations")),evals=s.docs.map(d=>d.data());
@@ -3701,12 +3815,13 @@ async function openRandomScenario(moduleCode="M01"){
 }
 
 async function openAcademySessionForm(prefillTraineeId=null,prefillModuleCode=null){
+  if(!hasPerm("fto_sessions_manage")) return showToast("Tu n’as pas la permission de gérer les sessions FTO.","warning");
   const trainees=await accessibleTrainees();if(!trainees.length){showToast("Aucune recrue assignée.","warning");return;}
   showModal(`<h2>Créer une session</h2><form id="academySessionForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="academyTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}" ${t.uid===prefillTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Module</span><select id="academyModule">${modules.map(m=>`<option value="${m[0]}" ${m[0]===prefillModuleCode?"selected":""}>${esc(academyModuleTitle(m[0]))}</option>`).join("")}</select></label><label class="field"><span>Phase FTO</span><select id="academyPhase"><option value="P1">Phase 1 — Observation</option><option value="P2">Phase 2 — Assistance</option><option value="P3">Phase 3 — Autonomie supervisée</option><option value="P4">Phase 4 — Évaluation finale</option></select></label></div><div id="academySessionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Commencer une session</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("academySessionForm").onsubmit=createAcademySession;
 }
 async function createAcademySession(e){
-  e.preventDefault();if(!hasPerm("academy_manage"))return;
+  e.preventDefault();if(!hasPerm("fto_sessions_manage"))return;
   const t=$("academyTrainee"),code=$("academyModule").value,phase=$("academyPhase").value;
   try{
     const ref=await addDoc(collection(db,"fto_sessions"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,moduleCode:code,moduleTitle:modules.find(m=>m[0]===code)?.[1]||code,phase,status:"En cours",checklist:{briefing:false,demonstration:false,practice:false,observation:false,debrief:false},createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
@@ -3725,6 +3840,7 @@ async function openGuidedSession(id){
   $("sessionScenarioBtn").onclick=()=>openRandomScenario(v.moduleCode);$("sessionSaveBtn").onclick=()=>saveGuidedSession(id,false);$("sessionFinishBtn").onclick=()=>saveGuidedSession(id,true);
 }
 async function saveGuidedSession(id,finish=false){
+  if(!hasPerm("fto_sessions_manage"))return;
   const checklist={};document.querySelectorAll(".session-check").forEach(x=>checklist[x.dataset.key]=x.checked);
   try{
     const payload={checklist,summary:$("sessionSummary").value.trim(),strengths:$("sessionStrengths").value.trim(),improvements:$("sessionImprove").value.trim(),nextGoals:$("sessionNext").value.trim(),updatedAt:serverTimestamp()};
@@ -3735,37 +3851,41 @@ async function saveGuidedSession(id,finish=false){
 }
 
 async function ftoJournal(){
-  if(!hasPerm("academy_manage"))return;
-  const trainees=await accessibleTrainees(),ids=new Set(trainees.map(t=>t.uid));
+  if(!hasAnyPerm("academy_manage","fto_sessions_manage","fto_objectives_manage"))return;
+  const trainees=await accessibleTrainees("all"),ids=new Set(trainees.map(t=>t.uid));
   const [ss,os]=await Promise.all([getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives"))]);
   const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).filter(s=>hasPerm("personnel_view")||s.ftoId===window.LSPD.user.uid||ids.has(s.traineeId)).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   const objectives=os.docs.map(d=>({id:d.id,...d.data()})).filter(o=>hasPerm("personnel_view")||o.createdById===window.LSPD.user.uid||ids.has(o.traineeId)).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newObjectiveBtn">Ajouter un objectif</button><button class="btn secondary" id="journalNewSessionBtn">Créer une session</button></div><div class="grid2"><div class="card"><h3>Objectifs de la recrue</h3>${objectives.length?objectives.map(o=>`<div class="objective-item"><div><span class="tag ${o.priority==="Critique"?"red":o.priority==="Haute"?"orange":""}">${esc(o.priority)}</span><b>${esc(o.traineeName)}</b><p>${esc(o.text)}</p></div><div><span class="tag ${o.status==="Atteint"?"green":""}">${esc(o.status)}</span>${o.status==="Ouvert"?`<button class="btn secondary objective-done" data-id="${o.id}">Atteint</button>`:""}</div></div>`).join(""):'<p class="muted">Aucun objectif.</p>'}</div><div class="card"><h3>Historique pédagogique</h3><div class="row"><span>Sessions terminées</span><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div class="row"><span>Sessions en cours</span><b>${sessions.filter(s=>s.status==="En cours").length}</b></div></div></div><div class="section-title">Journal FTO</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Module</th><th>Phase FTO</th><th>Statut</th><th>Résumé de session</th><th></th></tr></thead><tbody>${sessions.length?sessions.map(s=>`<tr><td>${formatDate(s.createdAt)}</td><td>${esc(s.traineeName)}</td><td>${esc(s.moduleCode)}</td><td>${esc(s.phase)}</td><td><span class="tag ${s.status==="Terminée"?"green":"orange"}">${esc(s.status)}</span></td><td>${esc(s.summary||"—")}</td><td><button class="btn secondary journal-open" data-id="${s.id}">Continuer</button></td></tr>`).join(""):'<tr><td colspan="7">Aucune session.</td></tr>'}</tbody></table></div>`;
-  $("newObjectiveBtn").onclick=openObjectiveForm;$("journalNewSessionBtn").onclick=openAcademySessionForm;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("fto_objectives_manage")?'<button class="btn" id="newObjectiveBtn">Ajouter un objectif</button>':""}${hasPerm("fto_sessions_manage")?'<button class="btn secondary" id="journalNewSessionBtn">Créer une session</button>':""}</div><div class="grid2"><div class="card"><h3>Objectifs de la recrue</h3>${objectives.length?objectives.map(o=>`<div class="objective-item"><div><span class="tag ${o.priority==="Critique"?"red":o.priority==="Haute"?"orange":""}">${esc(o.priority)}</span><b>${esc(o.traineeName)}</b><p>${esc(o.text)}</p></div><div><span class="tag ${o.status==="Atteint"?"green":""}">${esc(o.status)}</span>${o.status==="Ouvert"&&hasPerm("fto_objectives_manage")?`<button class="btn secondary objective-done" data-id="${o.id}">Atteint</button>`:""}</div></div>`).join(""):'<p class="muted">Aucun objectif.</p>'}</div><div class="card"><h3>Historique pédagogique</h3><div class="row"><span>Sessions terminées</span><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div class="row"><span>Sessions en cours</span><b>${sessions.filter(s=>s.status==="En cours").length}</b></div></div></div><div class="section-title">Journal FTO</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Module</th><th>Phase FTO</th><th>Statut</th><th>Résumé de session</th><th></th></tr></thead><tbody>${sessions.length?sessions.map(s=>`<tr><td>${formatDate(s.createdAt)}</td><td>${esc(s.traineeName)}</td><td>${esc(s.moduleCode)}</td><td>${esc(s.phase)}</td><td><span class="tag ${s.status==="Terminée"?"green":"orange"}">${esc(s.status)}</span></td><td>${esc(s.summary||"—")}</td><td>${hasPerm("fto_sessions_manage")?`<button class="btn secondary journal-open" data-id="${s.id}">Continuer</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="7">Aucune session.</td></tr>'}</tbody></table></div>`;
+  $("newObjectiveBtn")?.addEventListener("click",openObjectiveForm);$("journalNewSessionBtn")?.addEventListener("click",openAcademySessionForm);
   document.querySelectorAll(".journal-open").forEach(b=>b.onclick=()=>openGuidedSession(b.dataset.id));
   document.querySelectorAll(".objective-done").forEach(b=>b.onclick=()=>markObjectiveDone(b.dataset.id));
 }
 async function openObjectiveForm(prefillTraineeId=null){
+  if(!hasPerm("fto_objectives_manage"))return;
   const trainees=await accessibleTrainees();if(!trainees.length){showToast("Aucune recrue assignée.","warning");return;}
   showModal(`<h2>Ajouter un objectif</h2><form id="objectiveForm"><div class="formgrid"><label class="field"><span>Recrue</span><select id="objTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}" ${t.uid===prefillTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><label class="field"><span>Priorité</span><select id="objPriority"><option>Faible</option><option selected>Moyenne</option><option>Haute</option><option>Critique</option></select></label></div><label class="field full"><span>Objectif pédagogique</span><textarea id="objText" rows="5" required></textarea></label><div id="objError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Ajouter un objectif</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("objectiveForm").onsubmit=saveObjective;
 }
 async function saveObjective(e){
+  if(!hasPerm("fto_objectives_manage"))return;
   e.preventDefault();const t=$("objTrainee");
   try{await addDoc(collection(db,"training_objectives"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,text:$("objText").value.trim(),priority:$("objPriority").value,status:"Ouvert",createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("TRAINING_OBJECTIVE_CREATE",t.value,$("objText").value.trim());document.querySelector(".modal")?.remove();showToast("Objectif ajouté.","success");ftoJournal();}catch(err){$("objError").textContent="Erreur : "+(err.code||err.message);}
 }
 async function markObjectiveDone(id){
+  if(!hasPerm("fto_objectives_manage"))return;
   try{await updateDoc(doc(db,"training_objectives",id),{status:"Atteint",completedById:window.LSPD.user.uid,completedByName:window.LSPD.profile.name,completedAt:serverTimestamp()});await addAudit("TRAINING_OBJECTIVE_COMPLETE",id,"Atteint");ftoJournal();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 
 async function ftoFinal(){
-  if(!hasPerm("academy_manage"))return;
-  const trainees=await accessibleTrainees(),[es,fs,ss]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"fto_sessions"))]);
+  if(!(hasPerm("academy_manage")||hasPerm("academy_final_review")))return;
+  const trainees=await accessibleTrainees("all"),[es,fs,ss]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"fto_sessions"))]);
   const evals=es.docs.map(d=>d.data()),finals=fs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),sessions=ss.docs.map(d=>d.data());
-  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FINAL REVIEW</span><h2>Évaluation finale FTO</h2><p class="muted">${esc(B("Le FTO recommande, puis le commandement valide définitivement.","The FTO recommends, then command gives final approval."))}</p></div><button class="btn" id="newFinalReviewBtn">Créer l'évaluation finale</button></div><div class="section-title">Recrues</div><div class="academy-module-grid">${trainees.map(t=>{const te=evals.filter(e=>e.officerId===t.uid),valid=[...new Set(te.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=te.length?Math.round(te.reduce((s,e)=>s+(Number(e.score)||0),0)/te.length):0,ts=sessions.filter(s=>s.traineeId===t.uid&&s.status==="Terminée").length;return `<div class="card final-card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Modules validés</span><b>${valid.length}/${modules.length}</b></div><div class="row"><span>Moyenne globale</span><b>${avg}/100</b></div><div class="row"><span>Sessions terminées</span><b>${ts}</b></div><button class="btn secondary final-review-person" data-id="${t.uid}">Évaluation finale</button></div>`;}).join("")||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div><div class="section-title">Validation commandement</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Décision FTO</th><th>Statut</th><th>Moyenne</th><th>FTO</th><th>Action</th></tr></thead><tbody>${finals.length?finals.map(f=>`<tr><td>${formatDate(f.createdAt)}</td><td>${esc(f.traineeName)}</td><td><span class="tag ${f.decision==="Validation FTO"?"green":f.decision==="Échec FTO"?"red":"orange"}">${esc(f.decision)}</span></td><td><span class="tag ${f.status==="Validée"?"green":f.status==="Refusée"?"red":"orange"}">${esc(f.status||"En attente Commandement")}</span></td><td>${esc(f.averageScore)}/100</td><td>${esc(f.ftoName)}</td><td>${hasPerm("academy_final_review")&&(f.status||"En attente Commandement")==="En attente Commandement"?`<button class="btn final-approve" data-id="${f.id}">Valider définitivement</button> <button class="btn secondary final-reject" data-id="${f.id}">Refuser la validation</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="7">Aucune entrée.</td></tr>'}</tbody></table></div>`;
-  $("newFinalReviewBtn").onclick=()=>openFinalReviewForm();document.querySelectorAll(".final-review-person").forEach(b=>b.onclick=()=>openFinalReviewForm(b.dataset.id));document.querySelectorAll(".final-approve").forEach(b=>b.onclick=()=>reviewFinalFto(b.dataset.id,"Validée"));document.querySelectorAll(".final-reject").forEach(b=>b.onclick=()=>reviewFinalFto(b.dataset.id,"Refusée"));
+  $("content").innerHTML=`<div class="academy-hero card"><div><span class="eyebrow">FINAL REVIEW</span><h2>Évaluation finale FTO</h2><p class="muted">${esc(B("Le FTO recommande, puis le commandement valide définitivement.","The FTO recommends, then command gives final approval."))}</p></div>${hasPerm("academy_manage")?'<button class="btn" id="newFinalReviewBtn">Créer l\'évaluation finale</button>':""}</div><div class="section-title">Recrues</div><div class="academy-module-grid">${trainees.map(t=>{const te=evals.filter(e=>e.officerId===t.uid),valid=[...new Set(te.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=te.length?Math.round(te.reduce((s,e)=>s+(Number(e.score)||0),0)/te.length):0,ts=sessions.filter(s=>s.traineeId===t.uid&&s.status==="Terminée").length;return `<div class="card final-card"><span class="number">${esc(t.badge)}</span><h3>${esc(t.name)}</h3><div class="row"><span>Modules validés</span><b>${valid.length}/${modules.length}</b></div><div class="row"><span>Moyenne globale</span><b>${avg}/100</b></div><div class="row"><span>Sessions terminées</span><b>${ts}</b></div><button class="btn secondary final-review-person" data-id="${t.uid}">Évaluation finale</button></div>`;}).join("")||'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div><div class="section-title">Validation commandement</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Recrue</th><th>Décision FTO</th><th>Statut</th><th>Moyenne</th><th>FTO</th><th>Action</th></tr></thead><tbody>${finals.length?finals.map(f=>`<tr><td>${formatDate(f.createdAt)}</td><td>${esc(f.traineeName)}</td><td><span class="tag ${f.decision==="Validation FTO"?"green":f.decision==="Échec FTO"?"red":"orange"}">${esc(f.decision)}</span></td><td><span class="tag ${f.status==="Validée"?"green":f.status==="Refusée"?"red":"orange"}">${esc(f.status||"En attente Commandement")}</span></td><td>${esc(f.averageScore)}/100</td><td>${esc(f.ftoName)}</td><td>${hasPerm("academy_final_review")&&(f.status||"En attente Commandement")==="En attente Commandement"?`<button class="btn final-approve" data-id="${f.id}">Valider définitivement</button> <button class="btn secondary final-reject" data-id="${f.id}">Refuser la validation</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="7">Aucune entrée.</td></tr>'}</tbody></table></div>`;
+  $("newFinalReviewBtn")?.addEventListener("click",()=>openFinalReviewForm());document.querySelectorAll(".final-review-person").forEach(b=>b.onclick=()=>openFinalReviewForm(b.dataset.id));document.querySelectorAll(".final-approve").forEach(b=>b.onclick=()=>reviewFinalFto(b.dataset.id,"Validée"));document.querySelectorAll(".final-reject").forEach(b=>b.onclick=()=>reviewFinalFto(b.dataset.id,"Refusée"));
 }
 async function openFinalReviewForm(prefillId=null){
+  if(!hasPerm("academy_manage")) return;
   const trainees=await accessibleTrainees();if(!trainees.length)return;
   const [es,ss]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions"))]),evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),selected=prefillId||trainees[0].uid;
   showModal(`<h2>Créer l'évaluation finale</h2><form id="finalReviewForm"><label class="field"><span>Recrue</span><select id="finalTrainee">${trainees.map(t=>`<option value="${t.uid}" data-name="${esc(t.name)}" ${t.uid===selected?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><div id="finalStats" class="final-summary"></div><label class="field"><span>Recommandation finale</span><select id="finalDecision"><option>Validation FTO</option><option>Prolongation FTO</option><option>Échec FTO</option></select></label><label class="field full"><span>Commentaire final</span><textarea id="finalComment" rows="6" required></textarea></label><div id="finalError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer l'évaluation finale</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
@@ -3773,7 +3893,8 @@ async function openFinalReviewForm(prefillId=null){
   $("finalTrainee").onchange=refresh;refresh();$("finalReviewForm").onsubmit=saveFinalReview;
 }
 async function saveFinalReview(e){
-  e.preventDefault();const t=$("finalTrainee");
+  e.preventDefault();
+  if(!hasPerm("academy_manage"))return;const t=$("finalTrainee");
   try{await addDoc(collection(db,"final_fto_reviews"),{traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,validatedModules:Number($("finalStats").dataset.valid)||0,averageScore:Number($("finalStats").dataset.avg)||0,completedSessions:Number($("finalStats").dataset.sessions)||0,decision:$("finalDecision").value,comment:$("finalComment").value.trim(),status:"En attente Commandement",ftoId:window.LSPD.user.uid,ftoName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_FINAL_REVIEW",t.value,$("finalDecision").value);document.querySelector(".modal")?.remove();showToast("Évaluation finale enregistrée.","success");ftoFinal();}catch(err){$("finalError").textContent="Erreur : "+(err.code||err.message);}
 }
 
@@ -3800,7 +3921,7 @@ async function generateTrainingAlerts(){
 }
 async function trainingAnalytics(){
   if(!hasPerm("academy_manage"))return;
-  const [us,es,ss,fs,qs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"academy_quiz_attempts"))]);
+  const [us,es,ss,fs,qs]=await Promise.all([getDocs(query(collection(db,"users"),where("role","!=","Visiteur"))),getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"academy_quiz_attempts"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>!["Visiteur","Applicant"].includes(u.role)),evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),finals=fs.docs.map(d=>d.data()),quizzes=qs.docs.map(d=>d.data());
   const moduleRows=modules.map(m=>{const e=evals.filter(x=>x.moduleCode===m[0]),avg=e.length?Math.round(e.reduce((a,x)=>a+(Number(x.score)||0),0)/e.length):0,fail=e.filter(x=>x.result==="Échec").length,review=e.filter(x=>x.result==="À revoir").length;return {code:m[0],title:m[1],count:e.length,avg,fail,review};});
   const byFto={};for(const e of evals){const k=e.ftoId||e.ftoName||"—";byFto[k]??={name:e.ftoName||"—",count:0,total:0,trainees:new Set()};byFto[k].count++;byFto[k].total+=Number(e.score)||0;byFto[k].trainees.add(e.officerId);}const ftoRows=Object.values(byFto).map(x=>({...x,avg:x.count?Math.round(x.total/x.count):0})).sort((a,b)=>b.count-a.count);
@@ -3882,7 +4003,7 @@ function quizQuestionPool(code){
   return d.questions().map(([q,a],idx)=>{const distract=shuffleArray([...new Set(allAnswers.filter(x=>x!==a))]).slice(0,3);const choices=shuffleArray([a,...distract]).slice(0,4);return {id:`${code}-${idx}`,question:q,answer:a,choices,correctIndex:choices.indexOf(a)};});
 }
 async function trainingQuiz(){
-  if(isVisitor())return;
+  if(!hasPerm("training_access"))return;
   await loadAcademyOverrides();
   const [es,as]=await Promise.all([
     getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid))),
@@ -3908,9 +4029,9 @@ async function submitTrainingQuiz(e){
 }
 
 async function ftoDossier(){
-  if(!hasPerm("academy_manage"))return;const trainees=await accessibleTrainees();
-  $("content").innerHTML=`<div class="toolbar"><label class="field dossier-select"><span>Recrue</span><select id="dossierTrainee">${trainees.map(t=>`<option value="${t.uid}" ${t.uid===window.LSPD.selectedTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><button class="btn secondary" id="printDossierBtn">Imprimer le rapport final</button><button class="btn" id="addHandoffBtn">Ajouter une note de passation</button></div><div id="dossierBody">${trainees.length?'<div class="card skeleton-card"></div>':'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>`;
-  if(!trainees.length)return;const refresh=()=>loadTraineeDossier($("dossierTrainee").value,trainees);$("dossierTrainee").onchange=refresh;$("printDossierBtn").onclick=()=>printTrainingReport($("dossierTrainee").value,trainees);$("addHandoffBtn").onclick=()=>openHandoffForm($("dossierTrainee").value,trainees);refresh();
+  if(!hasPerm("academy_manage"))return;const trainees=await accessibleTrainees("all");
+  $("content").innerHTML=`<div class="toolbar"><label class="field dossier-select"><span>Recrue</span><select id="dossierTrainee">${trainees.map(t=>`<option value="${t.uid}" ${t.uid===window.LSPD.selectedTraineeId?"selected":""}>${esc(t.badge)} — ${esc(t.name)}</option>`).join("")}</select></label><button class="btn secondary" id="printDossierBtn">Imprimer le rapport final</button>${hasPerm("fto_handoffs_manage")?'<button class="btn" id="addHandoffBtn">Ajouter une note de passation</button>':""}</div><div id="dossierBody">${trainees.length?'<div class="card skeleton-card"></div>':'<div class="card"><p class="muted">Aucune recrue assignée.</p></div>'}</div>`;
+  if(!trainees.length)return;const refresh=()=>loadTraineeDossier($("dossierTrainee").value,trainees);$("dossierTrainee").onchange=refresh;$("printDossierBtn").onclick=()=>printTrainingReport($("dossierTrainee").value,trainees);$("addHandoffBtn")?.addEventListener("click",()=>openHandoffForm($("dossierTrainee").value,trainees));refresh();
 }
 async function loadTraineeDossier(uid,trainees){
   const trainee=trainees.find(t=>t.uid===uid);if(!trainee)return;const [es,ss,os,qs,fs,hs,fbs]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives")),getDocs(collection(db,"academy_quiz_attempts")),getDocs(collection(db,"final_fto_reviews")),getDocs(collection(db,"fto_handoffs")),getDocs(collection(db,"fto_feedback"))]);
@@ -3918,17 +4039,17 @@ async function loadTraineeDossier(uid,trainees){
   const latest={};evals.forEach(e=>{if(!latest[e.moduleCode]||(e.createdAt?.seconds||0)>(latest[e.moduleCode].createdAt?.seconds||0))latest[e.moduleCode]=e;});const scored=Object.values(latest).filter(e=>Number.isFinite(Number(e.score))),avg=scored.length?Math.round(scored.reduce((a,e)=>a+Number(e.score),0)/scored.length):0;const weak=scored.filter(e=>Number(e.score)<75).sort((a,b)=>a.score-b.score).slice(0,3);
   $("dossierBody").innerHTML=`<div class="dossier-header card"><div><span class="number">${esc(trainee.badge)}</span><h2>${esc(trainee.name)}</h2><p class="muted">${esc(trainee.grade)} • ${esc(trainee.division||"Patrol")}</p></div><div class="dossier-kpis"><div><span>Moyenne</span><b>${avg}/100</b></div><div><span>Sessions</span><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div><span>Objectifs ouverts</span><b>${objectives.filter(o=>o.status==="Ouvert").length}</b></div></div></div><div class="section-title">Progression M01–M16</div><div class="training-heatmap">${modules.map(m=>{const e=latest[m[0]],score=e?Number(e.score):null,cls=score===null?"none":score>=75?"good":score>=55?"warn":"bad";return `<div class="heat-cell ${cls}" title="${esc(m[1])}"><b>${m[0]}</b><span>${score===null?"—":score}</span></div>`}).join("")}</div><div class="grid2"><div class="card"><h3>Plan de rattrapage</h3>${weak.length?weak.map(e=>`<div class="remedial-item"><span class="tag ${e.score<55?"red":"orange"}">${e.moduleCode} • ${e.score}/100</span><p>${esc(getAcademyData(e.moduleCode)?.corrective()||"Nouvelle session recommandée.")}</p></div>`).join(""):'<p class="muted">Aucun module faible détecté.</p>'}</div><div class="card"><h3>Objectifs de la recrue</h3>${objectives.length?objectives.slice(0,8).map(o=>`<div class="row"><span>${esc(o.text)}</span><span class="tag ${o.status==="Atteint"?"green":"orange"}">${esc(o.status)}</span></div>`).join(""):'<p class="muted">Aucun objectif.</p>'}</div></div><div class="grid2"><div class="card"><h3>Passation FTO</h3>${handoffs.length?handoffs.slice(0,5).map(h=>`<div class="timeline-entry"><b>${esc(h.authorName)}</b><small>${formatDate(h.createdAt)}</small><p>${esc(h.note)}</p></div>`).join(""):'<p class="muted">Aucune note de passation.</p>'}</div><div class="card"><h3>Feedback de la recrue</h3>${feedback.length?feedback.slice(0,5).map(f=>`<div class="timeline-entry"><b>${f.understanding}/5</b><small>${formatDate(f.createdAt)}</small><p>${esc(f.difficulty||"—")}</p><p class="muted">${esc(f.question||"")}</p></div>`).join(""):'<p class="muted">Aucun feedback.</p>'}</div></div><div class="card"><h3>Historique pédagogique</h3><div class="row"><span>Évaluations</span><b>${evals.length}</b></div><div class="row"><span>Quiz</span><b>${quizzes.length}</b></div><div class="row"><span>Sessions FTO</span><b>${sessions.length}</b></div><div class="row"><span>Évaluations finales</span><b>${finals.length}</b></div></div>`;
 }
-function openHandoffForm(uid,trainees){const t=trainees.find(x=>x.uid===uid);if(!t)return;showModal(`<h2>Ajouter une note de passation</h2><p class="muted">${esc(t.name)}</p><form id="handoffForm"><label class="field full"><span>Passation FTO</span><textarea id="handoffNote" rows="7" required placeholder="Ce qui a été travaillé, difficultés, points de vigilance, priorité de la prochaine session..."></textarea></label><div id="handoffError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);$("handoffForm").onsubmit=e=>saveHandoff(e,uid,t.name);}
-async function saveHandoff(e,uid,name){e.preventDefault();try{await addDoc(collection(db,"fto_handoffs"),{traineeId:uid,traineeName:name,note:$("handoffNote").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_HANDOFF",uid,name);document.querySelector(".modal")?.remove();showToast("Note de passation enregistrée.","success");ftoDossier();}catch(err){$("handoffError").textContent="Erreur : "+(err.code||err.message);}}
+function openHandoffForm(uid,trainees){if(!hasPerm("fto_handoffs_manage"))return;const t=trainees.find(x=>x.uid===uid);if(!t)return;showModal(`<h2>Ajouter une note de passation</h2><p class="muted">${esc(t.name)}</p><form id="handoffForm"><label class="field full"><span>Passation FTO</span><textarea id="handoffNote" rows="7" required placeholder="Ce qui a été travaillé, difficultés, points de vigilance, priorité de la prochaine session..."></textarea></label><div id="handoffError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);$("handoffForm").onsubmit=e=>saveHandoff(e,uid,t.name);}
+async function saveHandoff(e,uid,name){e.preventDefault();if(!hasPerm("fto_handoffs_manage"))return;try{await addDoc(collection(db,"fto_handoffs"),{traineeId:uid,traineeName:name,note:$("handoffNote").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,createdAt:serverTimestamp()});await addAudit("FTO_HANDOFF",uid,name);document.querySelector(".modal")?.remove();showToast("Note de passation enregistrée.","success");ftoDossier();}catch(err){$("handoffError").textContent="Erreur : "+(err.code||err.message);}}
 async function printTrainingReport(uid,trainees){
   const t=trainees.find(x=>x.uid===uid);if(!t)return;const [es,ss,os,fs]=await Promise.all([getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives")),getDocs(collection(db,"final_fto_reviews"))]);const evals=es.docs.map(d=>d.data()).filter(x=>x.officerId===uid),sessions=ss.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),objs=os.docs.map(d=>d.data()).filter(x=>x.traineeId===uid),finals=fs.docs.map(d=>d.data()).filter(x=>x.traineeId===uid);const avg=evals.length?Math.round(evals.reduce((a,e)=>a+(Number(e.score)||0),0)/evals.length):0;const w=window.open("","_blank");if(!w)return;w.document.write(`<!doctype html><html><head><title>FTO ${esc(t.name)}</title><style>body{font-family:Arial;padding:32px;color:#17202a}h1{margin-bottom:0}.meta{color:#667}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{border:1px solid #ccd5df;padding:12px;border-radius:8px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccd5df;padding:8px;text-align:left}small{color:#667}</style></head><body><h1>LSPD — Rapport final FTO</h1><p class="meta">Développé par Walead</p><h2>${esc(t.badge)} — ${esc(t.name)}</h2><div class="grid"><div class="box">Moyenne<br><b>${avg}/100</b></div><div class="box">Sessions terminées<br><b>${sessions.filter(s=>s.status==="Terminée").length}</b></div><div class="box">Objectifs atteints<br><b>${objs.filter(o=>o.status==="Atteint").length}/${objs.length}</b></div></div><h3>Évaluations</h3><table><tr><th>Module</th><th>Score</th><th>Résultat</th><th>FTO</th></tr>${evals.map(e=>`<tr><td>${esc(e.moduleCode)}</td><td>${e.score}/100</td><td>${esc(e.result)}</td><td>${esc(e.ftoName)}</td></tr>`).join("")}</table><h3>Décision finale</h3>${finals.length?finals.map(f=>`<p><b>${esc(f.decision)}</b> — ${esc(f.status||"En attente Commandement")}<br>${esc(f.comment||"")}</p>`).join(""):'<p>Aucune évaluation finale.</p>'}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();
 }
 
 async function myTrainingFeedback(){
-  if(isVisitor())return;const uid=window.LSPD.user.uid;const [ss,fs]=await Promise.all([getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",uid))),getDocs(query(collection(db,"fto_feedback"),where("traineeId","==",uid)))]);const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),feedback=fs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  if(!hasPerm("training_access"))return;const uid=window.LSPD.user.uid;const [ss,fs]=await Promise.all([getDocs(query(collection(db,"fto_sessions"),where("traineeId","==",uid))),getDocs(query(collection(db,"fto_feedback"),where("traineeId","==",uid)))]);const sessions=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)),feedback=fs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="grid2"><div class="card"><h2>Feedback de la recrue</h2>${sessions.length?`<form id="trainingFeedbackForm"><label class="field"><span>Session</span><select id="fbSession">${sessions.map(s=>`<option value="${s.id}" data-fto="${s.ftoId}" data-ftoname="${esc(s.ftoName)}">${esc(s.moduleCode)} — ${esc(s.ftoName)} — ${formatDate(s.createdAt)}</option>`).join("")}</select></label><label class="field"><span>Compréhension</span><select id="fbUnderstanding"><option value="1">1/5</option><option value="2">2/5</option><option value="3">3/5</option><option value="4">4/5</option><option value="5" selected>5/5</option></select></label><label class="field full"><span>Difficulté rencontrée</span><textarea id="fbDifficulty" rows="4"></textarea></label><label class="field full"><span>Question au FTO</span><textarea id="fbQuestion" rows="4"></textarea></label><div id="fbError" class="error"></div><button class="btn" type="submit">Envoyer le feedback</button></form>`:'<p class="muted">Aucune session FTO disponible.</p>'}</div><div class="card"><h3>Mes feedbacks</h3>${feedback.length?feedback.slice(0,10).map(f=>`<div class="timeline-entry"><b>${esc(f.moduleCode)} • ${f.understanding}/5</b><small>${formatDate(f.createdAt)}</small><p>${esc(f.difficulty||"—")}</p></div>`).join(""):'<p class="muted">Aucun feedback.</p>'}</div></div>`;$("trainingFeedbackForm")?.addEventListener("submit",saveTrainingFeedback);
 }
-async function saveTrainingFeedback(e){e.preventDefault();const s=$("fbSession"),o=s.selectedOptions[0];try{await addDoc(collection(db,"fto_feedback"),{traineeId:window.LSPD.user.uid,traineeName:window.LSPD.profile.name,sessionId:s.value,moduleCode:sessionsafe(s.value),ftoId:o.dataset.fto,ftoName:o.dataset.ftoname,understanding:Number($("fbUnderstanding").value),difficulty:$("fbDifficulty").value.trim(),question:$("fbQuestion").value.trim(),createdAt:serverTimestamp()});showToast("Feedback envoyé.","success");myTrainingFeedback();}catch(err){$("fbError").textContent="Erreur : "+(err.code||err.message);}}
+async function saveTrainingFeedback(e){e.preventDefault();if(!hasPerm("training_access"))return;const s=$("fbSession"),o=s.selectedOptions[0];try{await addDoc(collection(db,"fto_feedback"),{traineeId:window.LSPD.user.uid,traineeName:window.LSPD.profile.name,sessionId:s.value,moduleCode:sessionsafe(s.value),ftoId:o.dataset.fto,ftoName:o.dataset.ftoname,understanding:Number($("fbUnderstanding").value),difficulty:$("fbDifficulty").value.trim(),question:$("fbQuestion").value.trim(),createdAt:serverTimestamp()});showToast("Feedback envoyé.","success");myTrainingFeedback();}catch(err){$("fbError").textContent="Erreur : "+(err.code||err.message);}}
 function sessionsafe(sessionId){const option=$("fbSession")?.selectedOptions?.[0];return option?option.textContent.trim().split(" — ")[0]:"—";}
 
 async function reviewFinalFto(id,status){
@@ -3946,7 +4067,7 @@ async function dashboard(){
   if(hasPerm("analytics")){
     try{
       const [usersSnap,leaveSnap,shiftSnap,evalSnap]=await Promise.all([
-        getDocs(collection(db,"users")),
+        getDocs(query(collection(db,"users"),where("role","!=","Visiteur"))),
         getDocs(collection(db,"leave_requests")),
         getDocs(collection(db,"shifts")),
         getDocs(collection(db,"evaluations"))
@@ -4031,6 +4152,7 @@ function openAnnouncementForm(){
 }
 async function saveAnnouncement(e){
   e.preventDefault();
+  if(!hasPerm("announcements_manage"))return;
   try{
     await addDoc(collection(db,"announcements"),{title:$("anTitle").value.trim(),priority:$("anPriority").value,visibility:$("anVisibility").value,body:$("anBody").value.trim(),authorId:window.LSPD.user.uid,authorName:window.LSPD.profile.name,active:true,createdAt:serverTimestamp()});
     await addAudit("ANNOUNCEMENT_CREATE","announcement",$("anTitle").value.trim());
@@ -4072,14 +4194,20 @@ function refreshMailBadgeFromData(data){
 }
 
 async function refreshMailBadge(){
-  if(!window.LSPD.user||isVisitor())return;
+  if(!window.LSPD.user||!hasPerm("messages_access")){
+    $("mailUnreadCount")?.classList.add("hidden");
+    return;
+  }
   try{refreshMailBadgeFromData(await loadMyMessages());}catch{}
 }
 
 function startMailListener(){
   window.LSPD.mailUnsub?.();
   window.LSPD.mailUnsub=null;
-  if(!window.LSPD.user||isVisitor())return;
+  if(!window.LSPD.user||!hasPerm("messages_access")){
+    $("mailUnreadCount")?.classList.add("hidden");
+    return;
+  }
   const q=query(collection(db,"messages"),where("recipientId","==",window.LSPD.user.uid));
   window.LSPD.mailUnsub=onSnapshot(q,snap=>{
     const unread=snap.docs.filter(d=>d.data().read!==true).length;
@@ -4123,7 +4251,7 @@ function renderMailRows(){
 }
 
 async function messages(){
-  if(isVisitor())return;
+  if(isVisitor() || !hasPerm("messages_access"))return;
   try{
     const data=await loadMyMessages();
     window.LSPD.mailData=data;
@@ -4173,6 +4301,7 @@ function closeMailWindow(){
 }
 
 async function openMailMessage(id){
+  if(!hasPerm("messages_access")) return;
   if(!id||isVisitor())return;
   try{
     let data=window.LSPD.mailData||[];
@@ -4479,6 +4608,7 @@ function openMessageForm(){
 
 async function saveMessage(e){
   e.preventDefault();
+  if(!hasPerm("messages_access"))return;
 
   const mode=$("mMode")?.value||"new";
   const sourceId=$("mSourceId")?.value||"";
@@ -4581,22 +4711,26 @@ async function saveMessage(e){
   }
 }
 async function incidents(){
+  if(!(hasPerm("incident_create")||hasPerm("incident_view_all")||hasPerm("incident_review")||hasPerm("incident_export")))return;
   try{
-    const snap=hasPerm("incident_review")
-      ? await getDocs(collection(db,"incident_reports"))
-      : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
-    const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newIncidentBtn">+ Nouveau rapport</button>${hasPerm("incident_review")?'<button class="btn secondary" id="exportIncidentsBtn">Exporter CSV</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Pièces</th><th>Statut</th><th>Validation</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${(r.attachments||[]).length}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td><td>${esc(r.approvedByName||"—")}</td></tr>`).join(""):'<tr><td colspan="7">Aucun rapport.</td></tr>'}</tbody></table></div>`;
-    $("newIncidentBtn").onclick=openIncidentForm;
-    $("exportIncidentsBtn")?.addEventListener("click",()=>csvDownload("incidents_lspd.csv",data.map(r=>({date:formatDate(r.createdAt),auteur:r.authorName,type:r.type,titre:r.title,statut:r.status,validation:r.approvedByName||""}))));
-  }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
+    const seeAll=hasPerm("incident_view_all")||hasPerm("incident_review")||hasPerm("incident_export");const snap=seeAll?await getDocs(collection(db,"incident_reports")):await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    $("content").innerHTML=`<div class="toolbar">${hasPerm("incident_create")?'<button class="btn" id="newIncidentBtn">+ Nouveau rapport</button>':""}${hasPerm("incident_export")?'<button class="btn secondary" id="exportIncidentsBtn">Exporter CSV</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Pièces</th><th>Statut</th><th>Validation</th><th></th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${(r.attachments||[]).length}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td><td>${esc(r.approvedByName||"—")}</td><td><button class="icon-btn incident-eye" data-id="${r.id}" title="Voir le rapport">👁</button></td></tr>`).join(""):'<tr><td colspan="8">Aucun rapport.</td></tr>'}</tbody></table></div>`;
+    $("newIncidentBtn")?.addEventListener("click",openIncidentForm);$("exportIncidentsBtn")?.addEventListener("click",()=>csvDownload("incidents_lspd.csv",data.map(r=>({date:formatDate(r.createdAt),auteur:r.authorName,type:r.type,titre:r.title,statut:r.status,validation:r.approvedByName||""}))));document.querySelectorAll(".incident-eye").forEach(b=>b.onclick=()=>openIncidentViewer(b.dataset.id));
+  }catch(err){$("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;}
 }
+async function openIncidentViewer(id){
+  try{const snap=await getDoc(doc(db,"incident_reports",id));if(!snap.exists())return showToast("Rapport introuvable.","error");const r={id:snap.id,...snap.data()};showViewerModal(`<article class="incident-document"><div class="incident-document-head"><div><span class="eyebrow">LSPD INCIDENT REPORT</span><h2>${esc(r.title||"Rapport")}</h2><p>${esc(r.type||"—")} • ${formatDate(r.createdAt)}</p></div><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status||"—")}</span></div><div class="detail-grid"><div><span>Auteur</span><b>${esc(r.authorName||"—")}</b></div><div><span>Validation</span><b>${esc(r.approvedByName||"En attente")}</b></div></div><section><h3>Résumé</h3><p class="incident-document-text">${esc(r.summary||"—")}</p></section><section><h3>Détails du rapport</h3><p class="incident-document-text preline">${esc(r.details||"—")}</p></section>${(r.attachments||[]).length?`<section><h3>Pièces jointes</h3><div class="attachment-list">${r.attachments.map(a=>`<a class="attachment-link" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join("")}</div></section>`:""}</article>`);}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+function showViewerModal(html){document.querySelector(".viewer-modal")?.remove();document.body.insertAdjacentHTML("beforeend",`<div class="viewer-modal" role="dialog" aria-modal="true"><div class="viewer-modalbox"><button class="viewer-close" type="button" title="Fermer" aria-label="Fermer">×</button>${html}</div></div>`);const modal=document.querySelector(".viewer-modal");modal.querySelector(".viewer-close").onclick=()=>modal.remove();modal.addEventListener("click",e=>{if(e.target===modal)modal.remove();});}
+
 function openIncidentForm(){
+  if(!hasPerm("incident_create"))return;
   showModal(`<h2>Nouveau rapport d'incident</h2><form id="incidentForm"><div class="formgrid"><label class="field"><span>Type</span><select id="iType">${incidentTypes.map(x=>`<option>${x}</option>`).join("")}</select></label><label class="field"><span>Titre</span><input id="iTitle" required></label></div><label class="field full"><span>Résumé</span><textarea id="iSummary" rows="4" required></textarea></label><label class="field full"><span>Détails</span><textarea id="iDetails" rows="8" required></textarea></label><label class="field full"><span>Pièces jointes (optionnel : images/PDF, max 10 Mo par fichier)</span><input id="iAttachments" type="file" multiple accept="image/*,.pdf,application/pdf"></label><div id="iError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Soumettre pour validation</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("incidentForm").onsubmit=saveIncident;
 }
 async function saveIncident(e){
   e.preventDefault();
+  if(!hasPerm("incident_create"))return;
   try{
     const files=$("iAttachments")?.files||[];
     let attachments=[];
@@ -4618,11 +4752,12 @@ async function approvals(){
   try{
     const snap=await getDocs(collection(db,"incident_reports"));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="En attente").sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="grid2">${data.length?data.map(r=>`<div class="card"><span class="number">${esc(r.type)}</span><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p><p class="muted">Par ${esc(r.authorName)} • ${formatDate(r.createdAt)}</p><div class="approval-box"><p>${esc(r.details)}</p>${(r.attachments||[]).length?`<div class="attachment-list">${r.attachments.map(a=>`<a class="attachment-link" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join("")}</div>`:""}</div><div class="modal-actions incident-approval-actions"><button class="btn approve-incident" data-id="${r.id}" data-status="Approuvé">✓ Approuver le rapport</button><button class="btn secondary approve-incident" data-id="${r.id}" data-status="Refusé">✕ Refuser le rapport</button></div></div>`).join(""):'<div class="card">Aucune validation en attente.</div>'}</div>`;
-    document.querySelectorAll(".approve-incident").forEach(b=>b.onclick=()=>reviewIncident(b.dataset.id,b.dataset.status));
+    $("content").innerHTML=`<div class="grid2">${data.length?data.map(r=>`<div class="card"><span class="number">${esc(r.type)}</span><div class="report-card-title"><h3>${esc(r.title)}</h3><button class="icon-btn incident-eye" data-id="${r.id}" title="Voir le rapport">👁</button></div><p>${esc(r.summary)}</p><p class="muted">Par ${esc(r.authorName)} • ${formatDate(r.createdAt)}</p><div class="approval-box"><p>${esc(r.details)}</p>${(r.attachments||[]).length?`<div class="attachment-list">${r.attachments.map(a=>`<a class="attachment-link" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join("")}</div>`:""}</div><div class="modal-actions incident-approval-actions"><button class="btn approve-incident" data-id="${r.id}" data-status="Approuvé">✓ Approuver le rapport</button><button class="btn secondary approve-incident" data-id="${r.id}" data-status="Refusé">✕ Refuser le rapport</button></div></div>`).join(""):'<div class="card">Aucune validation en attente.</div>'}</div>`;
+    document.querySelectorAll(".approve-incident").forEach(b=>b.onclick=()=>reviewIncident(b.dataset.id,b.dataset.status));document.querySelectorAll(".incident-eye").forEach(b=>b.onclick=()=>openIncidentViewer(b.dataset.id));
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
 }
 async function reviewIncident(id,status){
+  if(!hasPerm("incident_review"))return;
   try{
     const incidentSnap=await getDoc(doc(db,"incident_reports",id));
     const incident=incidentSnap.exists()?incidentSnap.data():null;
@@ -4637,17 +4772,18 @@ async function reviewIncident(id,status){
 
 
 async function corrections(){
+  if(!(hasPerm("corrections_create")||hasPerm("corrections_review")))return;
   try{
-    const snap=hasPerm("incident_review")
+    const snap=hasPerm("corrections_review")
       ? await getDocs(collection(db,"correction_requests"))
       : await getDocs(query(collection(db,"correction_requests"),where("requestedById","==",window.LSPD.user.uid)));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newCorrectionBtn">+ Demander une correction</button></div>
+    $("content").innerHTML=`<div class="toolbar">${hasPerm("corrections_create")?'<button class="btn" id="newCorrectionBtn">+ Demander une correction</button>':""}</div>
     <div class="card"><p class="muted">Les documents d'origine restent intacts. Une correction approuvée crée un <b>addendum</b> traçable.</p></div>
-    <div class="card table-card" style="margin-top:14px"><table class="table"><thead><tr><th>Date</th><th>Demandeur</th><th>Cible</th><th>Motif</th><th>Statut</th><th>Révision</th>${hasPerm("incident_review")?"<th></th>":""}</tr></thead><tbody>
-    ${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.requestedByName)}</td><td>${esc(c.targetType)} — ${esc(c.targetLabel)}</td><td>${esc(c.reason)}</td><td><span class="tag ${c.status==="Approuvé"?"green":c.status==="Refusé"?"red":"orange"}">${esc(c.status)}</span></td><td>${esc(c.reviewedByName||"—")}</td>${hasPerm("incident_review")?`<td>${c.status==="En attente"?`<button class="btn secondary correction-review" data-id="${c.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary correction-review" data-id="${c.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="7">Aucune demande.</td></tr>'}
+    <div class="card table-card" style="margin-top:14px"><table class="table"><thead><tr><th>Date</th><th>Demandeur</th><th>Cible</th><th>Motif</th><th>Statut</th><th>Révision</th>${hasPerm("corrections_review")?"<th></th>":""}</tr></thead><tbody>
+    ${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.requestedByName)}</td><td>${esc(c.targetType)} — ${esc(c.targetLabel)}</td><td>${esc(c.reason)}</td><td><span class="tag ${c.status==="Approuvé"?"green":c.status==="Refusé"?"red":"orange"}">${esc(c.status)}</span></td><td>${esc(c.reviewedByName||"—")}</td>${hasPerm("corrections_review")?`<td>${c.status==="En attente"?`<button class="btn secondary correction-review" data-id="${c.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary correction-review" data-id="${c.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="7">Aucune demande.</td></tr>'}
     </tbody></table></div>`;
-    $("newCorrectionBtn").onclick=openCorrectionForm;
+    $("newCorrectionBtn")?.addEventListener("click",openCorrectionForm);
     document.querySelectorAll(".correction-review").forEach(b=>b.onclick=()=>reviewCorrection(b.dataset.id,b.dataset.status));
   }catch(err){
     $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`;
@@ -4656,9 +4792,11 @@ async function corrections(){
 
 async function openCorrectionForm(){
   try{
-    const incidentSnap=hasPerm("incident_review")
+    const incidentSnap=(hasPerm("incident_view_all")||hasPerm("incident_review")||hasPerm("incident_export"))
       ? await getDocs(collection(db,"incident_reports"))
-      : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
+      : hasPerm("incident_create")
+        ? await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)))
+        : {docs:[]};
     let evalDocs=[];
     if(hasPerm("personnel_view")||hasPerm("academy_manage")){
       const s=await getDocs(collection(db,"evaluations")); evalDocs=s.docs;
@@ -4689,6 +4827,7 @@ async function openCorrectionForm(){
 
 async function saveCorrection(e){
   e.preventDefault();
+  if(!hasPerm("corrections_create"))return;
   const raw=$("crTarget").value;
   const [targetType,targetId]=raw.split(":");
   const label=$("crTarget").selectedOptions[0].textContent.trim();
@@ -4708,7 +4847,7 @@ async function saveCorrection(e){
 }
 
 async function reviewCorrection(id,status){
-  if(!hasPerm("incident_review")) return;
+  if(!hasPerm("corrections_review")) return;
   try{
     const s=await getDoc(doc(db,"correction_requests",id));
     if(!s.exists()) return;
@@ -4777,7 +4916,7 @@ async function evaluations(){
 
   const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar">
-    ${hasPerm("fto_tools")?'<button class="btn" id="newEvalBtn">+ Nouvelle évaluation</button>':""}
+    ${hasPerm("fto_evaluations_create")?'<button class="btn" id="newEvalBtn">+ Nouvelle évaluation</button>':""}
     <button class="btn secondary" id="exportEvalBtn">Exporter CSV</button>
   </div>
   <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>FTO</th><th>Module</th><th>Score</th><th>Résultat</th><th></th></tr></thead><tbody>
@@ -4791,7 +4930,7 @@ async function evaluations(){
 }
 
 async function openEvaluationForm(prefillOfficerId=null,prefillModuleCode=null,prefillTrainingEventId=null){
-  if(!hasPerm("fto_tools"))return;
+  if(!hasPerm("fto_evaluations_create"))return;
   const officers=(await getUsers()).filter(o=>!["Visiteur","Applicant"].includes(o.role) && !["Inactif","Archivé"].includes(o.status));
   showModal(`<h2>Évaluer la formation</h2><form id="evalForm"><input id="eTrainingEventId" type="hidden" value="${esc(prefillTrainingEventId||"")}"><div class="formgrid">
   <label class="field"><span>Officier évalué</span><select id="eOfficer">${officers.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}" ${o.uid===prefillOfficerId?"selected":""}>${esc(o.badge)} — ${esc(o.name)} — ${esc(o.grade)}</option>`).join("")}</select></label>
@@ -4810,6 +4949,7 @@ function updateEvalPreview(){
 }
 async function saveEvaluation(e){
   e.preventDefault();
+  if(!hasPerm("fto_evaluations_create"))return;
   const s=$("eOfficer"),officerId=s.value,officerName=s.selectedOptions[0].dataset.name,moduleCode=$("eModule").value,module=modules.find(m=>m[0]===moduleCode);
   const values={};document.querySelectorAll(".criterion-score").forEach(x=>values[x.dataset.key]=Number(x.value));
   const vals=Object.values(values),score=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length*5)*100),result=score>=75?"Validé":score>=55?"À revoir":"Échec";
@@ -4845,40 +4985,29 @@ function openEvaluationDetail(e){
 }
 
 async function trainees(){
-  if(!hasPerm("fto_tools"))return;
-  await loadAcademyOverrides();
-
-  const [a,es,ss,os]=await Promise.all([
-    getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid))),
-    getDocs(collection(db,"evaluations")),
-    getDocs(collection(db,"fto_sessions")),
-    getDocs(collection(db,"training_objectives"))
-  ]);
-  const assignments=a.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==="Active");
-  const users=await getUsers();
+  if(!hasPerm("fto_tools"))return;await loadAcademyOverrides();
+  const [a,es,ss,os]=await Promise.all([getDocs(query(collection(db,"fto_assignments"),where("ftoId","==",window.LSPD.user.uid))),getDocs(collection(db,"evaluations")),getDocs(collection(db,"fto_sessions")),getDocs(collection(db,"training_objectives"))]);
+  const users=await getUsers(),me=users.find(u=>u.uid===window.LSPD.user.uid)||{uid:window.LSPD.user.uid,grade:currentGrade(),role:role(),status:window.LSPD.profile.status};
+  const allAssignments=a.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==="Active");
+  const assignments=allAssignments.filter(x=>{const trainee=users.find(u=>u.uid===x.traineeId);return validTraineeForFto(trainee,me);});
   const evals=es.docs.map(d=>d.data()),sessions=ss.docs.map(d=>d.data()),objectives=os.docs.map(d=>d.data());
-
-  $("content").innerHTML=`<div class="training-center-section-head"><div><span class="eyebrow">MES RECRUES</span><h2>Suivi FTO</h2><p class="muted">Clique sur une recrue pour retrouver au même endroit ses modules, sessions, évaluations, objectifs, feedback et validation finale.</p></div><button class="btn" id="traineeNewSessionBtn">+ Démarrer une session</button></div>
-  <div class="training-trainee-grid">${assignments.length?assignments.map(x=>{
-    const o=users.find(u=>u.uid===x.traineeId);if(!o)return "";
-    const te=evals.filter(e=>e.officerId===o.uid),ts=sessions.filter(s=>s.traineeId===o.uid),to=objectives.filter(v=>v.traineeId===o.uid&&v.status==="Ouvert"),stats=trainingProgressStats(te,ts),next=modules.find(m=>m[0]===stats.next);
-    return `<div class="card training-trainee-card">
-      <div class="training-trainee-head"><div><span class="number">${esc(o.badge)}</span><h3>${esc(o.name)}</h3><p>${esc(o.grade)} • ${esc(o.status)}</p></div><span class="training-progress-ring">${stats.validated}<small>/16</small></span></div>
-      <div class="training-mini-progress"><i style="width:${Math.round(stats.validated/16*100)}%"></i></div>
-      <div class="row"><span>Moyenne</span><b>${stats.avg}/100</b></div>
-      <div class="row"><span>Module recommandé</span><b>${esc(stats.next)} — ${esc(next?.[1]||"")}</b></div>
-      <div class="row"><span>Objectifs ouverts</span><b>${to.length}</b></div>
-      <div class="training-card-actions"><button class="btn trainee-workspace" data-id="${o.uid}">Ouvrir l'espace recrue</button><button class="btn secondary trainee-session" data-id="${o.uid}" data-module="${stats.next}">Session ${stats.next}</button></div>
-    </div>`;
-  }).join(""):'<div class="card"><p class="muted">Aucune recrue assignée. Le Commandement doit créer une affectation FTO.</p></div>'}</div>`;
-
-  document.querySelectorAll(".trainee-workspace").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));
-  document.querySelectorAll(".trainee-session").forEach(b=>b.onclick=()=>openAcademySessionForm(b.dataset.id,b.dataset.module));
-  $("traineeNewSessionBtn").onclick=()=>openAcademySessionForm();
+  const cards=()=>assignments.map(x=>{const o=users.find(u=>u.uid===x.traineeId);if(!o)return null;const te=evals.filter(e=>e.officerId===o.uid),ts=sessions.filter(s=>s.traineeId===o.uid),to=objectives.filter(v=>v.traineeId===o.uid&&v.status==="Ouvert"),stats=trainingProgressStats(te,ts),next=modules.find(m=>m[0]===stats.next);return {o,html:`<div class="card training-trainee-card" data-trainee-search="${esc((o.name+' '+o.badge+' '+o.grade).toLowerCase())}"><div class="training-trainee-head"><div><span class="number">${esc(o.badge)}</span><h3>${esc(o.name)}</h3><p>${esc(o.grade)} • ${esc(o.status)}</p></div><span class="training-progress-ring">${stats.validated}<small>/16</small></span></div><div class="training-mini-progress"><i style="width:${Math.round(stats.validated/16*100)}%"></i></div><div class="row"><span>Moyenne</span><b>${stats.avg}/100</b></div><div class="row"><span>Module recommandé</span><b>${esc(stats.next)} — ${esc(next?.[1]||"")}</b></div><div class="row"><span>Objectifs ouverts</span><b>${to.length}</b></div><div class="training-card-actions"><button class="btn trainee-workspace" data-id="${o.uid}">Ouvrir l'espace recrue</button>${hasPerm("fto_sessions_manage")?`<button class="btn secondary trainee-session" data-id="${o.uid}" data-module="${stats.next}">Session ${stats.next}</button>`:""}</div></div>`};}).filter(Boolean);
+  const data=cards();
+  $("content").innerHTML=`<div class="training-center-section-head"><div><span class="eyebrow">MES RECRUES</span><h2>Suivi FTO</h2><p class="muted">Seules les affectations actives valides apparaissent ici. Un officier de grade supérieur à son FTO n'est jamais affiché comme recrue.</p></div>${hasPerm("fto_sessions_manage")?`<button class="btn" id="traineeNewSessionBtn">+ Démarrer une session</button>`:""}</div><div class="toolbar trainee-search-toolbar"><input id="traineeSearch" class="search" placeholder="Rechercher une recrue par nom, matricule ou grade..."><span id="traineeSearchCount" class="muted">${data.length} recrue(s)</span></div><div class="training-trainee-grid" id="traineeGrid">${data.length?data.map(x=>x.html).join(""):'<div class="card"><p class="muted">Aucune recrue assignée. Un Lieutenant ou plus doit créer une affectation FTO.</p></div>'}</div>`;
+  const bind=()=>{document.querySelectorAll(".trainee-workspace").forEach(b=>b.onclick=()=>openTrainingWorkspace(b.dataset.id));document.querySelectorAll(".trainee-session").forEach(b=>b.onclick=()=>openAcademySessionForm(b.dataset.id,b.dataset.module));};bind();
+  $("traineeSearch").oninput=e=>{const q=e.target.value.trim().toLowerCase();let shown=0;document.querySelectorAll(".training-trainee-card").forEach(card=>{const ok=!q||card.dataset.traineeSearch.includes(q);card.classList.toggle("hidden",!ok);if(ok)shown++;});$("traineeSearchCount").textContent=`${shown} recrue(s)`;};
+  $("traineeNewSessionBtn")?.addEventListener("click",()=>openAcademySessionForm());
 }
+function canEditOfficerProfile(){return hasPerm("personnel_manage")||hasPerm("personnel_grade_manage")||hasPerm("personnel_status_manage");}
+function canCreateOfficer(){return hasPerm("personnel_create");}
+function canDeleteOfficer(){return hasPerm("personnel_delete");}
+function isLieutenantPlusGrade(grade=currentGrade()){return ["Lieutenant","Commander","Captain","Deputy Chief of Police","Assistant Chief","Chief of Police","Commissioner"].includes(canonicalGrade(grade));}
+function canManageFtoAssignments(){return isChief() || (isLieutenantPlusGrade() && hasPerm("fto_assignments_manage"));}
+function isFtoCandidateUser(u){return !!u && !["Visiteur","Applicant"].includes(u.role) && !["Inactif","Archivé","Suspendu"].includes(u.status) && (u.role==="FTO" || gradeIndex(u.grade)>=gradeIndex("Sergeant1"));}
+function validTraineeForFto(trainee,fto){return !!trainee&&!!fto&&trainee.uid!==fto.uid&&!["Visiteur","Applicant"].includes(trainee.role)&&!["Inactif","Archivé","Suspendu"].includes(trainee.status)&&gradeIndex(trainee.grade)<=gradeIndex(fto.grade);}
 
 async function officers(){
-  if(!hasPerm("personnel_view"))return;
+  if(!canAccessOfficerDirectory())return;
   const data=(await getUsers()).sort((a,b)=>(a.badge||"").localeCompare(b.badge||"",undefined,{numeric:true}));
   const unique=key=>[...new Set(data.map(o=>String(o?.[key]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr",{numeric:true}));
   const gradeOptions=unique("grade"),roleOptions=unique("role"),divisionOptions=unique("division"),statusOptions=unique("status");
@@ -4888,42 +5017,29 @@ async function officers(){
     <select id="officerRoleFilter" class="search"><option value="">Tous rôles</option>${roleOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
     <select id="officerDivisionFilter" class="search"><option value="">Toutes unités</option>${divisionOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
     <select id="officerStatusFilter" class="search"><option value="">Tous statuts</option>${statusOptions.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select>
-    <button class="btn secondary" id="officerResetFilters">Réinitialiser</button>
-    <button class="btn secondary" id="exportOfficersBtn">Exporter CSV</button>
-    ${isChief()?'<button class="btn" id="addOfficerBtn">+ Ajouter un officier</button>':""}
+    <button class="btn secondary" id="officerResetFilters">Réinitialiser</button><button class="btn secondary" id="exportOfficersBtn">Exporter CSV</button>
+    ${canCreateOfficer()?'<button class="btn" id="addOfficerBtn">+ Ajouter un officier</button>':""}
   </div>
-  ${hasPerm("provisional_credentials_view")?`<div class="card credential-access-note"><b>Accès aux codes provisoires</b><span>Tu peux afficher le code uniquement tant que le compte est <strong>À activer</strong>. Après le premier changement de mot de passe, le code devient inaccessible et son document protégé est supprimé.</span></div>`:""}
-  ${isChief()?`<div class="card chief-provision-note"><b>Création simplifiée Chief</b><span>Nom RP + adresse e-mail uniquement. Firebase Authentication crée automatiquement l'UID et un mot de passe provisoire est généré.</span></div>`:""}
-  <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th>E-mail</th><th>Compte</th><th></th>${hasPerm("personnel_manage")?"<th></th>":""}${isChief()?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
-
+  ${hasPerm("provisional_credentials_view")?`<div class="card credential-access-note"><b>Accès aux codes provisoires</b><span>Le code est visible uniquement tant que le compte est À activer.</span></div>`:""}
+  ${canCreateOfficer()?`<div class="card chief-provision-note"><b>Création simplifiée</b><span>Nom RP + adresse e-mail. Firebase crée automatiquement l'UID et un mot de passe provisoire.</span></div>`:""}
+  <div class="card table-card"><table class="table"><thead><tr><th>Matricule</th><th>Nom</th><th>Grade</th><th>Rôle</th><th>Unité</th><th>Statut</th><th>E-mail</th><th>Compte</th><th></th>${canEditOfficerProfile()?"<th></th>":""}${canDeleteOfficer()?"<th></th>":""}</tr></thead><tbody id="officerRows">${officerRows(data)}</tbody></table></div>`;
   function refresh(){
-    const term=$("officerSearch").value.trim().toLowerCase();
-    const grade=$("officerGradeFilter").value,roleFilter=$("officerRoleFilter").value,div=$("officerDivisionFilter").value,st=$("officerStatusFilter").value;
-    const filtered=data.filter(o=>
-      [o.badge,o.name,o.grade,o.role,o.status,o.division,o.registeredEmail].some(v=>String(v||"").toLowerCase().includes(term))
-      && (!grade||o.grade===grade)
-      && (!roleFilter||o.role===roleFilter)
-      && (!div||o.division===div)
-      && (!st||o.status===st)
-    );
+    const term=$("officerSearch").value.trim().toLowerCase(),grade=$("officerGradeFilter").value,roleFilter=$("officerRoleFilter").value,div=$("officerDivisionFilter").value,st=$("officerStatusFilter").value;
+    const filtered=data.filter(o=>[o.badge,o.name,o.grade,o.role,o.status,o.division,o.registeredEmail].some(v=>String(v||"").toLowerCase().includes(term))&&(!grade||o.grade===grade)&&(!roleFilter||o.role===roleFilter)&&(!div||o.division===div)&&(!st||o.status===st));
     $("officerRows").innerHTML=officerRows(filtered);bindOfficerButtons(data);
   }
-
-  ["officerGradeFilter","officerRoleFilter","officerDivisionFilter","officerStatusFilter"].forEach(id=>$(id).onchange=refresh);
-  $("officerSearch").oninput=refresh;
-  $("officerResetFilters").onclick=()=>{ $("officerSearch").value="";["officerGradeFilter","officerRoleFilter","officerDivisionFilter","officerStatusFilter"].forEach(id=>$(id).value="");refresh(); };
-  $("exportOfficersBtn").onclick=()=>csvDownload("officiers_lspd.csv",data.map(o=>({
-    matricule:o.badge,nom:o.name,grade:o.grade,role:o.role,unite:o.division||"",statut:o.status,email:o.registeredEmail||"",compte:o.importedAccount?(o.mustChangePassword?"À activer":"Activé"):"Standard"
-  })));
-  $("addOfficerBtn")?.addEventListener("click",openOfficerProvisionForm);
-  bindOfficerButtons(data);
+  ["officerGradeFilter","officerRoleFilter","officerDivisionFilter","officerStatusFilter"].forEach(id=>$(id).onchange=refresh);$("officerSearch").oninput=refresh;
+  $("officerResetFilters").onclick=()=>{$("officerSearch").value="";["officerGradeFilter","officerRoleFilter","officerDivisionFilter","officerStatusFilter"].forEach(id=>$(id).value="");refresh();};
+  $("exportOfficersBtn").onclick=()=>csvDownload("officiers_lspd.csv",data.map(o=>({matricule:o.badge,nom:o.name,grade:o.grade,role:o.role,unite:o.division||"",statut:o.status,email:o.registeredEmail||"",compte:o.importedAccount?(o.mustChangePassword?"À activer":"Activé"):"Standard"})));
+  $("addOfficerBtn")?.addEventListener("click",openOfficerProvisionForm);bindOfficerButtons(data);
 }
+
 function officerRows(data){
-  const cols=9+(hasPerm("personnel_manage")?1:0)+(isChief()?1:0);
+  const cols=9+(canEditOfficerProfile()?1:0)+(canDeleteOfficer()?1:0);
   return data.length?data.map(o=>{
     const activation=o.importedAccount?`<span class="tag ${o.mustChangePassword?"orange":"green"}">${o.mustChangePassword?"À activer":"Activé"}</span>`:'<span class="tag">Standard</span>';
     const codeButton=o.importedAccount&&o.mustChangePassword&&hasPerm("provisional_credentials_view")?`<button class="btn tiny secondary temporary-code-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Voir le code provisoire</button>`:"";
-    return `<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td>${esc(o.registeredEmail||"—")}</td><td><div class="account-state-cell">${activation}${codeButton}</div></td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${hasPerm("personnel_manage")?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}${isChief()?`<td>${o.uid!==window.LSPD.user.uid?`<button class="btn danger delete-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Supprimer</button>`:'<span class="muted">Compte actuel</span>'}</td>`:""}</tr>`;
+    return `<tr><td>${esc(o.badge)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.grade)}</td><td><span class="tag">${esc(o.role)}</span></td><td>${esc(o.division||"Patrol")}</td><td>${esc(o.status)}</td><td>${esc(o.registeredEmail||"—")}</td><td><div class="account-state-cell">${activation}${codeButton}</div></td><td><button class="btn secondary view-officer" data-uid="${o.uid}">Dossier</button></td>${canEditOfficerProfile()?`<td><button class="btn secondary edit-officer" data-uid="${o.uid}">Modifier</button></td>`:""}${canDeleteOfficer()?`<td>${o.uid!==window.LSPD.user.uid?`<button class="btn danger delete-officer" data-uid="${o.uid}" data-name="${esc(o.name)}">Supprimer</button>`:'<span class="muted">Compte actuel</span>'}</td>`:""}</tr>`;
   }).join(""):`<tr><td colspan="${cols}">Aucun officier.</td></tr>`;
 }
 function bindOfficerButtons(data){
@@ -4972,12 +5088,12 @@ function generateTemporaryOfficerPassword(){
   return `LSPD!${[...bytes].map(b=>chars[b%chars.length]).join("")}9a`;
 }
 async function openOfficerProvisionForm(){
-  if(!isChief())return;
+  if(!canCreateOfficer())return;
   showModal(`<h2>Ajouter un nouvel officier</h2><p class="muted">Entre uniquement son nom RP et son adresse e-mail. Le compte Firebase Authentication, l'UID et le mot de passe provisoire sont générés automatiquement.</p><form id="officerProvisionForm"><label class="field full"><span>Nom RP</span><input id="opName" required maxlength="60" placeholder="Ex. John Smith"></label><label class="field full"><span>Adresse e-mail</span><input id="opEmail" type="email" required autocomplete="off" placeholder="john.smith@catena.ma"></label><div class="invite-default-profile"><b>Profil initial automatique</b><span>Rookie • Officer • En formation • Patrol</span></div><div id="officerProvisionError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Créer le compte</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("officerProvisionForm").onsubmit=provisionOfficerAccount;
 }
 async function provisionOfficerAccount(e){
-  e.preventDefault();if(!isChief())return;
+  e.preventDefault();if(!canCreateOfficer())return;
   const error=$("officerProvisionError"),name=$("opName").value.trim(),email=$("opEmail").value.trim().toLowerCase();if(error)error.textContent="";
   if(name.length<3){error.textContent="Nom RP invalide.";return;}
   let secondaryApp=null,secondaryAuth=null,createdUser=null,profileCreated=false;
@@ -4992,7 +5108,7 @@ async function provisionOfficerAccount(e){
     const uid=createdUser.uid;
     await setDoc(doc(db,"users",uid),{
       name,badge:"—",grade:"Rookie",role:"Officer",status:"En formation",division:"Patrol",registeredEmail:email,
-      importedAccount:true,mustChangePassword:true,chiefProvisioned:true,selfRegistered:false,
+      importedAccount:true,mustChangePassword:true,chiefProvisioned:isChief(),managerProvisioned:true,selfRegistered:false,
       provisionedById:window.LSPD.user.uid,provisionedByName:window.LSPD.profile.name,
       createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     });
@@ -5017,78 +5133,79 @@ async function provisionOfficerAccount(e){
 }
 
 async function deleteOfficerProfile(uid,name){
-  if(!isChief() || uid===window.LSPD.user.uid)return;
+  if(!canDeleteOfficer() || uid===window.LSPD.user.uid)return;
   if(!confirm(`Supprimer définitivement ${name} de la base LSPD ?\n\nSon profil Firestore sera supprimé et son accès au Command Center sera immédiatement bloqué. Les rapports et historiques déjà créés sont conservés pour la traçabilité.`))return;
   if(!confirm(`CONFIRMATION FINALE : supprimer le profil de ${name} ?`))return;
   try{try{await deleteDoc(doc(db,"provisional_credentials",uid));}catch{}await deleteDoc(doc(db,"users",uid));await addAudit("DELETE_OFFICER",uid,`${name} — profil supprimé`);showToast("Officier supprimé de la base LSPD.","success");officers();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
 }
 
 function openOfficerForm(o=null){
-  if(!hasPerm("personnel_manage"))return;
-  if(!o){if(isChief())return openOfficerProvisionForm();return;}
+  if(!canEditOfficerProfile())return;
+  if(!o){if(canCreateOfficer())return openOfficerProvisionForm();return;}
+  const basic=hasPerm("personnel_manage"),gradeRight=hasPerm("personnel_grade_manage"),statusRight=hasPerm("personnel_status_manage");
   showModal(`<h2>Modifier un profil</h2><form id="officerForm"><input id="fUid" type="hidden" value="${esc(o.uid)}"><div class="formgrid">
-  <label class="field"><span>Matricule</span><input id="fBadge" required value="${esc(o?.badge||"")}"></label>
-  <label class="field"><span>Nom RP</span><input id="fName" required value="${esc(o?.name||"")}"></label>
-  <label class="field"><span>Grade</span><select id="fGrade">${gradeList.map(g=>`<option ${g[0]===o?.grade?"selected":""}>${g[0]}</option>`).join("")}</select></label>
-  <label class="field"><span>Rôle</span><select id="fRole">${roles.map(r=>`<option ${r===o?.role?"selected":""}>${r}</option>`).join("")}</select></label>
-  <label class="field"><span>Statut</span><select id="fStatus">${statuses.map(s=>`<option ${s===o?.status?"selected":""}>${s}</option>`).join("")}</select></label>
-  <label class="field"><span>Unité / Division</span><select id="fDivision">${divisions.map(d=>`<option ${d===(o?.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
-  </div><div id="formError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
-  const syncOfficerRole=()=>{
-    if($("fRole").value==="Visiteur"){$("fGrade").value="Visiteur";$("fDivision").value="External";}
-    else if($("fGrade").value==="Visiteur"){$("fGrade").value="PO1";if($("fDivision").value==="External")$("fDivision").value="Patrol";}
-  };
-  $("fRole").onchange=syncOfficerRole;
-  $("fGrade").onchange=()=>{if($("fGrade").value==="Visiteur"){$("fRole").value="Visiteur";$("fDivision").value="External";}};
+  <label class="field"><span>Matricule</span><input id="fBadge" required value="${esc(o?.badge||"")}" ${basic?"":"disabled"}></label>
+  <label class="field"><span>Nom RP</span><input id="fName" required value="${esc(o?.name||"")}" ${basic?"":"disabled"}></label>
+  <label class="field"><span>Grade</span><select id="fGrade" ${gradeRight?"":"disabled"}>${gradeList.map(g=>`<option ${g[0]===canonicalGrade(o?.grade)?"selected":""}>${g[0]}</option>`).join("")}</select></label>
+  <label class="field"><span>Rôle</span><select id="fRole" ${basic?"":"disabled"}>${roles.map(r=>`<option ${r===o?.role?"selected":""}>${r}</option>`).join("")}</select></label>
+  <label class="field"><span>Statut</span><select id="fStatus" ${statusRight?"":"disabled"}>${statuses.map(s=>`<option ${s===o?.status?"selected":""}>${s}</option>`).join("")}</select></label>
+  <label class="field"><span>Unité / Division</span><select id="fDivision" ${basic?"":"disabled"}>${divisions.map(d=>`<option ${d===(o?.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
+  </div><div class="permission-edit-summary">${basic?"Identité / rôle / unité":""}${gradeRight?" • Grade":""}${statusRight?" • Statut":""}</div><div id="formError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Enregistrer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  if(basic){
+    const syncOfficerRole=()=>{if($("fRole").value==="Visiteur"){$("fGrade").value="Visiteur";$("fDivision").value="External";}};
+    $("fRole").onchange=syncOfficerRole;
+  }
   $("officerForm").onsubmit=saveOfficerProfile;
 }
 async function saveOfficerProfile(e){
-  e.preventDefault();
-  const uid=$("fUid").value.trim();
-  if($("fRole").value==="Visiteur"){$("fGrade").value="Visiteur";$("fDivision").value="External";}
-  const payload={badge:$("fBadge").value.trim(),name:$("fName").value.trim(),grade:$("fGrade").value,role:$("fRole").value,status:$("fStatus").value,division:$("fDivision").value,updatedAt:serverTimestamp()};
+  e.preventDefault();const uid=$("fUid").value.trim();
   try{
-    const ref=doc(db,"users",uid),existing=await getDoc(ref);
-    if(existing.exists())await updateDoc(ref,payload);else await setDoc(ref,{...payload,createdAt:serverTimestamp()});
-    await addAudit(existing.exists()?"UPDATE_OFFICER":"CREATE_OFFICER",uid,`${payload.badge} — ${payload.name} — ${payload.grade}`);
-    document.querySelector(".modal")?.remove();
-    if(uid===window.LSPD.user.uid) await loadProfile(auth.currentUser); else officers();
+    const ref=doc(db,"users",uid),existing=await getDoc(ref);if(!existing.exists())throw new Error("Profil introuvable");
+    const current=existing.data(),payload={updatedAt:serverTimestamp()};
+    if(hasPerm("personnel_manage")){payload.badge=$("fBadge").value.trim();payload.name=$("fName").value.trim();payload.role=$("fRole").value;payload.division=$("fDivision").value;}
+    if(hasPerm("personnel_grade_manage"))payload.grade=$("fGrade").value;
+    if(hasPerm("personnel_status_manage"))payload.status=$("fStatus").value;
+    if(Object.keys(payload).length===1)throw new Error("Aucune permission de modification.");
+    await updateDoc(ref,payload);await addAudit("UPDATE_OFFICER",uid,`${current.name||uid} — profil modifié`);document.querySelector(".modal")?.remove();if(uid===window.LSPD.user.uid)await loadProfile(auth.currentUser);else officers();
   }catch(err){$("formError").textContent="Erreur : "+(err.code||err.message);}
 }
 
 async function assignments(){
-  if(!hasPerm("fto_assignments_view"))return;
+  if(!(hasPerm("fto_assignments_view")||canManageFtoAssignments()))return;
   const as=await getDocs(collection(db,"fto_assignments"));
   const data=as.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar">${hasPerm("fto_assignments_manage")?'<button class="btn" id="newAssignmentBtn">+ Nouvelle affectation</button>':""}</div>
-  <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>FTO</th><th>Recrue</th><th>Statut</th><th>Commentaire</th>${hasPerm("personnel_manage")?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.ftoName)}</td><td>${esc(a.traineeName)}</td><td><span class="tag ${a.status==="Active"?"green":""}">${esc(a.status)}</span></td><td>${esc(a.comment||"")}</td>${isChief()?`<td>${a.status==="Active"?`<button class="btn secondary close-assignment" data-id="${a.id}">Clôturer</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune affectation.</td></tr>'}</tbody></table></div>`;
-  $("newAssignmentBtn")?.addEventListener("click",openAssignmentForm);
-  document.querySelectorAll(".close-assignment").forEach(b=>b.onclick=()=>closeAssignment(b.dataset.id));
+  const manage=canManageFtoAssignments();
+  $("content").innerHTML=`<div class="card assignment-policy"><b>Gestion des affectations FTO</b><span>La création, l'affectation groupée et la clôture sont réservées aux grades Lieutenant et supérieurs disposant de la permission dédiée.</span></div><div class="toolbar">${manage?'<button class="btn" id="newAssignmentBtn">+ Affectation individuelle</button><button class="btn secondary" id="bulkAssignmentBtn">👥 Affectation groupée</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>FTO</th><th>Recrue</th><th>Statut</th><th>Commentaire</th>${manage?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.ftoName)}</td><td>${esc(a.traineeName)}</td><td><span class="tag ${a.status==="Active"?"green":""}">${esc(a.status)}</span></td><td>${esc(a.comment||"")}</td>${manage?`<td>${a.status==="Active"?`<button class="btn secondary close-assignment" data-id="${a.id}">Clôturer</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune affectation.</td></tr>'}</tbody></table></div>`;
+  $("newAssignmentBtn")?.addEventListener("click",openAssignmentForm);$("bulkAssignmentBtn")?.addEventListener("click",openBulkAssignmentForm);document.querySelectorAll(".close-assignment").forEach(b=>b.onclick=()=>closeAssignment(b.dataset.id));
 }
 async function openAssignmentForm(){
-  if(!hasPerm("fto_assignments_manage")) return;
-  const users=await getUsers(),ftos=users.filter(u=>["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(u.role)),trainees=users.filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Inactif","Archivé"].includes(u.status));
-  showModal(`<h2>Nouvelle affectation FTO</h2><form id="assignmentForm"><div class="formgrid"><label class="field"><span>FTO</span><select id="aFto">${ftos.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label><label class="field"><span>Recrue</span><select id="aTrainee">${trainees.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)}</option>`).join("")}</select></label></div><label class="field full"><span>Commentaire</span><textarea id="aComment" rows="4"></textarea></label><div id="assignmentError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Affecter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
-  $("assignmentForm").onsubmit=saveAssignment;
+  if(!canManageFtoAssignments())return;
+  const users=await getUsers(),activeSnap=await getDocs(collection(db,"fto_assignments")),active=activeSnap.docs.map(d=>d.data()).filter(a=>a.status==="Active");
+  const ftos=users.filter(isFtoCandidateUser);
+  const fto=ftos[0];const trainees=fto?users.filter(u=>validTraineeForFto(u,fto)&&!active.some(a=>a.traineeId===u.uid)):[];
+  showModal(`<h2>Nouvelle affectation FTO</h2><form id="assignmentForm"><div class="formgrid"><label class="field"><span>FTO</span><select id="aFto">${ftos.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)} (${esc(o.grade)})</option>`).join("")}</select></label><label class="field"><span>Recrue</span><select id="aTrainee"></select></label></div><label class="field full"><span>Commentaire</span><textarea id="aComment" rows="4"></textarea></label><div id="assignmentError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Affecter</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
+  const refresh=()=>{const selected=users.find(u=>u.uid===$("aFto").value),rows=users.filter(u=>validTraineeForFto(u,selected)&&!active.some(a=>a.traineeId===u.uid));$("aTrainee").innerHTML=rows.length?rows.map(o=>`<option value="${o.uid}" data-name="${esc(o.name)}">${esc(o.badge)} — ${esc(o.name)} (${esc(o.grade)})</option>`).join(""):'<option value="">Aucune recrue disponible</option>';};$("aFto").onchange=refresh;refresh();$("assignmentForm").onsubmit=saveAssignment;
 }
 async function saveAssignment(e){
-  if(!hasPerm("fto_assignments_manage")) return;
-  e.preventDefault();const f=$("aFto"),t=$("aTrainee");
-  try{
-    await addDoc(collection(db,"fto_assignments"),{ftoId:f.value,ftoName:f.selectedOptions[0].dataset.name,traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,status:"Active",comment:$("aComment").value.trim(),createdAt:serverTimestamp(),createdById:window.LSPD.user.uid});
-    await addAudit("FTO_ASSIGNMENT",t.value,`${t.selectedOptions[0].dataset.name} → ${f.selectedOptions[0].dataset.name}`);
-    document.querySelector(".modal")?.remove();assignments();
-  }catch(err){$("assignmentError").textContent="Erreur : "+(err.code||err.message);}
+  e.preventDefault();if(!canManageFtoAssignments())return;const f=$("aFto"),t=$("aTrainee");if(!f?.value||!t?.value)return $("assignmentError").textContent="Sélectionne un FTO et une recrue disponibles.";
+  try{await addDoc(collection(db,"fto_assignments"),{ftoId:f.value,ftoName:f.selectedOptions[0].dataset.name,traineeId:t.value,traineeName:t.selectedOptions[0].dataset.name,status:"Active",comment:$("aComment").value.trim(),createdAt:serverTimestamp(),createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name});await addAudit("FTO_ASSIGNMENT",t.value,`${t.selectedOptions[0].dataset.name} → ${f.selectedOptions[0].dataset.name}`);document.querySelector(".modal")?.remove();assignments();}catch(err){$("assignmentError").textContent="Erreur : "+(err.code||err.message);}
 }
 async function closeAssignment(id){
-  if(!hasPerm("fto_assignments_manage"))return;
-  await updateDoc(doc(db,"fto_assignments",id),{status:"Clôturée",closedAt:serverTimestamp(),closedById:window.LSPD.user.uid});
-  await addAudit("FTO_ASSIGNMENT_CLOSED",id,"Affectation clôturée");
-  assignments();
+  if(!canManageFtoAssignments())return;try{await updateDoc(doc(db,"fto_assignments",id),{status:"Clôturée",closedAt:serverTimestamp(),closedById:window.LSPD.user.uid,closedByName:window.LSPD.profile.name});await addAudit("FTO_ASSIGNMENT_CLOSED",id,"Affectation clôturée");assignments();}catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
+}
+
+async function openBulkAssignmentForm(){
+  if(!canManageFtoAssignments())return;
+  const users=await getUsers(),activeSnap=await getDocs(collection(db,"fto_assignments")),active=activeSnap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.status==="Active"),ftos=users.filter(isFtoCandidateUser);
+  showModal(`<div class="bulk-assignment-modal"><h2>👥 Affectation FTO groupée</h2><p class="muted">Choisis un FTO puis plusieurs recrues. Une recrue déjà affectée activement est indiquée et n'est pas sélectionnable tant que son affectation n'est pas clôturée.</p><label class="field full"><span>FTO responsable</span><select id="bulkFto">${ftos.map(o=>`<option value="${o.uid}">${esc(o.badge)} — ${esc(o.name)} (${esc(o.grade)})</option>`).join("")}</select></label><div class="toolbar"><input id="bulkTraineeSearch" class="search" placeholder="Rechercher nom ou matricule..."><button class="btn tiny secondary" id="bulkSelectAll" type="button">Tout sélectionner</button><button class="btn tiny secondary" id="bulkClearAll" type="button">Tout retirer</button></div><div id="bulkTraineeList" class="bulk-trainee-list"></div><label class="field full"><span>Commentaire commun</span><textarea id="bulkAssignmentComment" rows="3"></textarea></label><div id="bulkAssignmentError" class="error"></div><div class="modal-actions"><button class="btn" id="bulkAssignmentSave" type="button">Créer les affectations</button><button class="btn secondary" id="closeModal" type="button">Annuler</button></div></div>`);
+  const paint=()=>{const fto=users.find(u=>u.uid===$("bulkFto").value),q=$("bulkTraineeSearch").value.trim().toLowerCase();const candidates=users.filter(u=>validTraineeForFto(u,fto)&&(!q||`${u.name} ${u.badge} ${u.grade}`.toLowerCase().includes(q)));$("bulkTraineeList").innerHTML=candidates.length?candidates.map(u=>{const existing=active.find(a=>a.traineeId===u.uid);return `<label class="bulk-trainee-row ${existing?"disabled":""}"><input type="checkbox" class="bulk-trainee-check" value="${u.uid}" ${existing?"disabled":""}><span><b>${esc(u.badge)} — ${esc(u.name)}</b><small>${esc(u.grade)}${existing?` • déjà affecté à ${esc(existing.ftoName)}`:""}</small></span></label>`;}).join(""):'<p class="muted">Aucune recrue disponible pour ce FTO.</p>';};
+  $("bulkFto").onchange=paint;$("bulkTraineeSearch").oninput=paint;paint();
+  $("bulkSelectAll").onclick=()=>document.querySelectorAll(".bulk-trainee-check:not(:disabled)").forEach(x=>x.checked=true);$("bulkClearAll").onclick=()=>document.querySelectorAll(".bulk-trainee-check").forEach(x=>x.checked=false);
+  $("bulkAssignmentSave").onclick=async()=>{const fto=users.find(u=>u.uid===$("bulkFto").value),selected=[...document.querySelectorAll(".bulk-trainee-check:checked")].map(x=>x.value);if(!fto||!selected.length)return $("bulkAssignmentError").textContent="Sélectionne au moins une recrue.";const btn=$("bulkAssignmentSave");btn.disabled=true;let ok=0,fail=[];for(const uid of selected){const u=users.find(x=>x.uid===uid);try{await addDoc(collection(db,"fto_assignments"),{ftoId:fto.uid,ftoName:fto.name,traineeId:u.uid,traineeName:u.name,status:"Active",comment:$("bulkAssignmentComment").value.trim(),createdAt:serverTimestamp(),createdById:window.LSPD.user.uid,createdByName:window.LSPD.profile.name,groupAssignment:true});ok++;}catch(err){fail.push(`${u?.name||uid}: ${err.code||err.message}`);}}try{await addAudit("FTO_ASSIGNMENT_BULK",fto.uid,`${ok} recrue(s) → ${fto.name}`);}catch{}if(fail.length){$("bulkAssignmentError").textContent=`${ok} créée(s), ${fail.length} échec(s): ${fail.join(" | ")}`;btn.disabled=false;}else{document.querySelector(".modal")?.remove();showToast(`${ok} affectation(s) créée(s).`,"success");assignments();}};
 }
 
 async function certifications(){
-  if(!hasPerm("certifications_view"))return;
+  if(!hasAnyPerm("certifications_view","certifications_manage"))return;
   const cs=await getDocs(collection(db,"certifications")),data=cs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar">${hasPerm("certifications_manage")?'<button class="btn" id="newCertificationBtn">+ Ajouter une certification</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Certification</th><th>Attribuée par</th></tr></thead><tbody>${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.officerName)}</td><td><span class="chip">${esc(c.certification)}</span></td><td>${esc(c.issuedByName)}</td></tr>`).join(""):'<tr><td colspan="4">Aucune certification.</td></tr>'}</tbody></table></div>`;
   $("newCertificationBtn")?.addEventListener("click",openCertificationForm);
@@ -5110,7 +5227,7 @@ async function saveCertification(e){
 }
 
 async function records(){
-  if(!hasPerm("records_view"))return;
+  if(!hasAnyPerm("records_view","records_manage"))return;
   const rs=await getDocs(collection(db,"personnel_records")),data=rs.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar">${hasPerm("records_manage")?'<button class="btn" id="newRecordBtn">+ Nouvelle entrée</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Type</th><th>Titre</th><th>Émis par</th><th>Détails</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.officerName)}</td><td><span class="tag ${r.type==="Sanction"?"red":"green"}">${esc(r.type)}</span></td><td>${esc(r.title)}</td><td>${esc(r.issuedByName)}</td><td>${esc(r.details||"")}</td></tr>`).join(""):'<tr><td colspan="6">Aucune entrée.</td></tr>'}</tbody></table></div>`;
   $("newRecordBtn")?.addEventListener("click",openRecordForm);
@@ -5132,7 +5249,7 @@ async function saveRecord(e){
 }
 
 async function shifts(){
-  if(!hasPerm("shifts_view"))return;
+  if(!hasAnyPerm("shifts_view","shifts_manage"))return;
   const ss=await getDocs(collection(db,"shifts")),data=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   $("content").innerHTML=`<div class="toolbar">${hasPerm("shifts_manage")?'<button class="btn" id="newShiftBtn">+ Ajouter un shift</button>':""}<button class="btn secondary" id="exportShiftsBtn">Exporter CSV</button></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Début</th><th>Fin</th><th>Unité</th><th>Statut</th></tr></thead><tbody>${data.length?data.map(s=>`<tr><td>${esc(s.date)}</td><td>${esc(s.officerName)}</td><td>${esc(s.start)}</td><td>${esc(s.end)}</td><td>${esc(s.division||"Patrol")}</td><td>${esc(s.status||"Planifié")}</td></tr>`).join(""):'<tr><td colspan="6">Aucun shift.</td></tr>'}</tbody></table></div>`;
   $("newShiftBtn")?.addEventListener("click",openShiftForm);
@@ -5155,20 +5272,23 @@ async function saveShift(e){
 }
 
 async function leave(){
+  if(!(hasPerm("leave_request_create")||hasPerm("leave_review")))return;
   const mine=!hasPerm("leave_review");
   const snap=mine?await getDocs(query(collection(db,"leave_requests"),where("officerId","==",window.LSPD.user.uid))):await getDocs(collection(db,"leave_requests"));
   const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newLeaveBtn">+ Demander un congé</button></div>
-  <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Du</th><th>Au</th><th>Motif</th><th>Statut</th>${hasPerm("personnel_manage")?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${esc(r.officerName)}</td><td>${esc(r.startDate)}</td><td>${esc(r.endDate)}</td><td>${esc(r.reason||"")}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td>${hasPerm("leave_review")?`<td>${r.status==="En attente"?`<button class="btn secondary leave-approve" data-id="${r.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary leave-approve" data-id="${r.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune demande.</td></tr>'}</tbody></table></div>`;
-  $("newLeaveBtn").onclick=openLeaveForm;
+  $("content").innerHTML=`<div class="toolbar">${hasPerm("leave_request_create")?'<button class="btn" id="newLeaveBtn">+ Demander un congé</button>':""}</div>
+  <div class="card table-card"><table class="table"><thead><tr><th>Officier</th><th>Du</th><th>Au</th><th>Motif</th><th>Statut</th>${hasPerm("leave_review")?"<th></th>":""}</tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${esc(r.officerName)}</td><td>${esc(r.startDate)}</td><td>${esc(r.endDate)}</td><td>${esc(r.reason||"")}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td>${hasPerm("leave_review")?`<td>${r.status==="En attente"?`<button class="btn secondary leave-approve" data-id="${r.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary leave-approve" data-id="${r.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune demande.</td></tr>'}</tbody></table></div>`;
+  $("newLeaveBtn")?.addEventListener("click",openLeaveForm);
   document.querySelectorAll(".leave-approve").forEach(b=>b.onclick=()=>reviewLeave(b.dataset.id,b.dataset.status));
 }
 function openLeaveForm(){
+  if(!hasPerm("leave_request_create"))return;
   showModal(`<h2>Demande de congé</h2><form id="leaveForm"><div class="formgrid"><label class="field"><span>Du</span><input id="lStart" type="date" required></label><label class="field"><span>Au</span><input id="lEnd" type="date" required></label></div><label class="field full"><span>Motif</span><textarea id="lReason" rows="4"></textarea></label><div id="leaveError" class="error"></div><div class="modal-actions"><button class="btn" type="submit">Envoyer</button><button class="btn secondary" type="button" id="closeModal">Annuler</button></div></form>`);
   $("leaveForm").onsubmit=saveLeave;
 }
 async function saveLeave(e){
   e.preventDefault();
+  if(!hasPerm("leave_request_create"))return;
   try{
     await addDoc(collection(db,"leave_requests"),{officerId:window.LSPD.user.uid,officerName:window.LSPD.profile.name,startDate:$("lStart").value,endDate:$("lEnd").value,reason:$("lReason").value.trim(),status:"En attente",createdAt:serverTimestamp()});
     document.querySelector(".modal")?.remove();leave();
@@ -5181,6 +5301,7 @@ async function reviewLeave(id,status){
 }
 
 async function calendar(){
+  if(!(hasPerm("training_access")||hasPerm("training_manage")))return;
   const snap=await getDocs(collection(db,"training_events")),data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   $("content").innerHTML=`<div class="toolbar">${hasPerm("training_manage")?'<button class="btn" id="newTrainingBtn">+ Planifier une formation</button>':""}</div>
   <div class="calendar-grid">${data.length?data.map(e=>`<div class="card event-card"><span class="number">${esc(e.date)} • ${esc(e.time)}</span><h3>${esc(e.title)}</h3><p>${esc(e.moduleCode||"")}</p><p class="muted">${esc(e.location||"LSPD")} • Formateur: ${esc(e.trainerName)}</p><p class="muted">${esc(e.notes||"")}</p></div>`).join(""):'<div class="card">Aucune formation planifiée.</div>'}</div>`;
@@ -5528,8 +5649,8 @@ async function openTrainingEventManager(eventId){
 
     <div class="training-manager-actions">
       ${!isDone?'<button class="btn" id="completeTrainingEventBtn">✓ Terminer la formation</button>':""}
-      <button class="btn secondary" id="eventInviteMoreBtn">+ Inviter des membres</button>
-      <button class="btn secondary" id="eventAttendanceBtn">Présences</button>
+      ${hasPerm("training_invites_manage")?`<button class="btn secondary" id="eventInviteMoreBtn">+ Inviter des membres</button>`:""}
+      ${hasPerm("training_attendance_manage")?`<button class="btn secondary" id="eventAttendanceBtn">Présences</button>`:""}
       ${e.moduleCode?'<button class="btn secondary" id="eventScenarioBtn">🎲 Scénario</button>':""}
       ${e.moduleCode?'<button class="btn secondary" id="eventProgramBtn">📚 Programme</button>':""}
     </div>
@@ -5548,8 +5669,8 @@ async function openTrainingEventManager(eventId){
   </div>`);
 
   $("completeTrainingEventBtn")?.addEventListener("click",()=>completeTrainingEvent(eventId));
-  $("eventInviteMoreBtn").onclick=()=>openAdditionalTrainingInvites(eventId);
-  $("eventAttendanceBtn").onclick=()=>openTrainingAttendance(eventId);
+  $("eventInviteMoreBtn")?.addEventListener("click",()=>openAdditionalTrainingInvites(eventId));
+  $("eventAttendanceBtn")?.addEventListener("click",()=>openTrainingAttendance(eventId));
   $("eventScenarioBtn")?.addEventListener("click",()=>openRandomScenario(e.moduleCode));
   $("eventProgramBtn")?.addEventListener("click",()=>openAcademyGuide(e.moduleCode));
   document.querySelectorAll(".evaluate-training-participant").forEach(b=>b.onclick=()=>{
@@ -5577,7 +5698,7 @@ async function completeTrainingEvent(eventId){
 }
 
 async function openAdditionalTrainingInvites(eventId){
-  if(!hasPerm("training_manage"))return;
+  if(!hasPerm("training_invites_manage"))return;
   const [eventSnap,existingSnap]=await Promise.all([
     getDoc(doc(db,"training_events",eventId)),
     getDocs(query(collection(db,"training_registrations"),where("eventId","==",eventId)))
@@ -5637,7 +5758,7 @@ async function saveTrainingEvent(e){
 
 async function requirements(){
   if(!hasPerm("analytics"))return;
-  const [us,ev]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations"))]);
+  const [us,ev]=await Promise.all([getDocs(query(collection(db,"users"),where("role","!=","Visiteur"))),getDocs(collection(db,"evaluations"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>!["Visiteur","Applicant"].includes(u.role) && !["Inactif","Archivé"].includes(u.status));
   const evals=ev.docs.map(d=>d.data());
   const rows=users.map(o=>{
@@ -5653,7 +5774,7 @@ async function requirements(){
 
 async function promotionAdvisor(){
   if(!hasPerm("analytics"))return;
-  const [us,ev,rs]=await Promise.all([getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),getDocs(collection(db,"personnel_records"))]);
+  const [us,ev,rs]=await Promise.all([getDocs(query(collection(db,"users"),where("role","!=","Visiteur"))),getDocs(collection(db,"evaluations")),getDocs(collection(db,"personnel_records"))]);
   const users=us.docs.map(d=>({uid:d.id,...d.data()})),evals=ev.docs.map(d=>d.data()),recordsData=rs.docs.map(d=>d.data());
   const rows=users.filter(o=>!["Visiteur","Applicant"].includes(o.role)&&o.status!=="Archivé").map(o=>{
     const oe=evals.filter(e=>e.officerId===o.uid),valid=[...new Set(oe.filter(e=>e.result==="Validé").map(e=>e.moduleCode))],avg=oe.length?Math.round(oe.reduce((s,e)=>s+(Number(e.score)||0),0)/oe.length):0;
@@ -5667,7 +5788,7 @@ async function promotionAdvisor(){
 }
 
 async function promotions(){
-  if(!hasPerm("promotions_view"))return;
+  if(!hasAnyPerm("promotions_view","promotions_manage"))return;
   const ps=await getDocs(collection(db,"promotions")),data=ps.docs.map(d=>d.data()).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   $("content").innerHTML=`<div class="toolbar">${hasPerm("promotions_manage")?'<button class="btn" id="newPromotionBtn">+ Enregistrer une promotion</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Ancien grade</th><th>Nouveau grade</th><th>Validé par</th></tr></thead><tbody>${data.length?data.map(p=>`<tr><td>${formatDate(p.createdAt)}</td><td>${esc(p.officerName)}</td><td>${esc(p.oldGrade)}</td><td>${esc(p.newGrade)}</td><td>${esc(p.approvedByName)}</td></tr>`).join(""):'<tr><td colspan="5">Aucune promotion.</td></tr>'}</tbody></table></div>`;
   $("newPromotionBtn")?.addEventListener("click",openPromotionForm);
@@ -5691,7 +5812,7 @@ async function savePromotion(e){
 async function stats(){
   if(!hasPerm("analytics"))return;
   const [us,ev,as,cs,rs,lv,sh]=await Promise.all([
-    getDocs(collection(db,"users")),getDocs(collection(db,"evaluations")),
+    getDocs(query(collection(db,"users"),where("role","!=","Visiteur"))),getDocs(collection(db,"evaluations")),
     getDocs(collection(db,"fto_assignments")),getDocs(collection(db,"certifications")),
     getDocs(collection(db,"personnel_records")),getDocs(collection(db,"leave_requests")),
     getDocs(collection(db,"shifts"))
@@ -5795,7 +5916,7 @@ async function globalSearch(term){
     }
     const emptySnap={docs:[]};
     const personnelVisible=isNavGroupAllowed("personnel"),trainingVisible=isNavGroupAllowed("training"),communicationVisible=isNavGroupAllowed("communication");
-    const usersSnap=personnelVisible?await getDocs(collection(db,"users")):emptySnap;
+    const usersSnap=personnelVisible?await getDocs(query(collection(db,"users"),where("role","!=","Visiteur"))):emptySnap;
     let evalSnap=emptySnap;
     if(trainingVisible){
       if(hasPerm("personnel_view")) evalSnap=await getDocs(collection(db,"evaluations"));
@@ -5847,6 +5968,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   $("notificationDropdown")?.addEventListener("click",e=>e.stopPropagation());
   document.addEventListener("click",()=>closeNotificationDropdown());
   document.addEventListener("keydown",e=>{
+  if(e.key==="Escape") document.querySelector(".viewer-modal")?.remove();
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){e.preventDefault();openCommandPalette();}
     if(e.key==="Escape" && document.body.classList.contains("sidebar-open")) toggleMobileSidebar(false);
     if(e.key==="Escape"){closeNotificationDropdown();closeMailWindow();}
