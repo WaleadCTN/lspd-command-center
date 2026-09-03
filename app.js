@@ -1,4 +1,4 @@
-// LSPD Command Center — Phase 17.11.3 RECRUITMENT CONTROL & AUTO CATENA EMAIL — Phase 17.11.2 fully preserved
+// LSPD Command Center — Phase 17.11.4 GRADE PERMISSIONS & CLEAN RANKS — Phase 17.11.3 fully preserved
 
 import { initializeApp, getApps, getApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
@@ -38,7 +38,7 @@ const I18N_FR = {"Command Center":"Centre de commandement","Training & Operation
 Object.assign(I18N_EN,{"Mon espace opérationnel":"My operational space","Tableau de service":"Duty board","Inscriptions formations":"Training enrollment","MDT / Dossiers":"MDT / Case files","Divisions & candidatures":"Divisions & applications","Mes prochains shifts":"My upcoming shifts","Mes formations":"My training sessions","Mes certifications":"My certifications","Mon dossier RH":"My personnel record","Mes congés":"My leave","Aucun shift à venir.":"No upcoming shifts.","Aucune formation inscrite.":"No training registration.","Aucun élément au dossier.":"No personnel record entries.","Pointer l'entrée":"Check in","Pointer la sortie":"Check out","En service":"On duty","Terminé":"Completed","Annulé":"Cancelled","Absent / non pointé":"Absent / no check-in","À venir":"Upcoming","Aujourd'hui":"Today","Service en cours":"Currently on duty","Absences / non pointés":"Absences / no-shows","En congé":"On leave","En formation aujourd'hui":"In training today","Modifier shift":"Edit shift","Annuler shift":"Cancel shift","Modifier le shift":"Edit shift","Nouveau début":"New start","Nouvelle fin":"New end","Enregistrer les modifications":"Save changes","Capacité":"Capacity","Places":"Spots","S'inscrire":"Register","Annuler mon inscription":"Cancel my registration","Gérer les présences":"Manage attendance","Inscrit":"Registered","Présent":"Present","Absent":"Absent","Inscription annulée":"Registration cancelled","Complet":"Full","Participants":"Participants","Marquer présent":"Mark present","Marquer absent":"Mark absent","Aucun participant.":"No participants.","Rappel de shift":"Shift reminder","Rappel de formation":"Training reminder","Ton shift commence bientôt.":"Your shift starts soon.","Ta formation commence bientôt.":"Your training starts soon.","Dossiers d'enquête":"Case files","+ Nouveau dossier":"+ New case file","Numéro":"Number","Catégorie":"Category","Ouvert":"Open","Clos":"Closed","Enquête":"Investigation","Intervention":"Incident","Renseignement":"Intelligence","Administration":"Administration","Nouveau dossier MDT":"New MDT case file","Créer le dossier":"Create case file","Clôturer le dossier":"Close case file","Aucun dossier MDT.":"No MDT case files.","Rapports accessibles":"Accessible incident reports","Mesure":"Measure","Effectif actuel":"Current personnel","Ma division actuelle":"My current division","Candidater":"Apply","Candidature division":"Division application","Division souhaitée":"Requested division","Motivation":"Motivation","Envoyer ma candidature":"Submit application","Mes candidatures":"My applications","Candidatures en attente":"Pending applications","Aucune candidature.":"No applications.","Candidature approuvée":"Application approved","Candidature refusée":"Application rejected","Approuver la candidature":"Approve application","Refuser la candidature":"Reject application","Ta division a été mise à jour.":"Your division has been updated.","Patrouille générale et réponse aux appels.":"General patrol and response to calls.","Circulation, contrôles routiers et poursuites.":"Traffic enforcement, traffic stops, and pursuits.","Enquêtes, preuves et dossiers criminels.":"Investigations, evidence, and criminal cases.","Interventions tactiques à haut risque.":"High-risk tactical operations.","Support aérien et coordination aérienne.":"Air support and aerial coordination.","Formation, FTO et développement des officiers.":"Training, FTO, and officer development.","Commandement et supervision du département.":"Department command and supervision.","La capacité doit être comprise entre 1 et 100.":"Capacity must be between 1 and 100.","Tu es déjà inscrit à cette formation.":"You are already registered for this training.","Formation complète.":"Training session is full.","Ton inscription est enregistrée.":"Your registration is confirmed.","Présence mise à jour.":"Attendance updated.","Shift annulé.":"Shift cancelled."});
 Object.assign(I18N_FR,{"Roster & shifts":"Planning & services","Duty board":"Tableau de service","My operational space":"Mon espace opérationnel","Training enrollment":"Inscriptions formations","MDT / Case files":"MDT / Dossiers","Divisions & applications":"Divisions & candidatures"});
 
-Object.assign(I18N_EN,{"BOLO / Avis":"BOLO / Alerts","CAD / Dispatch":"CAD / Dispatch","Watch Commander":"Watch Commander","Permissions":"Permissions","Réduire le menu":"Collapse menu","Navigation rapide":"Quick navigation","Accès refusé":"Access denied","Cette fonction n'est pas autorisée pour ton rôle.":"This feature is not allowed for your role.","Permissions & rôles":"Permissions & roles","Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.":"Permissions are stored in Firestore. The Chief can edit them here without changing code.","Enregistrer les permissions":"Save permissions","Réinitialiser les valeurs par défaut":"Reset defaults","Permission":"Permission","Lecture / gestion FTO":"FTO tools","Voir tous les officiers":"View all officers","Modifier les profils officiers":"Manage officer profiles","Voir les affectations FTO":"View FTO assignments","Gérer les affectations FTO":"Manage FTO assignments","Voir les certifications":"View certifications","Gérer les certifications":"Manage certifications","Voir les dossiers RH":"View personnel records","Gérer les dossiers RH":"Manage personnel records","Voir tous les shifts":"View all shifts","Gérer les shifts":"Manage shifts","Voir le tableau de service":"View duty board","Valider les congés":"Review leave","Gérer les formations":"Manage training","Valider les incidents":"Review incidents","Gérer le MDT":"Manage MDT","Valider les candidatures divisions":"Review division applications","Voir les promotions":"View promotions","Gérer les promotions":"Manage promotions","Statistiques & Promotion Advisor":"Statistics & Promotion Advisor","Voir l'historique audit":"View audit history","Publier des annonces":"Publish announcements","Valider les inscriptions":"Review registrations","Gérer toutes les unités CAD":"Manage all CAD units","Gérer les BOLO":"Manage BOLOs","Gérer Watch Commander":"Manage Watch Commander","Permissions enregistrées.":"Permissions saved.","Valeurs par défaut restaurées.":"Default values restored.","Le Chief conserve toujours tous les droits.":"The Chief always keeps all permissions.","Unité CAD":"CAD unit","Mon unité":"My unit","Toutes les unités":"All units","Indicatif":"Call sign","Partenaire":"Partner","Localisation":"Location","État":"Status","Note opérationnelle":"Operational note","Disponible":"Available","En intervention":"On call","Transport":"Transport","Pause":"Break","Hors service":"Off duty","Créer mon unité":"Create my unit","Mettre à jour":"Update","Actualisé":"Updated","Aucune unité active.":"No active units.","BOLO actifs":"Active BOLOs","+ Nouveau BOLO":"+ New BOLO","Personne":"Person","Véhicule":"Vehicle","Plaque":"Plate","Description":"Description","Actif":"Active","Clôturé":"Closed","Clôturer le BOLO":"Close BOLO","Aucun BOLO actif.":"No active BOLO.","Nouveau BOLO":"New BOLO","Publier le BOLO":"Publish BOLO","Priorité":"Priority","Critique":"Critical","Watch en cours":"Current watch","Aucun Watch Commander actif.":"No active Watch Commander.","Démarrer un watch":"Start a watch","Commander":"Commander","Briefing":"Briefing","Démarrer le service":"Start watch","Clôturer le watch":"Close watch","Note de passation":"Pass-down note","Historique des watches":"Watch history","Service actif":"Active watch","Service clôturé":"Closed watch","Tape une page...":"Type a page...","Aucune page trouvée.":"No page found.","Interface améliorée":"Improved interface","En direct":"Live"});
+Object.assign(I18N_EN,{"BOLO / Avis":"BOLO / Alerts","CAD / Dispatch":"CAD / Dispatch","Watch Commander":"Watch Commander","Permissions":"Permissions","Réduire le menu":"Collapse menu","Navigation rapide":"Quick navigation","Accès refusé":"Access denied","Cette fonction n'est pas autorisée pour ton rôle.":"This feature is not allowed for your role.","Permissions par grade":"Permissions & roles","Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.":"Permissions are stored in Firestore. The Chief can edit them here without changing code.","Enregistrer les permissions":"Save permissions","Réinitialiser les valeurs par défaut":"Reset defaults","Permission":"Permission","Lecture / gestion FTO":"FTO tools","Voir tous les officiers":"View all officers","Modifier les profils officiers":"Manage officer profiles","Voir les affectations FTO":"View FTO assignments","Gérer les affectations FTO":"Manage FTO assignments","Voir les certifications":"View certifications","Gérer les certifications":"Manage certifications","Voir les dossiers RH":"View personnel records","Gérer les dossiers RH":"Manage personnel records","Voir tous les shifts":"View all shifts","Gérer les shifts":"Manage shifts","Voir le tableau de service":"View duty board","Valider les congés":"Review leave","Gérer les formations":"Manage training","Valider les incidents":"Review incidents","Gérer le MDT":"Manage MDT","Valider les candidatures divisions":"Review division applications","Voir les promotions":"View promotions","Gérer les promotions":"Manage promotions","Statistiques & Promotion Advisor":"Statistics & Promotion Advisor","Voir l'historique audit":"View audit history","Publier des annonces":"Publish announcements","Valider les inscriptions":"Review registrations","Gérer toutes les unités CAD":"Manage all CAD units","Gérer les BOLO":"Manage BOLOs","Gérer Watch Commander":"Manage Watch Commander","Permissions enregistrées.":"Permissions saved.","Valeurs par défaut restaurées.":"Default values restored.","Le Chief conserve toujours tous les droits.":"The Chief always keeps all permissions.","Unité CAD":"CAD unit","Mon unité":"My unit","Toutes les unités":"All units","Indicatif":"Call sign","Partenaire":"Partner","Localisation":"Location","État":"Status","Note opérationnelle":"Operational note","Disponible":"Available","En intervention":"On call","Transport":"Transport","Pause":"Break","Hors service":"Off duty","Créer mon unité":"Create my unit","Mettre à jour":"Update","Actualisé":"Updated","Aucune unité active.":"No active units.","BOLO actifs":"Active BOLOs","+ Nouveau BOLO":"+ New BOLO","Personne":"Person","Véhicule":"Vehicle","Plaque":"Plate","Description":"Description","Actif":"Active","Clôturé":"Closed","Clôturer le BOLO":"Close BOLO","Aucun BOLO actif.":"No active BOLO.","Nouveau BOLO":"New BOLO","Publier le BOLO":"Publish BOLO","Priorité":"Priority","Critique":"Critical","Watch en cours":"Current watch","Aucun Watch Commander actif.":"No active Watch Commander.","Démarrer un watch":"Start a watch","Commander":"Commander","Briefing":"Briefing","Démarrer le service":"Start watch","Clôturer le watch":"Close watch","Note de passation":"Pass-down note","Historique des watches":"Watch history","Service actif":"Active watch","Service clôturé":"Closed watch","Tape une page...":"Type a page...","Aucune page trouvée.":"No page found.","Interface améliorée":"Improved interface","En direct":"Live"});
 Object.assign(I18N_FR,{"Command Center":"Centre de commandement","Training & Operations":"Formation & opérations"});
 
 Object.assign(I18N_EN,{"Journal FTO":"FTO Journal","Évaluation finale FTO":"Final FTO Evaluation","Programme guidé":"Guided program","Bibliothèque pédagogique":"Training library","Recommandations FTO":"FTO recommendations","Session guidée":"Guided session","Objectifs de la recrue":"Trainee objectives","Commencer une session":"Start session","Continuer":"Continue","Terminer la session":"Finish session","Ajouter un objectif":"Add objective","Objectif":"Objective","Faible":"Low","Moyenne":"Medium","Haute":"High","Atteint":"Achieved","Objectif pédagogique":"Training objective","Ce que le FTO doit faire":"What the FTO should do","Exemple RP":"RP example","Variantes":"Variants","Erreurs fréquentes":"Common mistakes","Erreurs critiques":"Critical errors","Questions à poser":"Questions to ask","Réponses attendues":"Expected answers","Action corrective":"Corrective action","Durée conseillée":"Suggested duration","Prérequis":"Prerequisites","Checklist live":"Live checklist","Démonstration":"Demonstration","Pratique":"Practice","Observation":"Observation","Débrief":"Debrief","Validation":"Validation","Générer un scénario":"Generate scenario","Nouveau scénario":"New scenario","Difficulté":"Difficulty","Facile":"Easy","Difficile":"Hard","Stress test":"Stress test","Situation":"Situation","Contraintes":"Constraints","Réussite attendue":"Expected success criteria","Voir le guide":"View guide","Créer une session":"Create session","Phase FTO":"FTO phase","Phase 1 — Observation":"Phase 1 — Observation","Phase 2 — Assistance":"Phase 2 — Assistance","Phase 3 — Autonomie supervisée":"Phase 3 — Supervised autonomy","Phase 4 — Évaluation finale":"Phase 4 — Final evaluation","Points forts":"Strengths","Points à améliorer":"Areas to improve","Objectifs prochaine session":"Next-session goals","Résumé de session":"Session summary","Aucune session.":"No sessions.","Aucun objectif.":"No objectives.","Module faible":"Weak module","Prochaine priorité":"Next priority","Sessions terminées":"Completed sessions","Prochaine formation conseillée":"Recommended next training","Évaluation finale":"Final evaluation","Recommandation finale":"Final recommendation","Validation FTO":"FTO pass","Prolongation FTO":"Extend FTO","Échec FTO":"FTO fail","Créer l'évaluation finale":"Create final evaluation","Décision":"Decision","Commentaire final":"Final comments","Modules validés":"Validated modules","Moyenne globale":"Overall average","Historique pédagogique":"Training history","Exemples radio":"Radio examples","Exemples de rapports":"Report examples","Bon exemple":"Good example","Mauvais exemple":"Bad example","Pourquoi":"Why","Session créée.":"Session created.","Journal enregistré.":"Journal saved.","Objectif ajouté.":"Objective added.","Évaluation finale enregistrée.":"Final evaluation saved.","Sélectionner une recrue":"Select a trainee","FTO Academy":"FTO Academy"});
@@ -252,30 +252,33 @@ const gradeList = [
 ["Visiteur","Visiteur","Accès externe limité aux informations publiques du département."],
 ["Rookie","Rookie","Recrue / nouvel arrivant en formation."],
 ["Police Officer1","Police Officer I","Officier de niveau initial."],
-["PO1","Police Officer I (legacy)","Grade historique du Command Center."],
 ["Police Officer2","Police Officer II","Officier autonome sur les missions courantes."],
-["PO2","Police Officer II (legacy)","Grade historique du Command Center."],
 ["Police Officer3","Police Officer III","Officier expérimenté."],
-["PO3","Police Officer III (legacy)","Grade historique du Command Center."],
 ["Senior Lead Officer","Senior Lead Officer","Officier senior / référent."],
 ["Detective1","Detective I","Détective niveau I."],
 ["Detective2","Detective II","Détective niveau II."],
 ["Detective3","Detective III","Détective niveau III."],
 ["Sergeant1","Sergeant I","Premier niveau de supervision."],
 ["Sergeant2","Sergeant II","Supervision confirmée."],
-["Sergent","Sergent (legacy)","Grade historique du Command Center."],
 ["Lieutenant","Lieutenant","Supervise plusieurs équipes et opérations."],
 ["Commander","Commander","Commandement opérationnel."],
-["Captain","Captain (legacy)","Grade historique du Command Center."],
+["Captain","Captain","Commandement d'unité / supervision supérieure."],
 ["Deputy Chief of Police","Deputy Chief of Police","Haut commandement."],
-["Deputy Chief","Deputy Chief (legacy)","Grade historique du Command Center."],
 ["Assistant Chief","Assistant Chief","Direction stratégique du département."],
 ["Chief of Police","Chief of Police","Autorité finale du département."],
 ["Commissioner","Commissioner","Direction supérieure / supervision stratégique."]
 ];
 
+const LEGACY_GRADE_ALIASES = {
+  "PO1":"Police Officer1",
+  "PO2":"Police Officer2",
+  "PO3":"Police Officer3",
+  "Sergent":"Sergeant1",
+  "Deputy Chief":"Deputy Chief of Police"
+};
+function canonicalGrade(grade){ return LEGACY_GRADE_ALIASES[grade] || grade || "Rookie"; }
 const roles = ["Visiteur","Officer","FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"];
-const gradeIndex = grade => { const i=gradeList.findIndex(g=>g[0]===grade); return i<0?999:i; };
+const gradeIndex = grade => { const i=gradeList.findIndex(g=>g[0]===canonicalGrade(grade)); return i<0?999:i; };
 const statuses = ["Actif","En formation","Suspendu","Inactif","Archivé","En attente","Refusé"];
 const divisions = ["External","Patrol","Traffic","Detective","SWAT","Air Support","Training","Command"];
 const certificationsCatalog = ["FTO","Pursuit","Traffic","Detective","SWAT","Air Support","Supervisor"];
@@ -326,6 +329,25 @@ const DEFAULT_PERMISSIONS = {
   "Assistant Chief": ["fto_tools","personnel_view","fto_assignments_view","certifications_view","records_view","shifts_view","duty_board","leave_review","training_manage","incident_review","mdt_manage","promotions_view","analytics","audit","announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"],
   Chief: PERMISSION_CATALOG.map(x=>x[0])
 };
+
+function permissionsForLegacyRole(roleName, roleMap=DEFAULT_PERMISSIONS){
+  return Array.isArray(roleMap?.[roleName]) ? [...roleMap[roleName]] : [];
+}
+function buildGradePermissionsFromRoleConfig(roleMap=DEFAULT_PERMISSIONS){
+  const byGrade={};
+  const roleForGrade={
+    "Visiteur":"Visiteur","Rookie":"Officer","Police Officer1":"Officer","Police Officer2":"Officer","Police Officer3":"Officer",
+    "Senior Lead Officer":"Officer","Detective1":"Officer","Detective2":"Officer","Detective3":"Officer",
+    "Sergeant1":"Sergeant","Sergeant2":"Sergeant","Lieutenant":"Lieutenant","Commander":"Captain","Captain":"Captain",
+    "Deputy Chief of Police":"Deputy Chief","Assistant Chief":"Assistant Chief","Chief of Police":"Chief","Commissioner":"Assistant Chief"
+  };
+  for(const [grade] of gradeList){
+    const sourceRole=roleForGrade[grade]||"Officer";
+    byGrade[grade]=grade==="Chief of Police"?PERMISSION_CATALOG.map(x=>x[0]):grade==="Visiteur"?[]:permissionsForLegacyRole(sourceRole,roleMap);
+  }
+  return byGrade;
+}
+const DEFAULT_GRADE_PERMISSIONS = buildGradePermissionsFromRoleConfig(DEFAULT_PERMISSIONS);
 
 const PAGE_PERMISSIONS = {
   registrations:"registrations_manage",
@@ -853,15 +875,16 @@ const NAV_PAGE_GROUP = {
   registrations:"administration",recruitmentControl:"administration",stats:"administration",admin:"administration",permissionsAdmin:"administration",navigationAdmin:"administration",history:"administration"
 };
 function navigationGradeList(){ return gradeList.filter(g=>g[0]!=="Visiteur").map(g=>g[0]); }
+function canonicalizeGradeArray(values=[]){ return [...new Set((Array.isArray(values)?values:[]).map(canonicalGrade).filter(g=>gradeList.some(x=>x[0]===g)))]; }
 function defaultNavigationConfig(){
   const all=navigationGradeList();
-  return {groups:Object.fromEntries(Object.keys(NAV_GROUP_LABELS).map(k=>[k,[...all]])),catalogVersion:1};
+  return {groups:Object.fromEntries(Object.keys(NAV_GROUP_LABELS).map(k=>[k,[...all]])),catalogVersion:2};
 }
 function isNavGroupAllowed(group){
   if(!group || isChief()) return true;
   const allowed=window.LSPD.navigationConfig?.groups?.[group];
   if(!Array.isArray(allowed)) return true;
-  return allowed.includes(window.LSPD.profile?.grade);
+  return canonicalizeGradeArray(allowed).includes(canonicalGrade(window.LSPD.profile?.grade));
 }
 function isPageCategoryAllowed(page){
   if(page==="profile") return true;
@@ -869,24 +892,26 @@ function isPageCategoryAllowed(page){
 }
 
 function role(){ return window.LSPD.profile?.role; }
-function isChief(){ return role()==="Chief"; }
-function isVisitor(){ return role()==="Visiteur"; }
+function currentGrade(){ return canonicalGrade(window.LSPD.profile?.grade); }
+function isChief(){ return currentGrade()==="Chief of Police" || role()==="Chief"; }
+function isVisitor(){ return role()==="Visiteur" || currentGrade()==="Visiteur"; }
 function isApplicant(){ return role()==="Applicant"; }
 function isInactive(){ return window.LSPD.profile?.status==="Inactif"; }
 function isSuspended(){ return window.LSPD.profile?.status==="Suspendu"; }
 function isInternal(){ return !!window.LSPD.profile && !isVisitor() && !isApplicant() && !isInactive() && !isSuspended(); }
-function isFTO(){ return ["FTO","Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
-function isCommand(){ return ["Sergeant","Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
-function canApproveIncidents(){ return isCommand(); }
-function isSeniorCommand(){ return ["Lieutenant","Captain","Deputy Chief","Assistant Chief","Chief"].includes(role()); }
+function isFTO(){ return hasPerm("fto_tools"); }
+function isCommand(){ return hasPerm("incident_review"); }
+function canApproveIncidents(){ return hasPerm("incident_review"); }
+function isSeniorCommand(){ return hasPerm("incident_review"); }
 
-function permissionRoles(){
-  return window.LSPD.permissionConfig?.roles || DEFAULT_PERMISSIONS;
-}
+// Kept as a compatibility alias for older phase code. Permissions are now resolved by grade.
+function permissionRoles(){ return window.LSPD.permissionConfig?.grades || DEFAULT_GRADE_PERMISSIONS; }
+function permissionGrades(){ return permissionRoles(); }
 function hasPerm(permission){
   if(!isInternal()) return false;
   if(isChief()) return true;
-  const list=permissionRoles()[role()] || DEFAULT_PERMISSIONS[role()] || [];
+  const grade=currentGrade();
+  const list=permissionGrades()[grade] || DEFAULT_GRADE_PERMISSIONS[grade] || [];
   return Array.isArray(list) && list.includes(permission);
 }
 function canAccessPage(page){
@@ -911,11 +936,41 @@ const PHASE17_PERMISSION_DEFAULTS={
   "Deputy Chief":["academy_content_manage","academy_final_review"],
   "Assistant Chief":["academy_content_manage","academy_final_review"]
 };
+
+async function migrateLegacyOfficerGrades(){
+  if(!isChief()) return 0;
+  try{
+    const snap=await getDocs(collection(db,"users"));
+    let changed=0;
+    for(const d of snap.docs){
+      const raw=d.data().grade;
+      const canonical=LEGACY_GRADE_ALIASES[raw];
+      if(!canonical) continue;
+      await updateDoc(doc(db,"users",d.id),{grade:canonical,updatedAt:serverTimestamp()});
+      changed++;
+    }
+    if(changed){
+      await addAudit("LEGACY_GRADES_MIGRATED","users",`${changed} ancien(s) grade(s) normalisé(s)`);
+      if(LEGACY_GRADE_ALIASES[window.LSPD.profile?.grade]) window.LSPD.profile.grade=canonicalGrade(window.LSPD.profile.grade);
+    }
+    return changed;
+  }catch(err){
+    console.warn("Legacy grade migration skipped",err);
+    return 0;
+  }
+}
 async function loadNavigationConfig(){
   if(!isInternal()){ window.LSPD.navigationConfig=defaultNavigationConfig(); return; }
   try{
     const ref=doc(db,"settings","navigation_visibility"),snap=await getDoc(ref);
-    if(snap.exists() && snap.data()?.groups){ window.LSPD.navigationConfig=snap.data(); return; }
+    if(snap.exists() && snap.data()?.groups){
+      const raw=snap.data();
+      const groups={};
+      for(const key of Object.keys(NAV_GROUP_LABELS)) groups[key]=canonicalizeGradeArray(raw.groups?.[key]||navigationGradeList());
+      window.LSPD.navigationConfig={...raw,groups,catalogVersion:2};
+      if(isChief() && (raw.catalogVersion||0)<2) await setDoc(ref,{...window.LSPD.navigationConfig,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
+      return;
+    }
     window.LSPD.navigationConfig=defaultNavigationConfig();
     if(isChief()) await setDoc(ref,{...window.LSPD.navigationConfig,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
   }catch(err){
@@ -926,42 +981,48 @@ async function loadNavigationConfig(){
 
 async function loadPermissionsConfig(){
   if(isVisitor() || isApplicant() || isInactive()){
-    window.LSPD.permissionConfig={roles:{Visiteur:[],Applicant:[]},catalogVersion:18};
+    window.LSPD.permissionConfig={grades:{Visiteur:[]},catalogVersion:19};
     return;
   }
   try{
     const ref=doc(db,"settings","permissions");
     const snap=await getDoc(ref);
-    if(snap.exists() && snap.data()?.roles){
+    if(snap.exists()){
       const cfg=snap.data();
-      const rolesMap=JSON.parse(JSON.stringify(cfg.roles||{}));
-      let changed=false;
-      if(!Array.isArray(rolesMap.Visiteur)){rolesMap.Visiteur=[];changed=true;}
-      if((cfg.catalogVersion||0)<18){
-        for(const [r,perms] of Object.entries(PHASE17_PERMISSION_DEFAULTS)){
-          rolesMap[r]=Array.isArray(rolesMap[r])?rolesMap[r]:[];
-          for(const permission of perms){if(!rolesMap[r].includes(permission)){rolesMap[r].push(permission);changed=true;}}
+      let gradesMap;
+      let migrated=false;
+      if(cfg?.grades){
+        gradesMap={};
+        for(const [grade] of gradeList){ gradesMap[grade]=Array.isArray(cfg.grades[grade])?[...cfg.grades[grade]]:[]; }
+        // Migrate any legacy grade keys that may already exist in a grade-based document.
+        for(const [legacy,canonical] of Object.entries(LEGACY_GRADE_ALIASES)){
+          if(Array.isArray(cfg.grades[legacy])){
+            gradesMap[canonical]=[...new Set([...(gradesMap[canonical]||[]),...cfg.grades[legacy]])];
+            migrated=true;
+          }
         }
+      }else if(cfg?.roles){
+        gradesMap=buildGradePermissionsFromRoleConfig(cfg.roles);
+        migrated=true;
+      }else{
+        gradesMap=JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS));
+        migrated=true;
       }
-      window.LSPD.permissionConfig={...cfg,roles:rolesMap,catalogVersion:18};
-      if(changed && isChief()){
-        await setDoc(ref,{...window.LSPD.permissionConfig,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp()});
+      gradesMap.Visiteur=[];
+      gradesMap["Chief of Police"]=PERMISSION_CATALOG.map(x=>x[0]);
+      window.LSPD.permissionConfig={...cfg,grades:gradesMap,catalogVersion:19};
+      if(isChief() && (migrated || (cfg.catalogVersion||0)<19)){
+        await setDoc(ref,{grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19});
       }
       return;
     }
-    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),catalogVersion:18};
+    window.LSPD.permissionConfig={grades:JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS)),catalogVersion:19};
     if(isChief()){
-      await setDoc(ref,{
-        roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)),
-        updatedById:window.LSPD.user.uid,
-        updatedByName:window.LSPD.profile.name,
-        updatedAt:serverTimestamp(),
-        catalogVersion:18
-      });
+      await setDoc(ref,{grades:JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS)),updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19});
     }
   }catch(err){
     console.warn("Permission configuration fallback",err);
-    window.LSPD.permissionConfig={roles:JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS))};
+    window.LSPD.permissionConfig={grades:JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS)),catalogVersion:19};
   }
 }
 
@@ -1007,11 +1068,11 @@ async function loadProfile(user){
   try{
     const snap=await getDoc(doc(db,"users",user.uid));
     if(!snap.exists()){
-      window.LSPD.profile={name:"Profil incomplet",badge:"—",grade:"PO1",role:"Officer",status:"Profil manquant"};
+      window.LSPD.profile={name:"Profil incomplet",badge:"—",grade:"Rookie",role:"Officer",status:"Profil manquant"};
       showApprovalGate("Profil incomplet","Ton compte Authentication existe, mais aucun profil LSPD valide n'est associé. Contacte le Chief of Police.");
       return;
     }
-    window.LSPD.profile=snap.data();
+    window.LSPD.profile={...snap.data(),grade:canonicalGrade(snap.data().grade)};
   }catch(e){
     window.LSPD.profile={name:"Erreur profil",badge:"—",grade:"—",role:"Officer",status:"Erreur Firestore"};
     showApprovalGate("Erreur de profil","Impossible de charger ton profil LSPD. Réessaie ou contacte le commandement.");
@@ -1056,6 +1117,7 @@ async function loadProfile(user){
   }
 
   await loadPermissionsConfig();
+  if(isChief()) await migrateLegacyOfficerGrades();
   await loadNavigationConfig();
   showApp();
   applyRoleVisibility();
@@ -1401,11 +1463,11 @@ function render(page){
 
 async function getUser(uid){
   const s=await getDoc(doc(db,"users",uid));
-  return s.exists()?{uid,...s.data()}:null;
+  return s.exists()?{uid,...s.data(),grade:canonicalGrade(s.data().grade)}:null;
 }
 async function getUsers(){
   const s=await getDocs(collection(db,"users"));
-  return s.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.role!=="Applicant");
+  return s.docs.map(d=>({uid:d.id,...d.data(),grade:canonicalGrade(d.data().grade)})).filter(u=>u.role!=="Applicant");
 }
 async function getMyEvaluations(){
   const s=await getDocs(query(collection(db,"evaluations"),where("officerId","==",window.LSPD.user.uid)));
@@ -1806,7 +1868,7 @@ async function registrations(){
         <td><b>${esc(u.name)}</b></td>
         <td>${esc(u.registeredEmail||"—")}</td>
         <td><span class="tag ${u.status==="Refusé"?"red":"orange"}">${esc(u.status)}</span></td>
-        <td>${esc(u.grade||"PO1")} • ${esc(u.role||"Officer")} • ${esc(u.division||"Patrol")}</td>
+        <td>${esccanonicalGrade(u.grade||"Rookie")} • ${esc(u.role||"Officer")} • ${esc(u.division||"Patrol")}</td>
         <td>
           <button class="btn approve-registration" data-uid="${u.uid}">${u.status==="Refusé"?"Réexaminer":"Approuver"}</button>
           ${u.status==="En attente"?`<button class="btn secondary reject-registration" data-uid="${u.uid}">Refuser</button>`:""}
@@ -1836,7 +1898,7 @@ async function openRegistrationApproval(uid){
       <input id="regUid" type="hidden" value="${esc(uid)}">
       <div class="formgrid">
         <label class="field"><span>Matricule</span><input id="regBadge" required placeholder="Ex. 625" value="${u.badge==="—"?"":esc(u.badge||"")}"></label>
-        <label class="field"><span>Grade</span><select id="regGrade">${gradeList.map(g=>`<option ${g[0]===(u.grade||"PO1")?"selected":""}>${g[0]}</option>`).join("")}</select></label>
+        <label class="field"><span>Grade</span><select id="regGrade">${gradeList.map(g=>`<option ${g[0]===canonicalGrade(u.grade||"Rookie")?"selected":""}>${g[0]}</option>`).join("")}</select></label>
         <label class="field"><span>Rôle</span><select id="regRole">${roles.map(r=>`<option ${r===(u.role||"Officer")?"selected":""}>${r}</option>`).join("")}</select></label>
         <label class="field"><span>Division</span><select id="regDivision">${divisions.map(d=>`<option ${d===(u.division||"Patrol")?"selected":""}>${d}</option>`).join("")}</select></label>
       </div>
@@ -2341,7 +2403,7 @@ async function trainingHub(){
   try{
     const [eventSnap,regSnap]=await Promise.all([
       getDocs(collection(db,"training_events")),
-      isFTO()||isCommand()
+      hasPerm("training_manage")||hasPerm("fto_tools")
         ? getDocs(collection(db,"training_registrations"))
         : getDocs(query(collection(db,"training_registrations"),where("officerId","==",window.LSPD.user.uid)))
     ]);
@@ -2453,7 +2515,7 @@ async function renderMdtCaseFiles(){
   try{
     const [caseSnap,incidentSnap]=await Promise.all([
       getDocs(collection(db,"case_files")),
-      isCommand()?getDocs(collection(db,"incident_reports")):getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)))
+      hasPerm("incident_review")?getDocs(collection(db,"incident_reports")):getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)))
     ]);
     const cases=caseSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     const incidentsData=incidentSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -2636,12 +2698,12 @@ async function divisionsPage(){
       : await getDocs(query(collection(db,"division_applications"),where("applicantId","==",uid)));
     const applications=appSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     let counts={};
-    if(isCommand()){
+    if(hasPerm("division_review")){
       const users=await getUsers();
       for(const d of divisions) counts[d]=users.filter(u=>u.division===d && !["Archivé","Refusé","En attente"].includes(u.status)).length;
     }
     $("content").innerHTML=`<div class="card"><div class="muted">Ma division actuelle</div><div class="stat">${esc(window.LSPD.profile.division||"Patrol")}</div></div>
-      <div class="section-title">Divisions</div><div class="grid division-grid">${divisionInfo.map(d=>`<div class="card"><h3>${esc(d[0])}</h3><p class="muted">${esc(d[1])}</p>${isCommand()?`<div class="row"><span>Effectif actuel</span><b>${counts[d[0]]||0}</b></div>`:""}${d[0]!==window.LSPD.profile.division?`<button class="btn secondary division-apply" data-division="${esc(d[0])}">Candidater</button>`:""}</div>`).join("")}</div>
+      <div class="section-title">Divisions</div><div class="grid division-grid">${divisionInfo.map(d=>`<div class="card"><h3>${esc(d[0])}</h3><p class="muted">${esc(d[1])}</p>${hasPerm("division_review")?`<div class="row"><span>Effectif actuel</span><b>${counts[d[0]]||0}</b></div>`:""}${d[0]!==window.LSPD.profile.division?`<button class="btn secondary division-apply" data-division="${esc(d[0])}">Candidater</button>`:""}</div>`).join("")}</div>
       <div class="section-title">${hasPerm("division_review")?"Candidatures en attente":"Mes candidatures"}</div>
       <div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Officier</th><th>Division</th><th>Motivation</th><th>Statut</th>${hasPerm("shifts_manage")?"<th>Action</th>":""}</tr></thead><tbody>
       ${applications.length?applications.map(a=>`<tr><td>${formatDate(a.createdAt)}</td><td>${esc(a.applicantName)}</td><td>${esc(a.targetDivision)}</td><td>${esc(a.motivation)}</td><td><span class="tag ${a.status==="Approuvé"?"green":a.status==="Refusé"?"red":"orange"}">${esc(a.status)}</span></td>${hasPerm("division_review")?`<td>${a.status==="En attente"?`<button class="btn secondary division-review" data-id="${a.id}" data-status="Approuvé">Approuver la candidature</button> <button class="btn secondary division-review" data-id="${a.id}" data-status="Refusé">Refuser la candidature</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="6">Aucune candidature.</td></tr>'}
@@ -2743,22 +2805,24 @@ function openCommandPalette(){
 async function permissionsAdmin(){
   if(!isChief()) return;
   await loadPermissionsConfig();
-  const rolesMap=permissionRoles();
+  const gradesMap=permissionGrades();
+  const permissionGradeList=gradeList.map(g=>g[0]);
   $("content").innerHTML=`<div class="card permission-hero">
-    <div><span class="eyebrow">SECURITY & ACCESS</span><h2>Permissions & rôles</h2>
-    <p class="muted">Les permissions sont enregistrées dans Firestore. Le Chief peut les modifier ici sans changer le code.</p></div>
+    <div><span class="eyebrow">SECURITY & ACCESS</span><h2>Permissions par grade</h2>
+    <p class="muted">Chaque droit est maintenant attribué au <b>grade exact</b> de l'officier. Les rôles restent uniquement une couche technique et ne pilotent plus cette matrice.</p></div>
     <div class="shield-mark">🔐</div>
   </div>
   <div class="toolbar permission-toolbar">
     <button class="btn" id="savePermissionsBtn">Enregistrer les permissions</button>
     <button class="btn secondary" id="resetPermissionsBtn">Réinitialiser les valeurs par défaut</button>
-    <span class="muted">Le Chief conserve toujours tous les droits.</span>
+    <span class="muted">Chief of Police conserve toujours tous les droits.</span>
   </div>
-  <div class="card table-card permission-table-card"><table class="table permission-table"><thead><tr><th>Permission</th>${roles.map(r=>`<th>${esc(r)}</th>`).join("")}</tr></thead><tbody>
-  ${PERMISSION_CATALOG.map(([key,label])=>`<tr><td><b>${esc(label)}</b><small>${esc(key)}</small></td>${roles.map(r=>{
-    const locked=r==="Chief" || r==="Visiteur";
-    const checked=r==="Chief" || (!locked && (rolesMap[r]||[]).includes(key));
-    return `<td><label class="permission-check"><input type="checkbox" data-role="${esc(r)}" data-permission="${esc(key)}" ${checked?"checked":""} ${locked?"disabled":""}><span></span></label></td>`;
+  <div class="card security-note"><b>Grades nettoyés</b><span>PO1 / PO2 / PO3, Sergent et Deputy Chief ne sont plus proposés comme grades séparés. Les anciens profils sont automatiquement interprétés comme Police Officer1 / 2 / 3, Sergeant1 et Deputy Chief of Police.</span></div>
+  <div class="card table-card permission-table-card"><table class="table permission-table"><thead><tr><th>Permission</th>${permissionGradeList.map(g=>`<th>${esc(g)}</th>`).join("")}</tr></thead><tbody>
+  ${PERMISSION_CATALOG.map(([key,label])=>`<tr><td><b>${esc(label)}</b><small>${esc(key)}</small></td>${permissionGradeList.map(g=>{
+    const locked=g==="Chief of Police" || g==="Visiteur";
+    const checked=g==="Chief of Police" || (!locked && (gradesMap[g]||[]).includes(key));
+    return `<td><label class="permission-check"><input type="checkbox" data-grade="${esc(g)}" data-permission="${esc(key)}" ${checked?"checked":""} ${locked?"disabled":""}><span></span></label></td>`;
   }).join("")}</tr>`).join("")}
   </tbody></table></div>`;
   $("savePermissionsBtn").onclick=savePermissions;
@@ -2766,30 +2830,30 @@ async function permissionsAdmin(){
 }
 async function savePermissions(){
   if(!isChief()) return;
-  const rolesMap={};
-  for(const r of roles){
-    rolesMap[r]=r==="Chief"?PERMISSION_CATALOG.map(x=>x[0]):r==="Visiteur"?[]:
-      [...document.querySelectorAll(`input[data-role="${CSS.escape(r)}"][data-permission]:checked`)].map(x=>x.dataset.permission);
+  const gradesMap={};
+  for(const [g] of gradeList){
+    gradesMap[g]=g==="Chief of Police"?PERMISSION_CATALOG.map(x=>x[0]):g==="Visiteur"?[]:
+      [...document.querySelectorAll(`input[data-grade="${CSS.escape(g)}"][data-permission]:checked`)].map(x=>x.dataset.permission);
   }
   try{
     await setDoc(doc(db,"settings","permissions"),{
-      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:18
+      grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19
     });
-    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:18};
-    await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions & rôles");
+    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:19};
+    await addAudit("PERMISSIONS_UPDATED","settings/permissions","Permissions par grade");
     applyRoleVisibility();
-    showToast("Permissions enregistrées.","success");
+    showToast("Permissions par grade enregistrées.","success");
   }catch(err){ showToast("Erreur : "+(err.code||err.message),"error"); }
 }
 async function resetPermissionsDefaults(){
   if(!isChief()) return;
-  if(!confirm("Réinitialiser les valeurs par défaut ?")) return;
+  if(!confirm("Réinitialiser les permissions par grade aux valeurs par défaut ?")) return;
   try{
-    const rolesMap=JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS));
+    const gradesMap=JSON.parse(JSON.stringify(DEFAULT_GRADE_PERMISSIONS));
     await setDoc(doc(db,"settings","permissions"),{
-      roles:rolesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:18
+      grades:gradesMap,updatedById:window.LSPD.user.uid,updatedByName:window.LSPD.profile.name,updatedAt:serverTimestamp(),catalogVersion:19
     });
-    window.LSPD.permissionConfig={roles:rolesMap,catalogVersion:18};
+    window.LSPD.permissionConfig={grades:gradesMap,catalogVersion:19};
     showToast("Valeurs par défaut restaurées.","success");
     permissionsAdmin();
   }catch(err){showToast("Erreur : "+(err.code||err.message),"error");}
@@ -3038,7 +3102,7 @@ function trainingCenterTabs(){
     ["myTraining","🗓️","Mes formations",true],
     ["path","🛣️","Mon parcours",true],
     ["trainees","👥","Mes recrues",hasPerm("fto_tools")||hasPerm("academy_manage")],
-    ["management","📊","Pilotage",isCommand()||hasPerm("fto_assignments_view")||hasPerm("training_manage")||hasPerm("academy_final_review")]
+    ["management","📊","Pilotage",hasPerm("fto_assignments_view")||hasPerm("training_manage")||hasPerm("academy_final_review")]
   ].filter(x=>x[3]);
 
   return `<div class="training-hub-tabs">${tabs.map(([id,icon,label])=>`
@@ -3446,7 +3510,7 @@ async function trainingWorkspace(){
   $("trainingBackBtn").onclick=()=>{window.LSPD.trainingCenterTab="trainees";render("trainingCenter");};
   $("workspacePlanTrainingBtn")?.addEventListener("click",()=>openTrainingCreationWizard(stats.next,[uid]));
   $("workspaceManageTrainingBtn")?.addEventListener("click",()=>{
-    if(nextEvent.trainerId===window.LSPD.user.uid||isCommand())openTrainingEventManager(nextEvent.id);
+    if(nextEvent.trainerId===window.LSPD.user.uid||hasPerm("training_manage"))openTrainingEventManager(nextEvent.id);
     else openTrainingEventDetail(nextEvent.id);
   });
   $("workspaceChooseTrainingBtn").onclick=()=>openTraineeTrainingPicker(uid);
@@ -3874,7 +3938,7 @@ async function dashboard(){
   const pct=Math.round(validated.length/modules.length*100);
   let extra="";
 
-  if(isCommand()){
+  if(hasPerm("analytics")){
     try{
       const [usersSnap,leaveSnap,shiftSnap,evalSnap]=await Promise.all([
         getDocs(collection(db,"users")),
@@ -3911,7 +3975,7 @@ async function dashboard(){
     <div class="card"><div class="progress"><i style="width:${pct}%"></i></div>
       ${modules.slice(0,8).map(m=>`<div class="row"><span>${m[0]} — ${m[1]}</span><span class="tag ${validated.includes(m[0])?"green":""}">${validated.includes(m[0])?"Validé":"À faire"}</span></div>`).join("")}
     </div>
-    <div class="card"><h3>Dossier</h3><p><b>${esc(p?.name)}</b></p><p class="muted">${esc(window.LSPD.user?.email)}</p><p class="muted">${isFTO()?"Accès FTO/Command actif":"Accès Officer"}</p></div>
+    <div class="card"><h3>Dossier</h3><p><b>${esc(p?.name)}</b></p><p class="muted">${esc(window.LSPD.user?.email)}</p><p class="muted">${(hasPerm("fto_tools")||hasPerm("academy_manage"))?"Accès FTO/Command actif":"Accès Officer"}</p></div>
   </div>`;
 }
 
@@ -4513,11 +4577,11 @@ async function saveMessage(e){
 }
 async function incidents(){
   try{
-    const snap=isCommand()
+    const snap=hasPerm("incident_review")
       ? await getDocs(collection(db,"incident_reports"))
       : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newIncidentBtn">+ Nouveau rapport</button>${isCommand()?'<button class="btn secondary" id="exportIncidentsBtn">Exporter CSV</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Pièces</th><th>Statut</th><th>Validation</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${(r.attachments||[]).length}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td><td>${esc(r.approvedByName||"—")}</td></tr>`).join(""):'<tr><td colspan="7">Aucun rapport.</td></tr>'}</tbody></table></div>`;
+    $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newIncidentBtn">+ Nouveau rapport</button>${hasPerm("incident_review")?'<button class="btn secondary" id="exportIncidentsBtn">Exporter CSV</button>':""}</div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Titre</th><th>Pièces</th><th>Statut</th><th>Validation</th></tr></thead><tbody>${data.length?data.map(r=>`<tr><td>${formatDate(r.createdAt)}</td><td>${esc(r.authorName)}</td><td>${esc(r.type)}</td><td>${esc(r.title)}</td><td>${(r.attachments||[]).length}</td><td><span class="tag ${r.status==="Approuvé"?"green":r.status==="Refusé"?"red":"orange"}">${esc(r.status)}</span></td><td>${esc(r.approvedByName||"—")}</td></tr>`).join(""):'<tr><td colspan="7">Aucun rapport.</td></tr>'}</tbody></table></div>`;
     $("newIncidentBtn").onclick=openIncidentForm;
     $("exportIncidentsBtn")?.addEventListener("click",()=>csvDownload("incidents_lspd.csv",data.map(r=>({date:formatDate(r.createdAt),auteur:r.authorName,type:r.type,titre:r.title,statut:r.status,validation:r.approvedByName||""}))));
   }catch(err){ $("content").innerHTML=`<div class="card"><p class="error">${esc(err.code||err.message)}</p></div>`; }
@@ -4569,14 +4633,14 @@ async function reviewIncident(id,status){
 
 async function corrections(){
   try{
-    const snap=isCommand()
+    const snap=hasPerm("incident_review")
       ? await getDocs(collection(db,"correction_requests"))
       : await getDocs(query(collection(db,"correction_requests"),where("requestedById","==",window.LSPD.user.uid)));
     const data=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     $("content").innerHTML=`<div class="toolbar"><button class="btn" id="newCorrectionBtn">+ Demander une correction</button></div>
     <div class="card"><p class="muted">Les documents d'origine restent intacts. Une correction approuvée crée un <b>addendum</b> traçable.</p></div>
-    <div class="card table-card" style="margin-top:14px"><table class="table"><thead><tr><th>Date</th><th>Demandeur</th><th>Cible</th><th>Motif</th><th>Statut</th><th>Révision</th>${isSeniorCommand()?"<th></th>":""}</tr></thead><tbody>
-    ${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.requestedByName)}</td><td>${esc(c.targetType)} — ${esc(c.targetLabel)}</td><td>${esc(c.reason)}</td><td><span class="tag ${c.status==="Approuvé"?"green":c.status==="Refusé"?"red":"orange"}">${esc(c.status)}</span></td><td>${esc(c.reviewedByName||"—")}</td>${isSeniorCommand()?`<td>${c.status==="En attente"?`<button class="btn secondary correction-review" data-id="${c.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary correction-review" data-id="${c.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="7">Aucune demande.</td></tr>'}
+    <div class="card table-card" style="margin-top:14px"><table class="table"><thead><tr><th>Date</th><th>Demandeur</th><th>Cible</th><th>Motif</th><th>Statut</th><th>Révision</th>${hasPerm("incident_review")?"<th></th>":""}</tr></thead><tbody>
+    ${data.length?data.map(c=>`<tr><td>${formatDate(c.createdAt)}</td><td>${esc(c.requestedByName)}</td><td>${esc(c.targetType)} — ${esc(c.targetLabel)}</td><td>${esc(c.reason)}</td><td><span class="tag ${c.status==="Approuvé"?"green":c.status==="Refusé"?"red":"orange"}">${esc(c.status)}</span></td><td>${esc(c.reviewedByName||"—")}</td>${hasPerm("incident_review")?`<td>${c.status==="En attente"?`<button class="btn secondary correction-review" data-id="${c.id}" data-status="Approuvé">Approuver</button> <button class="btn secondary correction-review" data-id="${c.id}" data-status="Refusé">Refuser</button>`:""}</td>`:""}</tr>`).join(""):'<tr><td colspan="7">Aucune demande.</td></tr>'}
     </tbody></table></div>`;
     $("newCorrectionBtn").onclick=openCorrectionForm;
     document.querySelectorAll(".correction-review").forEach(b=>b.onclick=()=>reviewCorrection(b.dataset.id,b.dataset.status));
@@ -4587,13 +4651,13 @@ async function corrections(){
 
 async function openCorrectionForm(){
   try{
-    const incidentSnap=isCommand()
+    const incidentSnap=hasPerm("incident_review")
       ? await getDocs(collection(db,"incident_reports"))
       : await getDocs(query(collection(db,"incident_reports"),where("authorId","==",window.LSPD.user.uid)));
     let evalDocs=[];
-    if(isCommand()){
+    if(hasPerm("personnel_view")||hasPerm("academy_manage")){
       const s=await getDocs(collection(db,"evaluations")); evalDocs=s.docs;
-    }else if(isFTO()){
+    }else if(hasPerm("fto_tools")){
       const s=await getDocs(query(collection(db,"evaluations"),where("ftoId","==",window.LSPD.user.uid))); evalDocs=s.docs;
     }
 
@@ -4639,7 +4703,7 @@ async function saveCorrection(e){
 }
 
 async function reviewCorrection(id,status){
-  if(!isSeniorCommand()) return;
+  if(!hasPerm("incident_review")) return;
   try{
     const s=await getDoc(doc(db,"correction_requests",id));
     if(!s.exists()) return;
@@ -5418,7 +5482,7 @@ async function openTrainingEventManager(eventId){
   ]);
   if(!eventSnap.exists())return;
   const e={id:eventSnap.id,...eventSnap.data()};
-  if(e.trainerId!==window.LSPD.user.uid && !isCommand())return;
+  if(e.trainerId!==window.LSPD.user.uid && !hasPerm("training_manage"))return;
 
   const regs=regsSnap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status!=="Annulée");
   const eventEvals=evalSnap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.trainingEventId===eventId);
@@ -5662,7 +5726,7 @@ async function admin(){
     <div class="card admin-feature"><span class="eyebrow">SYSTEM</span><h3>Gestion système</h3><div class="row"><span>Profils</span><b>${users.length}</b></div><div class="row"><span>Authentication</span><b>Firebase Console</b></div><div class="row"><span>Rôles & unités</span><b>Onglet Officiers</b></div></div>
     <div class="card admin-feature"><span class="eyebrow">ACCOUNT PROVISIONING</span><h3>Comptes importés</h3><div class="row"><span>Total importé</span><b>${users.filter(u=>u.importedAccount).length}</b></div><div class="row"><span>Jamais activés</span><b>${users.filter(u=>u.importedAccount&&u.mustChangePassword).length}</b></div><div class="row"><span>Activés</span><b>${users.filter(u=>u.importedAccount&&!u.mustChangePassword).length}</b></div><p class="muted">Les codes provisoires des comptes à activer sont conservés dans un coffre Firestore séparé, lisible uniquement avec la permission dédiée, puis deviennent inaccessibles après activation.</p></div>
     <div class="card admin-feature recruitment-admin-card"><span class="eyebrow">RECRUITMENT CONTROL</span><h3>Candidatures LSPD</h3><div class="recruitment-open-state ${recruitmentSettings.open?"open":"closed"}"><b>${recruitmentSettings.open?"🟢 OUVERTES":"🔒 FERMÉES"}</b><span>${recruitmentSettings.open?"Les candidats peuvent déposer un nouveau dossier.":"Aucun nouveau dossier ne peut être déposé."}</span></div><div class="admin-recruitment-actions"><button class="btn ${recruitmentSettings.open?"danger":""}" id="adminRecruitmentToggle">${recruitmentSettings.open?"Fermer les candidatures":"Ouvrir les candidatures"}</button><button class="btn secondary" id="openRecruitmentControlBtn">Gestion avancée</button></div></div>
-    <div class="card admin-feature"><span class="eyebrow">ACCESS CONTROL</span><h3>Permissions</h3><p class="muted">Configure les droits de chaque rôle sans modifier app.js.</p><button class="btn" id="openPermissionsBtn">🔐 Permissions</button></div>
+    <div class="card admin-feature"><span class="eyebrow">ACCESS CONTROL</span><h3>Permissions</h3><p class="muted">Configure les droits de chaque grade sans modifier app.js.</p><button class="btn" id="openPermissionsBtn">🔐 Permissions</button></div>
     <div class="card admin-feature"><span class="eyebrow">NAVIGATION</span><h3>Menus par grade</h3><p class="muted">Affiche ou masque chaque grande catégorie du menu selon le grade exact de l'officier.</p><button class="btn" id="openNavigationAdminBtn">🧭 Configurer les menus</button></div>
     <div class="card admin-feature"><span class="eyebrow">OPERATIONS</span><h3>CAD & Watch</h3><p class="muted">Unités live, BOLO et Watch Commander sont intégrés au Command Center.</p></div>
     <div class="card admin-feature"><span class="eyebrow">ARCHIVE</span><h3>Archivage</h3><p class="muted">Pour retirer un officier des listes actives sans supprimer son historique, passe son statut à <b>Archivé</b>.</p></div>
@@ -5676,7 +5740,7 @@ async function admin(){
 async function recruitmentControl(){
   if(!hasPerm("recruitment_settings_manage"))return;
   const settings=await getRecruitmentSettings();
-  $("content").innerHTML=`<div class="card recruitment-control-panel"><div class="recruitment-control-hero"><div><span class="eyebrow">BUREAU DU RECRUTEMENT</span><h2>Ouverture des candidatures</h2><p>Ce contrôle agit immédiatement sur le portail public et sur les règles Firestore.</p></div><div class="recruitment-open-state large ${settings.open?"open":"closed"}"><b>${settings.open?"🟢 CANDIDATURES OUVERTES":"🔒 CANDIDATURES FERMÉES"}</b><span>${settings.open?"Les nouveaux candidats peuvent créer leur dossier.":"Les nouveaux dépôts sont bloqués."}</span></div></div><div class="recruitment-control-actions"><button class="btn ${settings.open?"danger":""}" id="recruitmentMainToggle">${settings.open?"🔒 Fermer les candidatures":"🟢 Ouvrir les candidatures"}</button></div><div class="security-note"><b>Permission dédiée</b><span>Le droit <code>recruitment_settings_manage</code> peut être accordé depuis Permissions à Captain, Lieutenant ou tout autre rôle. La visibilité du groupe Commandement & administration reste également soumise à Menus par grade.</span></div>${settings.updatedByName?`<p class="muted recruitment-last-update">Dernière modification : ${esc(settings.updatedByName)} • ${formatDate(settings.updatedAt)}</p>`:""}</div>`;
+  $("content").innerHTML=`<div class="card recruitment-control-panel"><div class="recruitment-control-hero"><div><span class="eyebrow">BUREAU DU RECRUTEMENT</span><h2>Ouverture des candidatures</h2><p>Ce contrôle agit immédiatement sur le portail public et sur les règles Firestore.</p></div><div class="recruitment-open-state large ${settings.open?"open":"closed"}"><b>${settings.open?"🟢 CANDIDATURES OUVERTES":"🔒 CANDIDATURES FERMÉES"}</b><span>${settings.open?"Les nouveaux candidats peuvent créer leur dossier.":"Les nouveaux dépôts sont bloqués."}</span></div></div><div class="recruitment-control-actions"><button class="btn ${settings.open?"danger":""}" id="recruitmentMainToggle">${settings.open?"🔒 Fermer les candidatures":"🟢 Ouvrir les candidatures"}</button></div><div class="security-note"><b>Permission dédiée</b><span>Le droit <code>recruitment_settings_manage</code> peut être accordé depuis Permissions à Captain, Lieutenant ou tout autre grade. La visibilité du groupe Commandement & administration reste également soumise à Menus par grade.</span></div>${settings.updatedByName?`<p class="muted recruitment-last-update">Dernière modification : ${esc(settings.updatedByName)} • ${formatDate(settings.updatedAt)}</p>`:""}</div>`;
   $("recruitmentMainToggle").onclick=async()=>{await saveRecruitmentOpenState(!settings.open);await recruitmentControl();};
 }
 
@@ -5685,7 +5749,7 @@ async function navigationAdmin(){
   const users=await getUsers(),cfg=window.LSPD.navigationConfig?.groups?window.LSPD.navigationConfig:defaultNavigationConfig();
   const grades=navigationGradeList();
   const counts=Object.fromEntries(grades.map(g=>[g,users.filter(u=>u.grade===g && u.status!=="Archivé").length]));
-  $("content").innerHTML=`<div class="navigation-admin-head card"><div><span class="eyebrow">CHIEF ACCESS CONTROL</span><h2>Visibilité des catégories par grade</h2><p>Décide quels grades voient chacune des grandes catégories du menu gauche. Ce filtre s'ajoute aux permissions existantes : un menu visible ne donne jamais un droit que le rôle ne possède pas.</p></div><div class="nav-admin-actions"><button class="btn secondary" id="navResetAll">Réinitialiser</button><button class="btn" id="navSaveAll">Enregistrer</button></div></div><div class="nav-visibility-grid">${Object.entries(NAV_GROUP_LABELS).map(([key,label])=>{const allowed=cfg.groups?.[key]||grades;return `<section class="card nav-visibility-card" data-nav-config-group="${key}"><header><div><span class="eyebrow">CATÉGORIE</span><h3>${esc(label)}</h3></div><div><button class="btn tiny secondary nav-group-all" type="button">Tous</button> <button class="btn tiny secondary nav-group-none" type="button">Aucun</button></div></header><div class="grade-visibility-list">${grades.map(g=>`<label class="grade-visibility-item"><input type="checkbox" value="${esc(g)}" ${allowed.includes(g)?"checked":""}><span><b>${esc(g)}</b><small>${counts[g]||0} membre${counts[g]===1?"":"s"}</small></span></label>`).join("")}</div></section>`}).join("")}</div><div class="card security-note"><b>Important</b><span>Le Chief garde toujours accès à toutes les catégories pour éviter un verrouillage administratif. Mon profil reste accessible à tous. Un membre Inactif reste limité à Profil + Handbook + Annonces ; un membre Suspendu est bloqué.</span></div>`;
+  $("content").innerHTML=`<div class="navigation-admin-head card"><div><span class="eyebrow">CHIEF ACCESS CONTROL</span><h2>Visibilité des catégories par grade</h2><p>Décide quels grades voient chacune des grandes catégories du menu gauche. Ce filtre s'ajoute aux permissions existantes : un menu visible ne donne jamais un droit que le grade ne possède pas.</p></div><div class="nav-admin-actions"><button class="btn secondary" id="navResetAll">Réinitialiser</button><button class="btn" id="navSaveAll">Enregistrer</button></div></div><div class="nav-visibility-grid">${Object.entries(NAV_GROUP_LABELS).map(([key,label])=>{const allowed=cfg.groups?.[key]||grades;return `<section class="card nav-visibility-card" data-nav-config-group="${key}"><header><div><span class="eyebrow">CATÉGORIE</span><h3>${esc(label)}</h3></div><div><button class="btn tiny secondary nav-group-all" type="button">Tous</button> <button class="btn tiny secondary nav-group-none" type="button">Aucun</button></div></header><div class="grade-visibility-list">${grades.map(g=>`<label class="grade-visibility-item"><input type="checkbox" value="${esc(g)}" ${allowed.includes(g)?"checked":""}><span><b>${esc(g)}</b><small>${counts[g]||0} membre${counts[g]===1?"":"s"}</small></span></label>`).join("")}</div></section>`}).join("")}</div><div class="card security-note"><b>Important</b><span>Le Chief garde toujours accès à toutes les catégories pour éviter un verrouillage administratif. Mon profil reste accessible à tous. Un membre Inactif reste limité à Profil + Handbook + Annonces ; un membre Suspendu est bloqué.</span></div>`;
   document.querySelectorAll(".nav-visibility-card").forEach(card=>{
     card.querySelector(".nav-group-all").onclick=()=>card.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=true);
     card.querySelector(".nav-group-none").onclick=()=>card.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=false);

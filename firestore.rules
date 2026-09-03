@@ -18,6 +18,14 @@ service cloud.firestore {
     function myRole() { return signedIn() ? myProfile().data.role : null; }
     function myStatus() { return signedIn() ? myProfile().data.status : null; }
     function myGrade() { return signedIn() ? myProfile().data.grade : null; }
+    function myPermissionGrade() {
+      let g = myGrade();
+      return g == "PO1" ? "Police Officer1" :
+        g == "PO2" ? "Police Officer2" :
+        g == "PO3" ? "Police Officer3" :
+        g == "Sergent" ? "Sergeant1" :
+        g == "Deputy Chief" ? "Deputy Chief of Police" : g;
+    }
     function isVisitor() { return hasSiteAccess() && myRole() == "Visiteur"; }
     function isApplicant() { return hasSiteAccess() && myRole() == "Applicant"; }
     function isInactive() { return hasSiteAccess() && myStatus() == "Inactif" && myRole() != "Visiteur" && myRole() != "Applicant"; }
@@ -30,7 +38,7 @@ service cloud.firestore {
         !exists(navRef) ||
         !get(navRef).data.keys().hasAny(["groups"]) ||
         !get(navRef).data.groups.keys().hasAny([group]) ||
-        get(navRef).data.groups[group].hasAny([myGrade()])
+        get(navRef).data.groups[group].hasAny([myGrade(), myPermissionGrade()])
       );
     }
 
@@ -68,7 +76,7 @@ service cloud.firestore {
       );
     }
 
-    function isChief() { return isInternal() && myRole() == "Chief"; }
+    function isChief() { return isInternal() && (myRole() == "Chief" || myPermissionGrade() == "Chief of Police"); }
 
     function isSeniorCommand() {
       return isInternal() && (
@@ -79,27 +87,31 @@ service cloud.firestore {
     }
 
     function defaultHasPerm(permission) {
+      let g = myPermissionGrade();
+      let commandDefaults = [
+        "fto_tools","personnel_view","fto_assignments_view","certifications_view",
+        "records_view","shifts_view","duty_board","leave_review","training_manage",
+        "incident_review","mdt_manage","promotions_view","analytics","audit",
+        "announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"
+      ];
       return isChief()
-        || (
-          myRole() == "FTO"
-          && ["fto_tools","training_manage","academy_manage","academy_content_manage"].hasAny([permission])
-        )
-        || (
-          isCommand()
-          && [
-            "fto_tools","personnel_view","fto_assignments_view","certifications_view",
-            "records_view","shifts_view","duty_board","leave_review","training_manage",
-            "incident_review","mdt_manage","promotions_view","analytics","audit",
-            "announcements_manage","cad_manage","bolo_manage","watch_manage","academy_manage","academy_content_manage","academy_final_review"
-          ].hasAny([permission])
-        );
+        || (["Sergeant1","Sergeant2","Lieutenant","Commander","Captain","Deputy Chief of Police","Assistant Chief","Commissioner"].hasAny([g]) && commandDefaults.hasAny([permission]));
     }
 
     function configuredHasPerm(permission) {
       let cfg = get(/databases/$(database)/documents/settings/permissions).data;
-      return cfg.keys().hasAny(["roles"])
+      let g = myPermissionGrade();
+      return (
+        cfg.keys().hasAny(["grades"])
+        && cfg.grades.keys().hasAny([g])
+        && cfg.grades[g].hasAny([permission])
+      ) || (
+        // Temporary backward compatibility until the Chief opens/saves the new grade matrix.
+        !cfg.keys().hasAny(["grades"])
+        && cfg.keys().hasAny(["roles"])
         && cfg.roles.keys().hasAny([myRole()])
-        && cfg.roles[myRole()].hasAny([permission]);
+        && cfg.roles[myRole()].hasAny([permission])
+      );
     }
 
     function hasPerm(permission) {
@@ -132,7 +144,7 @@ service cloud.firestore {
           && (
             (
               request.resource.data.selfRegistered == true
-              && request.resource.data.grade == "PO1"
+              && request.resource.data.grade == "Rookie"
               && request.resource.data.role == "Officer"
               && request.resource.data.status == "En attente"
               && request.resource.data.division == "Patrol"

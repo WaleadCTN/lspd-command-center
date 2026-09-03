@@ -1332,3 +1332,14 @@ Le firestore.rules de la Phase 17.9 peut être conservé tel quel.
 
 TEST
 https://waleadctn.github.io/lspd-command-center/?v=1710
+
+
+PHASE 17.11.4 — PERMISSIONS PAR GRADE & GRADES NETTOYÉS
+- La matrice de permissions du Chief est désormais entièrement gérée par grade exact.
+- Les rôles restent présents techniquement pour compatibilité/FTO, mais ne pilotent plus hasPerm().
+- Migration automatique de settings/permissions.roles vers settings/permissions.grades.
+- Grades legacy retirés des sélecteurs : PO1, PO2, PO3, Sergent, Deputy Chief.
+- Correspondances automatiques : PO1→Police Officer1, PO2→Police Officer2, PO3→Police Officer3, Sergent→Sergeant1, Deputy Chief→Deputy Chief of Police.
+- Menus par grade migrés/canonicalisés pour éviter les doublons.
+- Chief of Police conserve tous les droits.
+- Publier firestore.rules après déploiement.
